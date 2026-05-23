@@ -373,7 +373,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
     <div class="ibkr-balance">
       <div class="ib-top">
         <div class="ib-title">🏛️ Solde IBKR</div>
-        <a class="ib-link" href="https://clientportal.ibkr.ie" target="_blank">Voir sur IBKR ↗</a>
+        <a class="ib-link" href="https://www.interactivebrokers.co.uk" target="_blank">Voir sur IBKR ↗</a>
       </div>
       <div class="ib-amounts">
         <div class="ib-amount">
@@ -396,7 +396,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
         <input class="ib-input" id="ibkr-input-total" type="number" placeholder="Entre ton solde IBKR actuel (€)">
         <button class="ib-save" onclick="updateIBKRBalance()">UPDATE</button>
       </div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:6px">Entre ton solde depuis IBKR Mobile ou clientportal.ibkr.ie → Updated manuellement jusqu'à connexion API</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:6px">Entre ton solde depuis IBKR Mobile ou www.interactivebrokers.co.uk → Updated manuellement jusqu'à connexion API</div>
     </div>
 
     <!-- Progress -->
@@ -844,7 +844,7 @@ function executeBracket() {
   renderPositions(); save(); closeBracket();
 
   // Open IBKR with bracket order URL
-  const ibkrUrl = 'https://clientportal.ibkr.ie/portal/#/trade?symbol=' + asset + '&exchange=SMART&currency=USD';
+  const ibkrUrl = 'https://www.interactivebrokers.co.uk/portal/?action=trade&symbol=' + asset + '&exchange=SMART&currency=USD';
   window.open(ibkrUrl, '_blank');
   showToast('✓ IBKR ouvert · Place: BUY ' + asset + ' + Stop $' + stop + ' + Target $' + target, 'gain');
 }
@@ -872,7 +872,7 @@ function closePosition(i) {
   const p = positions[i];
   const pl = ((p.current - p.entry) / p.entry) * p.size;
   const plPct = (p.current - p.entry) / p.entry * 100;
-  window.open('https://clientportal.ibkr.ie/portal/#/trade?symbol=' + p.asset, '_blank');
+  window.open('https://www.interactivebrokers.co.uk/portal/?action=trade&symbol=' + p.asset, '_blank');
   showToast((pl>=0?'✓ GAIN: +':'✗ LOSS: ') + '€' + Math.abs(pl).toFixed(2) + ' (' + (plPct>=0?'+':'') + plPct.toFixed(1) + '%) — ' + p.asset, pl>=0?'gain':'loss');
   positions.splice(i, 1); renderPositions(); save();
 }
