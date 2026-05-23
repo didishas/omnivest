@@ -6,8 +6,6 @@
 <meta name="theme-color" content="#07080a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OmniVest">
-<link rel="icon" href="omnivest-icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="omnivest-icon.svg">
 <title>OmniVest v4 — Live Signals</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -520,6 +518,17 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
   <div class="scroll">
     <div class="stitle">⚙️ <span>Settings</span></div>
 
+    <div class="api-setup" style="margin-bottom:14px;border-color:rgba(0,229,160,.3)">
+      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px">🤖 Anthropic API Key (AI Analyst)</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Nécessaire pour que l'AI Analyst fonctionne. Stockée uniquement sur cet appareil, jamais visible sur GitHub.</div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--txt3);margin-bottom:6px">→ <strong style="color:var(--green)">console.anthropic.com</strong> → API Keys → Create → Colle ici</div>
+      <div class="api-row">
+        <input class="api-input" id="anthropic-key-input" type="password" placeholder="sk-ant-api03-...">
+        <button class="api-save" style="background:var(--green);color:#000" onclick="saveAnthropicKey()">SAVE</button>
+      </div>
+      <div id="anthropic-status" style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:6px"></div>
+    </div>
+
     <div class="api-setup">
       <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">🔑 Finnhub Live Market Data</div>
       <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Free API for live stock prices, crypto, forex. 60 calls/minute on free tier.</div>
@@ -915,9 +924,18 @@ function importData(evt) {
   reader.readAsText(file);
 }
 
+// ══ ANTHROPIC KEY ══
+function saveAnthropicKey() {
+  const k = document.getElementById('anthropic-key-input').value.trim();
+  if (!k || k.startsWith('•')) return;
+  localStorage.setItem('anthropic_key', k);
+  document.getElementById('anthropic-status').textContent = '✓ Clé sauvegardée — AI Analyst activé !';
+  document.getElementById('anthropic-status').style.color = 'var(--green)';
+  document.getElementById('anthropic-key-input').value = '••••••••••••••••';
+}
+
 // ══ CHAT ══
 let msgN = 0;
-const ANTHROPIC_KEY = localStorage.getItem('anthropic_key') || '';
 const SYS = 'You are OmniVest AI — elite trading analyst. User: Belgian investor in Liège. Capital: €' + capital + '. Goal: €1K→€10K→€50K→diversify. Platform: Interactive Brokers (IBKR), TWS API available. Trading hours: flexible, usually 20:00–00:00 CET. Belgian taxes: TOB 0.12–1.32% (self-declare with IBKR), 10% capital gains (first €10K/yr exempt), 30% dividend tax.\n\nYour DNA: Buffett (value, moats) + Soros (reflexivity, macro) + Lynch (10-baggers) + Livermore (tape, timing) + Simons (quant patterns) + Graham (margin of safety) + Templeton (contrarian) + Tudor Jones (macro, cut losses) + Dalio (all-weather) + Druckenmiller (concentrated bets) + Thorp (Kelly sizing) + Dennis (trend following). 120+ years market history pattern recognition.\n\nCurrent context (May 2026): Hormuz 95% closed, Brent $118, marine insurance +340% (hidden signal), Fed hold 5.25%, China GDP 3.8%, Europe recession, India demographic boom, Africa energy alternative boom, BTC $93K, VIX 28.4, US mid-terms Nov 2026 (+16% historical pattern).\n\nFormat every trading answer as:\n🎯 SIGNAL: [BUY/SELL/HOLD/WATCH] [ASSET]\n📊 Confidence: X/10 | Timeframe: [day/swing/long-term]\n💡 Why in 2–3 clear sentences a beginner understands\n📈 Entry: $X | Target: $X (+Y%) | Stop-loss: $X\n🔍 Hidden insight others miss\n🇧🇪 Belgian tax: [specific impact]\n⚠️ Risk: [main risk]\n\nBe bold, specific, and clear. User executes on IBKR — never Claude. Always give entry/target/stop numbers.';
 
 function addMsg(role, html) {
@@ -952,8 +970,10 @@ async function sendMsg(override) {
   chatHistory.push({ role:'user', content: text + '\n[Portfolio: ' + getPosCtx() + '] [Hours: ' + tradingHours.from + '-' + tradingHours.to + ']' });
   const tid = addMsg('ai','<span class="dots">Analysing global signals</span>');
   try {
+    const anthropicKey = localStorage.getItem('anthropic_key') || '';
+    if (!anthropicKey) { updMsg(tid, '⚠️ Clé Anthropic manquante — va dans Settings ⚙️ et entre ta clé API.'); document.getElementById('go-btn').disabled = false; return; }
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system:SYS, messages:chatHistory.slice(-20) })
     });
     const data = await res.json();
@@ -986,6 +1006,11 @@ generateSignals();
 renderPositions();
 if (finnhubKey) { fetchAllPrices(); startLiveFeed(); }
 else { document.getElementById('live-lbl').textContent = 'NO KEY'; document.getElementById('live-pulse').style.background='var(--amber)'; }
+// Restore anthropic key status
+if (localStorage.getItem('anthropic_key')) {
+  const el = document.getElementById('anthropic-status');
+  if (el) { el.textContent = '✓ Clé Anthropic active — AI Analyst prêt'; el.style.color = 'var(--green)'; }
+}
 </script>
 </body>
 </html>
