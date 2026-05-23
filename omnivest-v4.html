@@ -974,7 +974,7 @@ async function sendMsg(override) {
     if (!anthropicKey) { updMsg(tid, '⚠️ Clé Anthropic manquante — va dans Settings ⚙️ et entre ta clé API.'); document.getElementById('go-btn').disabled = false; return; }
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST', headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system:SYS, messages:chatHistory.slice(-20) })
+      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:1000, system:SYS, messages:chatHistory.slice(-20) })
     });
     const data = await res.json();
     const reply = data.content?.[0]?.text || 'Error — retry.';
