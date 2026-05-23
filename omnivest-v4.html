@@ -3,10 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#07080a">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OmniVest">
-<title>OmniVest v4 — Live Signals</title>
+<link rel="icon" href="omnivest-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="omnivest-icon.svg">
+<title>OmniVest v5 — Live Intelligence</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -27,7 +29,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg)}
 body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-direction:column}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
 
-/* TOPBAR */
 .topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(7,8,10,.97);backdrop-filter:blur(20px);flex-shrink:0;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:8px}
 .bmark{width:30px;height:30px;border:1.5px solid var(--gold);border-radius:7px;display:grid;place-items:center;font-size:14px;color:var(--gold);font-weight:700;flex-shrink:0}
@@ -43,7 +44,6 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .ptchip{background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:5px 12px;font-family:var(--mono);font-size:12px;cursor:pointer}
 .ptchip span{color:var(--gold2);font-weight:500}
 
-/* TICKER */
 .ticker-wrap{display:flex;align-items:center;height:30px;border-bottom:1px solid var(--border);flex-shrink:0;overflow:hidden}
 .ticker-badge{background:var(--gold);color:#000;font-family:var(--mono);font-size:9px;font-weight:700;padding:0 12px;height:100%;display:flex;align-items:center;flex-shrink:0;letter-spacing:1px}
 .ticker-track{overflow:hidden;flex:1;height:100%}
@@ -52,60 +52,54 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .t-up{color:var(--green)}.t-dn{color:var(--red)}.t-warn{color:var(--amber)}
 
-/* PANELS */
 .panel{display:none;flex:1;overflow:hidden;flex-direction:column}
 .panel.active{display:flex}
 .scroll{flex:1;overflow-y:auto;padding:14px}
 
-/* SIGNAL ALERT — the big BUY/SELL card */
-.signal-alert{border-radius:var(--r);padding:16px 18px;margin-bottom:12px;position:relative;overflow:hidden;cursor:pointer;transition:transform .15s}
-.signal-alert:hover{transform:scale(1.01)}
-.signal-alert.BUY{background:linear-gradient(135deg,rgba(0,229,160,.18),rgba(0,229,160,.06));border:1.5px solid rgba(0,229,160,.4)}
-.signal-alert.SELL{background:linear-gradient(135deg,rgba(255,71,87,.18),rgba(255,71,87,.06));border:1.5px solid rgba(255,71,87,.4)}
-.signal-alert.WATCH{background:linear-gradient(135deg,rgba(255,165,2,.12),rgba(255,165,2,.04));border:1.5px solid rgba(255,165,2,.3)}
-.signal-alert.HOLD{background:linear-gradient(135deg,rgba(74,158,255,.1),rgba(74,158,255,.03));border:1.5px solid rgba(74,158,255,.25)}
-.sa-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
-.sa-action{font-family:var(--mono);font-size:28px;font-weight:700;line-height:1}
+/* SIGNAL CARDS */
+.signal-alert{border-radius:var(--r);padding:16px 18px;margin-bottom:12px;position:relative;overflow:hidden;cursor:pointer;transition:transform .15s;border:1.5px solid}
+.signal-alert:hover{transform:scale(1.005)}
+.signal-alert.BUY{background:linear-gradient(135deg,rgba(0,229,160,.15),rgba(0,229,160,.04));border-color:rgba(0,229,160,.4)}
+.signal-alert.SELL{background:linear-gradient(135deg,rgba(255,71,87,.15),rgba(255,71,87,.04));border-color:rgba(255,71,87,.4)}
+.signal-alert.WATCH{background:linear-gradient(135deg,rgba(255,165,2,.1),rgba(255,165,2,.03));border-color:rgba(255,165,2,.3)}
+.signal-alert.HOLD{background:linear-gradient(135deg,rgba(74,158,255,.08),rgba(74,158,255,.02));border-color:rgba(74,158,255,.25)}
+.sa-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.sa-action{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1}
 .sa-action.BUY{color:var(--green)}.sa-action.SELL{color:var(--red)}.sa-action.WATCH{color:var(--amber)}.sa-action.HOLD{color:var(--blue)}
-.sa-asset{font-size:18px;font-weight:700;margin-bottom:2px}
-.sa-price{font-family:var(--mono);font-size:13px;color:var(--txt2)}
-.sa-why{font-size:13px;line-height:1.6;color:var(--txt);margin-bottom:12px}
-.sa-levels{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.sa-asset{font-size:17px;font-weight:700;margin-bottom:2px}
+.sa-price{font-family:var(--mono);font-size:12px;color:var(--txt2)}
+.sa-why{font-size:12px;line-height:1.6;color:var(--txt);margin-bottom:10px}
+.sa-hidden{font-size:11px;color:var(--amber);margin-bottom:10px;font-family:var(--mono)}
+.sa-levels{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .sa-level{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:var(--mono);font-size:10px}
 .sa-level .lbl{color:var(--txt3);display:block;margin-bottom:2px}
-.sa-level .val{font-weight:500}
-.sa-level .val.entry{color:var(--blue)}.sa-level .val.target{color:var(--green)}.sa-level .val.stop{color:var(--red)}
-.sa-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.sa-meta{font-family:var(--mono);font-size:10px;color:var(--txt3)}
-.sa-meta span{color:var(--txt2)}
-.ibkr-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;border:none;font-family:var(--mono);font-size:11px;font-weight:500;cursor:pointer;letter-spacing:.5px;transition:all .15s}
-.ibkr-btn.buy-btn{background:var(--green);color:#000}
-.ibkr-btn.sell-btn{background:var(--red);color:#fff}
-.ibkr-btn.watch-btn{background:var(--amber);color:#000}
-.ibkr-btn:hover{opacity:.88;transform:scale(.98)}
-.ibkr-btn:active{transform:scale(.95)}
-.confidence-bar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:10px}
-.confidence-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.val.entry{color:var(--blue)}.val.target{color:var(--green)}.val.stop{color:var(--red)}.val.tax{color:var(--txt2)}
+.conf-bar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:10px}
+.conf-fill{height:100%;border-radius:2px;transition:width .5s}
+.sa-actions{display:flex;gap:8px;flex-wrap:wrap}
+.ibkr-main{flex:1;padding:11px 16px;border-radius:8px;border:none;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .15s}
+.ibkr-main.buy{background:var(--green);color:#000}
+.ibkr-main.sell{background:var(--red);color:#fff}
+.ibkr-main.watch{background:var(--amber);color:#000}
+.ibkr-main:hover{opacity:.88}
+.bracket-btn{padding:11px 14px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--txt2);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.bracket-btn:hover{border-color:var(--gold);color:var(--gold)}
 
-/* SIGNAL LIST items (compact) */
-.sig-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.sig-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
-.sig-item.BUY::before{background:var(--green)}.sig-item.SELL::before{background:var(--red)}
-.sig-item.WATCH::before{background:var(--amber)}.sig-item.HOLD::before{background:var(--blue)}
-.sig-item:hover{border-color:var(--border2);transform:translateX(2px)}
-.si-action{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;flex-shrink:0;letter-spacing:.5px}
-.si-action.BUY{background:var(--gdim2);color:var(--green);border:1px solid rgba(0,229,160,.3)}
-.si-action.SELL{background:var(--rdim);color:var(--red);border:1px solid rgba(255,71,87,.3)}
-.si-action.WATCH{background:rgba(255,165,2,.1);color:var(--amber);border:1px solid rgba(255,165,2,.3)}
-.si-action.HOLD{background:var(--bdim);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
-.si-asset{font-size:13px;font-weight:700;flex-shrink:0;min-width:50px}
-.si-body{flex:1;min-width:0}
-.si-title{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
-.si-sub{font-size:10px;color:var(--txt2);font-family:var(--mono)}
-.si-right{text-align:right;flex-shrink:0}
-.si-price{font-family:var(--mono);font-size:13px;font-weight:500}
-.si-chg{font-family:var(--mono);font-size:10px}
-.si-conf{font-family:var(--mono);font-size:9px;color:var(--txt3)}
+/* BRACKET ORDER PANEL */
+.bracket-panel{background:var(--bg2);border:1px solid var(--gold);border-radius:var(--r);padding:16px;margin-bottom:12px;display:none}
+.bracket-panel.show{display:block}
+.bp-title{font-size:14px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.bp-sub{font-size:11px;color:var(--txt2);margin-bottom:14px;font-family:var(--mono)}
+.bp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.bp-full{grid-column:1/-1}
+.bp-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--txt3);display:block;margin-bottom:4px}
+.bp-input{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--txt);font-family:var(--mono);font-size:13px;outline:none;width:100%;transition:border-color .2s}
+.bp-input:focus{border-color:var(--gold)}
+.bp-info{background:var(--bg3);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:10px;color:var(--txt2);margin-bottom:12px;line-height:1.6}
+.bp-info strong{color:var(--green)}
+.bp-submit{width:100%;padding:12px;border-radius:8px;border:none;font-family:var(--mono);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.5px;background:var(--green);color:#000;transition:opacity .15s}
+.bp-submit:hover{opacity:.88}
+.bp-cancel{background:none;border:none;color:var(--txt3);cursor:pointer;font-family:var(--mono);font-size:10px;margin-top:8px;display:block;text-align:center;width:100%}
 
 /* GAUGES */
 .gauge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:14px}
@@ -114,49 +108,49 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .g-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--txt3);margin-bottom:4px}
 .g-val{font-family:var(--mono);font-size:15px;font-weight:500}
 .g-chg{font-family:var(--mono);font-size:9px;margin-top:2px}
-.live-price{position:relative}.live-price::after{content:'';position:absolute;top:2px;right:0;width:5px;height:5px;border-radius:50%;background:var(--green);animation:hb 2s infinite}
 
-/* IBKR ORDER PANEL */
-.order-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:16px;margin-bottom:14px;display:none}
-.order-panel.show{display:block}
-.order-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.order-title{font-size:14px;font-weight:700}
-.order-close{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:20px;line-height:1}
-.order-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.order-full{grid-column:1/-1}
-.order-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--txt3);display:block;margin-bottom:4px}
-.order-input{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--txt);font-family:var(--mono);font-size:13px;outline:none;width:100%;transition:border-color .2s}
-.order-input:focus{border-color:var(--gold)}
-.order-submit{grid-column:1/-1;padding:12px;border-radius:8px;border:none;font-family:var(--mono);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .15s}
-.order-submit.buy{background:var(--green);color:#000}
-.order-submit.sell{background:var(--red);color:#fff}
-.order-submit:hover{opacity:.88}
-.ibkr-note{font-family:var(--mono);font-size:10px;color:var(--txt3);text-align:center;margin-top:8px}
-.ibkr-note a{color:var(--gold);text-decoration:none}
+/* IBKR BALANCE */
+.ibkr-balance{background:linear-gradient(135deg,rgba(0,229,160,.12),rgba(0,229,160,.04));border:1px solid rgba(0,229,160,.3);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.ib-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ib-title{font-size:13px;font-weight:700;color:var(--green)}
+.ib-link{font-family:var(--mono);font-size:10px;color:var(--gold);text-decoration:none;cursor:pointer}
+.ib-amounts{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.ib-amount{background:rgba(0,0,0,.2);border-radius:7px;padding:9px 12px}
+.ib-a-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--txt3);margin-bottom:3px}
+.ib-a-val{font-family:var(--mono);font-size:16px;font-weight:500}
+.ib-a-sub{font-size:10px;color:var(--txt2);margin-top:2px}
+.ib-update{display:flex;gap:6px;margin-top:10px}
+.ib-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--txt);font-family:var(--mono);font-size:12px;outline:none}
+.ib-input:focus{border-color:var(--green)}
+.ib-save{background:var(--green);color:#000;border:none;border-radius:6px;padding:7px 14px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer}
 
-/* RESULT TOAST */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;font-family:var(--mono);font-size:12px;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none}
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;font-family:var(--mono);font-size:12px;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.gain{border-color:rgba(0,229,160,.4);color:var(--green)}
 .toast.loss{border-color:rgba(255,71,87,.4);color:var(--red)}
+.toast.info{border-color:rgba(201,168,76,.4);color:var(--gold)}
 
 /* POSITIONS */
-.pos-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
-.pos-card:hover{border-color:var(--border2)}
+.pos-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px}
 .pos-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .pos-ticker{font-family:var(--mono);font-size:14px;font-weight:700}
 .pos-pnl{font-family:var(--mono);font-size:14px;font-weight:700}
+.pos-bar-wrap{height:2px;background:var(--bg4);border-radius:1px;overflow:hidden;margin:8px 0}
+.pos-bar{height:100%;border-radius:1px;transition:width .5s}
 .pos-details{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .pos-detail{background:var(--bg3);border-radius:6px;padding:6px 8px}
 .pos-d-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.8px;color:var(--txt3);margin-bottom:2px}
 .pos-d-val{font-family:var(--mono);font-size:11px;font-weight:500}
-.pos-bar-wrap{height:2px;background:var(--bg4);border-radius:1px;overflow:hidden;margin:8px 0}
-.pos-bar{height:100%;border-radius:1px;transition:width .5s ease}
+.pos-alert{font-family:var(--mono);font-size:10px;margin-top:6px;padding:6px 8px;border-radius:5px}
+.pos-alert.stop{color:var(--red);background:var(--rdim);border:1px solid rgba(255,71,87,.2)}
+.pos-alert.target{color:var(--green);background:var(--gdim2);border:1px solid rgba(0,229,160,.2)}
 .pos-actions{display:flex;gap:6px;margin-top:10px}
-.pos-btn{flex:1;padding:8px;border-radius:7px;border:none;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .15s}
-.pos-btn.close-pos{background:var(--rdim);color:var(--red);border:1px solid rgba(255,71,87,.3)}
-.pos-btn.ai-review{background:var(--gdim);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.pos-btn{flex:1;padding:8px;border-radius:7px;border:none;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:opacity .15s}
 .pos-btn:hover{opacity:.8}
+.pos-btn.ai-review{background:var(--gdim);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.pos-btn.close-pos{background:var(--rdim);color:var(--red);border:1px solid rgba(255,71,87,.3)}
+.pos-btn.update-price{background:var(--bdim);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
 
 /* FORMS */
 .mini-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
@@ -175,7 +169,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .phase-total{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--gold2)}
 .prog-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:5px}
 .prog-track{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .6s ease}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .6s}
 .phase-milestones{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .milestone{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);color:var(--txt3)}
 .milestone.done{border-color:rgba(0,229,160,.3);color:var(--green);background:var(--gdim2)}
@@ -207,24 +201,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .go{background:var(--gold);color:#000;border:none;border-radius:9px;padding:11px 18px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:opacity .15s;flex-shrink:0}
 .go:hover{opacity:.85}.go:disabled{opacity:.3;cursor:not-allowed}
 
-/* BOTTOM NAV */
-.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(5,1fr)}
-.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px 0;font-family:var(--mono);font-size:8px;letter-spacing:.4px;transition:color .2s}
-.bnav-btn.active{color:var(--gold)}
-.bnav-icon{font-size:19px}
-@media(max-width:700px){.tabs{display:none}.bnav{display:grid}}
-
-/* STITLE */
-.stitle{font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
-.stitle span{color:var(--gold)}
-
-/* ALERT */
-.alert{border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.6}
-.alert.gold{background:var(--gdim);border:1px solid rgba(201,168,76,.3);color:var(--gold2)}
-.alert.green{background:var(--gdim2);border:1px solid rgba(0,229,160,.25);color:var(--green)}
-.alert.red{background:var(--rdim);border:1px solid rgba(255,71,87,.25);color:var(--red)}
-
-/* API KEY SETUP */
+/* SETTINGS */
 .api-setup{background:var(--bg2);border:1px solid rgba(201,168,76,.3);border-radius:var(--r);padding:16px;margin-bottom:14px}
 .api-row{display:flex;gap:8px;margin-top:8px}
 .api-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--txt);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .2s}
@@ -232,7 +209,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .api-input::placeholder{color:var(--txt3)}
 .api-save{background:var(--gold);color:#000;border:none;border-radius:7px;padding:9px 16px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;flex-shrink:0}
 
-/* TABLE */
+/* TAX */
 .tax-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
 .tax-table th{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--txt3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border2);background:var(--bg3)}
 .tax-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
@@ -240,11 +217,6 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .tbadge{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px}
 .tbm{background:rgba(255,165,2,.1);color:var(--amber);border:1px solid rgba(255,165,2,.2)}
 .tbh{background:var(--rdim);color:var(--red);border:1px solid rgba(255,71,87,.2)}
-.tbl{background:var(--gdim2);color:var(--green);border:1px solid rgba(0,229,160,.2)}
-
-/* DOTS */
-.dots::after{content:'.';animation:el 1.2s steps(3,end) infinite}
-@keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
 
 /* SCHEDULE */
 .time-input{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px 14px;color:var(--txt);font-family:var(--mono);font-size:15px;outline:none;width:120px;transition:border-color .2s;text-align:center}
@@ -252,7 +224,6 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .market-hours{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:14px}
 .mh-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px;cursor:pointer;transition:all .2s}
 .mh-card.open-now{border-color:rgba(0,229,160,.4);background:var(--gdim2)}
-.mh-card:hover{border-color:var(--border2)}
 .mh-time{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--gold);margin-bottom:3px}
 .mh-name{font-size:12px;font-weight:700;margin-bottom:3px}
 .mh-desc{font-size:10px;color:var(--txt2);margin-bottom:6px}
@@ -260,18 +231,59 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .open{background:var(--gdim2);color:var(--green);border:1px solid rgba(0,229,160,.2)}
 .partial{background:rgba(255,165,2,.1);color:var(--amber);border:1px solid rgba(255,165,2,.2)}
 .closed-b{background:var(--bg3);color:var(--txt3);border:1px solid var(--border)}
+
+.stitle{font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.stitle span{color:var(--gold)}
+.alert{border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.6}
+.alert.gold{background:var(--gdim);border:1px solid rgba(201,168,76,.3);color:var(--gold2)}
+.alert.green{background:var(--gdim2);border:1px solid rgba(0,229,160,.25);color:var(--green)}
+.alert.red{background:var(--rdim);border:1px solid rgba(255,71,87,.25);color:var(--red)}
+.dots::after{content:'.';animation:el 1.2s steps(3,end) infinite}
+@keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+
+/* REFRESH SIGNAL BTN */
+.refresh-signals-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--gold);background:var(--gdim);color:var(--gold);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.refresh-signals-btn:hover{background:rgba(201,168,76,.22)}
+.refresh-signals-btn:disabled{opacity:.4;cursor:not-allowed}
+.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(5,1fr)}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px 0;font-family:var(--mono);font-size:8px;letter-spacing:.4px;transition:color .2s}
+.bnav-btn.active{color:var(--gold)}
+.bnav-icon{font-size:19px}
+@media(max-width:700px){.tabs{display:none}.bnav{display:grid}}
 </style>
 </head>
 <body>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- BRACKET ORDER PANEL (global, top of page) -->
+<div class="bracket-panel" id="bracket-panel">
+  <div class="bp-title">🎯 Bracket Order — <span id="bp-asset-title">XOM</span></div>
+  <div class="bp-sub">Achat + Stop-Loss + Take-Profit en 1 clic sur IBKR</div>
+  <div class="bp-grid">
+    <div><label class="bp-label">ASSET</label><input class="bp-input" id="bp-asset" readonly></div>
+    <div><label class="bp-label">MONTANT (€)</label><input class="bp-input" id="bp-amount" type="number" placeholder="20"></div>
+    <div><label class="bp-label">PRIX D'ENTRÉE ($)</label><input class="bp-input" id="bp-entry" type="number"></div>
+    <div><label class="bp-label">NB ACTIONS</label><input class="bp-input" id="bp-qty" readonly placeholder="Auto"></div>
+    <div><label class="bp-label">STOP-LOSS ($) 🔴</label><input class="bp-input" id="bp-stop" type="number"></div>
+    <div><label class="bp-label">TAKE-PROFIT ($) 🟢</label><input class="bp-input" id="bp-target" type="number"></div>
+  </div>
+  <div class="bp-info" id="bp-info">
+    Remplis les champs → OmniVest calcule les quantités → IBKR ouvre avec tout pré-rempli → tu confirmes en 1 clic.
+    <br><strong>Bracket Order</strong> = IBKR gère automatiquement stop-loss et take-profit sans surveillance.
+  </div>
+  <button class="bp-submit" id="bp-submit" onclick="executeBracket()">▶ OUVRIR IBKR AVEC BRACKET ORDER</button>
+  <button class="bp-cancel" onclick="closeBracket()">Annuler</button>
+</div>
 
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">
     <div class="bmark">O</div>
-    <div><div class="bname">Omni<em>Vest</em></div><div class="bsub">v4 · LIVE SIGNALS</div></div>
+    <div><div class="bname">Omni<em>Vest</em></div><div class="bsub">v5 · LIVE INTELLIGENCE</div></div>
   </div>
   <div class="tabs">
     <button class="tab active" onclick="go('signals',this)">📡 SIGNALS</button>
@@ -294,114 +306,100 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
   <div class="ticker-track"><div class="ticker-inner" id="ticker-inner">Loading live prices...</div></div>
 </div>
 
-<!-- ══════ PANEL: SIGNALS ══════ -->
+<!-- SIGNALS -->
 <div class="panel active" id="p-signals">
   <div class="scroll">
-
-    <!-- API KEY SETUP (shown when no key) -->
-    <div class="api-setup" id="api-setup-box">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">🔑 Connect Live Market Data</div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Get a FREE Finnhub API key (takes 60 seconds) to enable live prices, real-time signals, and automatic alerts.</div>
-      <div style="font-size:11px;color:var(--txt3);font-family:var(--mono);margin-bottom:8px">1. Go to <strong style="color:var(--gold)">finnhub.io</strong> → Register free → Copy your API key</div>
-      <div class="api-row">
-        <input class="api-input" id="finnhub-key-input" placeholder="Paste your Finnhub API key here...">
-        <button class="api-save" onclick="saveFinnhubKey()">CONNECT</button>
-      </div>
-    </div>
-
-    <!-- MACRO GAUGES (live) -->
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:8px">LIVE MARKET GAUGES</div>
     <div class="gauge-grid" id="gauges">
-      <div class="gauge" onclick="askAbout('XOM ExxonMobil buy or sell now?')"><div class="g-lbl">XOM</div><div class="g-val live-price" id="g-XOM" style="color:var(--green)">—</div><div class="g-chg" id="gc-XOM">Loading...</div></div>
-      <div class="gauge" onclick="askAbout('CVX Chevron trade signal?')"><div class="g-lbl">CVX</div><div class="g-val live-price" id="g-CVX" style="color:var(--green)">—</div><div class="g-chg" id="gc-CVX">Loading...</div></div>
-      <div class="gauge" onclick="askAbout('MOS Mosaic fertilizer trade?')"><div class="g-lbl">MOS</div><div class="g-val live-price" id="g-MOS" style="color:var(--gold)">—</div><div class="g-chg" id="gc-MOS">Loading...</div></div>
-      <div class="gauge" onclick="askAbout('GOLD gold buy or sell?')"><div class="g-lbl">GOLD</div><div class="g-val" id="g-GOLD" style="color:var(--gold)">$2,341</div><div class="g-chg t-up" id="gc-GOLD">↑ Safe haven</div></div>
-      <div class="gauge" onclick="askAbout('BTC Bitcoin trade signal now?')"><div class="g-lbl">BTC</div><div class="g-val live-price" id="g-BTC" style="color:var(--green)">—</div><div class="g-chg" id="gc-BTC">Loading...</div></div>
-      <div class="gauge" onclick="askAbout('OIL Brent crude trade?')"><div class="g-lbl">BRENT</div><div class="g-val" id="g-OIL" style="color:var(--red)">$118</div><div class="g-chg t-up" id="gc-OIL">↑ Hormuz</div></div>
-      <div class="gauge" onclick="askAbout('VIX fear index — what does it mean for my trades?')"><div class="g-lbl">VIX</div><div class="g-val" id="g-VIX" style="color:var(--amber)">28.4</div><div class="g-chg t-warn" id="gc-VIX">Elevated</div></div>
-      <div class="gauge" onclick="askAbout('STNG tanker stock hidden signal buy?')"><div class="g-lbl">STNG</div><div class="g-val live-price" id="g-STNG" style="color:var(--green)">—</div><div class="g-chg" id="gc-STNG">Loading...</div></div>
+      <div class="gauge" onclick="askAbout('XOM ExxonMobil buy or sell now?')"><div class="g-lbl">XOM</div><div class="g-val" id="g-XOM" style="color:var(--green)">—</div><div class="g-chg" id="gc-XOM">Loading...</div></div>
+      <div class="gauge" onclick="askAbout('CVX Chevron trade signal?')"><div class="g-lbl">CVX</div><div class="g-val" id="g-CVX" style="color:var(--green)">—</div><div class="g-chg" id="gc-CVX">Loading...</div></div>
+      <div class="gauge" onclick="askAbout('MOS Mosaic fertilizer trade?')"><div class="g-lbl">MOS</div><div class="g-val" id="g-MOS" style="color:var(--gold)">—</div><div class="g-chg" id="gc-MOS">Loading...</div></div>
+      <div class="gauge" onclick="askAbout('GOLD gold buy or sell?')"><div class="g-lbl">GOLD</div><div class="g-val" id="g-GOLD" style="color:var(--gold)">$2,341</div><div class="g-chg t-up">↑ Safe haven</div></div>
+      <div class="gauge" onclick="askAbout('BTC Bitcoin trade signal now?')"><div class="g-lbl">BTC</div><div class="g-val" id="g-BTC" style="color:var(--green)">—</div><div class="g-chg" id="gc-BTC">Loading...</div></div>
+      <div class="gauge" onclick="askAbout('OIL Brent crude trade?')"><div class="g-lbl">BRENT</div><div class="g-val" style="color:var(--red)">$118</div><div class="g-chg t-up">↑ Hormuz</div></div>
+      <div class="gauge" onclick="askAbout('VIX fear index meaning for my trades?')"><div class="g-lbl">VIX</div><div class="g-val" style="color:var(--amber)">28.4</div><div class="g-chg t-warn">Elevated</div></div>
+      <div class="gauge" onclick="askAbout('STNG tanker stock hidden signal?')"><div class="g-lbl">STNG</div><div class="g-val" id="g-STNG" style="color:var(--green)">—</div><div class="g-chg" id="gc-STNG">Loading...</div></div>
     </div>
 
-    <!-- MAIN SIGNAL CARDS -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--txt3)">AI SIGNALS — CLICK TO TRADE</div>
-      <button style="font-family:var(--mono);font-size:9px;padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--txt3);cursor:pointer" onclick="generateSignals()">↻ REFRESH</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--txt3)">AI SIGNALS — DYNAMIQUES & LIVE</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:2px" id="signals-updated">Cliquez Refresh pour générer de nouveaux signaux</div>
+      </div>
+      <button class="refresh-signals-btn" id="refresh-btn" onclick="refreshSignals()">
+        <span id="refresh-icon">↻</span> REFRESH SIGNALS
+      </button>
     </div>
 
     <div id="signal-cards">
-      <!-- Populated by JS -->
-    </div>
-
-    <!-- ORDER PANEL (slides in) -->
-    <div class="order-panel" id="order-panel">
-      <div class="order-header">
-        <div class="order-title" id="order-title">Place Order — XOM</div>
-        <button class="order-close" onclick="closeOrder()">×</button>
+      <div style="text-align:center;padding:30px;color:var(--txt3);font-family:var(--mono);font-size:11px;border:1px dashed var(--border);border-radius:var(--r)">
+        Cliquez <strong style="color:var(--gold)">↻ REFRESH SIGNALS</strong> pour générer des signaux AI basés sur les prix live actuels
       </div>
-      <div class="order-form">
-        <div>
-          <label class="order-label">ACTION</label>
-          <input class="order-input" id="order-action" readonly>
-        </div>
-        <div>
-          <label class="order-label">ASSET</label>
-          <input class="order-input" id="order-asset" readonly>
-        </div>
-        <div>
-          <label class="order-label">AMOUNT (€)</label>
-          <input class="order-input" id="order-amount" type="number" placeholder="20" value="20">
-        </div>
-        <div>
-          <label class="order-label">PRICE (€)</label>
-          <input class="order-input" id="order-price" type="number" placeholder="Current price">
-        </div>
-        <div class="order-full">
-          <label class="order-label">STOP-LOSS (€) — Protects you from big losses</label>
-          <input class="order-input" id="order-stop" type="number" placeholder="Auto-suggested">
-        </div>
-        <div class="order-full">
-          <label class="order-label">TAKE-PROFIT (€) — Auto-sell when target hit</label>
-          <input class="order-input" id="order-target" type="number" placeholder="Auto-suggested">
-        </div>
-        <button class="order-submit buy" id="order-submit" onclick="executeOrder()">EXECUTE ON IBKR</button>
-      </div>
-      <div class="ibkr-note">Opens <a href="https://www.interactivebrokers.co.uk" target="_blank">IBKR</a> — you confirm and execute there. OmniVest tracks result.</div>
     </div>
-
   </div>
 </div>
 
-<!-- ══════ PANEL: CHAT ══════ -->
+<!-- CHAT -->
 <div class="panel" id="p-chat">
   <div class="chat-wrap">
     <div class="chat-msgs" id="chat-msgs">
       <div class="msg ai"><div class="av ai">OV</div>
-        <div class="bub">I monitor <span class="gb">ALL global events</span> — geopolitical, macro, micro, social, hidden signals. Trained on <span class="gb">120 years</span> of history. I combine <span class="gb">Buffett + Soros + Lynch + Simons + Livermore + Dalio</span>.<br><br>
-        Every signal card shows you exactly <span class="tb">WHEN TO BUY</span> and <span class="ts">WHEN TO SELL</span> with entry price, target, and stop-loss. One tap → order form → IBKR.<br><br>Ask me anything about any market, any stock, any strategy.</div>
+        <div class="bub">Je surveille <span class="gb">TOUS les événements mondiaux</span> — géopolitique, macro, micro, social, signaux cachés. Formé sur <span class="gb">120 ans</span> d'histoire. Je combine <span class="gb">Buffett + Soros + Lynch + Simons + Livermore + Dalio</span>.<br><br>
+        Chaque signal montre exactement <span class="tb">QUAND ACHETER</span> et <span class="ts">QUAND VENDRE</span> avec entrée, target, stop-loss. Un clic → Bracket Order → IBKR gère tout automatiquement.</div>
       </div>
     </div>
     <div class="shortcuts">
-      <button class="sc" onclick="askAbout('What is the best trade I can make right now with €20?')">Best trade now</button>
-      <button class="sc" onclick="askAbout('Give me 3 specific stocks to buy today with entry price target and stop loss')">3 stocks to buy</button>
-      <button class="sc" onclick="askAbout('What hidden signals are most traders missing right now?')">Hidden signals</button>
-      <button class="sc" onclick="askAbout('What to trade tonight between 20h and midnight? Give me a plan')">Tonight plan</button>
-      <button class="sc" onclick="askAbout('Road to €10,000 from €1,000 — exact trades and timeline')">Road to €10K</button>
-      <button class="sc" onclick="askAbout('Analyse all my open positions. Should I hold, add, or exit each one?')">Review portfolio</button>
-      <button class="sc" onclick="askAbout('What would Jesse Livermore trade right now and why?')">Livermore pick</button>
-      <button class="sc" onclick="askAbout('Africa business plan for €50K — best sector and country')">Africa plan</button>
+      <button class="sc" onclick="askAbout('Quel est le meilleur trade maintenant avec €20 sur IBKR? Donne entrée target stop-loss précis')">Meilleur trade €20</button>
+      <button class="sc" onclick="askAbout('3 actions à acheter maintenant avec entrée prix target et stop-loss')">3 actions à acheter</button>
+      <button class="sc" onclick="askAbout('Signaux cachés que 95% des traders manquent maintenant')">Signaux cachés</button>
+      <button class="sc" onclick="askAbout('Plan trading ce soir 20h à minuit — que faire chaque heure?')">Plan ce soir</button>
+      <button class="sc" onclick="askAbout('Route vers €10,000 depuis €1,000 — trades précis et timeline')">Route €10K</button>
+      <button class="sc" onclick="askAbout('Analyse toutes mes positions — tenir, ajouter ou sortir?')">Révision portfolio</button>
+      <button class="sc" onclick="askAbout('Que traderait Livermore maintenant et pourquoi?')">Choix Livermore</button>
+      <button class="sc" onclick="askAbout('Plan business Afrique à €50K — quel secteur et pays?')">Plan Afrique</button>
     </div>
     <div class="chat-in-row">
-      <input class="cin" id="cin" placeholder="Ask about any trade, signal, or strategy..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}">
+      <input class="cin" id="cin" placeholder="Pose une question sur n'importe quel marché..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}">
       <button class="go" id="go-btn" onclick="sendMsg()">ASK ▶</button>
     </div>
   </div>
 </div>
 
-<!-- ══════ PANEL: PORTFOLIO ══════ -->
+<!-- PORTFOLIO -->
 <div class="panel" id="p-portfolio">
   <div class="scroll">
-    <div class="stitle">My <span>Portfolio</span></div>
+    <div class="stitle">Mon <span>Portfolio</span></div>
 
+    <!-- IBKR Live Balance -->
+    <div class="ibkr-balance">
+      <div class="ib-top">
+        <div class="ib-title">🏛️ Solde IBKR</div>
+        <a class="ib-link" href="https://clientportal.ibkr.ie" target="_blank">Voir sur IBKR ↗</a>
+      </div>
+      <div class="ib-amounts">
+        <div class="ib-amount">
+          <div class="ib-a-lbl">SOLDE TOTAL</div>
+          <div class="ib-a-val" id="ibkr-total" style="color:var(--green)">€<span id="ibkr-total-val">20.00</span></div>
+          <div class="ib-a-sub">Compte IBKR réel</div>
+        </div>
+        <div class="ib-amount">
+          <div class="ib-a-lbl">DISPONIBLE</div>
+          <div class="ib-a-val" id="ibkr-avail" style="color:var(--gold)">€<span id="ibkr-avail-val">20.00</span></div>
+          <div class="ib-a-sub">Pour nouveaux trades</div>
+        </div>
+        <div class="ib-amount">
+          <div class="ib-a-lbl">P&L JOUR</div>
+          <div class="ib-a-val" id="ibkr-pnl" style="color:var(--txt2)">€<span id="ibkr-pnl-val">0.00</span></div>
+          <div class="ib-a-sub">Aujourd'hui</div>
+        </div>
+      </div>
+      <div class="ib-update">
+        <input class="ib-input" id="ibkr-input-total" type="number" placeholder="Entre ton solde IBKR actuel (€)">
+        <button class="ib-save" onclick="updateIBKRBalance()">UPDATE</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:6px">Entre ton solde depuis IBKR Mobile ou clientportal.ibkr.ie → Updated manuellement jusqu'à connexion API</div>
+    </div>
+
+    <!-- Progress -->
     <div class="phase-card">
       <div class="phase-top">
         <div><div class="phase-name" id="phase-name">Phase 1 — Learning & Trading</div><div style="font-size:11px;color:var(--txt2);font-family:var(--mono);margin-top:2px">€20 test → €1K → €10K → €50K</div></div>
@@ -419,22 +417,20 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
     </div>
 
     <div id="positions-list">
-      <div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">No positions yet. Go to Signals tab → click BUY to open your first trade.</div>
+      <div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">Aucune position. Va dans Signals → clique BUY pour ouvrir ton premier trade.</div>
     </div>
 
     <div class="mini-form" style="margin-top:10px">
-      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Add Manual Position</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Ajouter Position Manuelle</div>
       <div class="form-grid">
         <div><label class="mi-label">ASSET</label><input class="mi" id="f-asset" placeholder="XOM"></div>
-        <div><label class="mi-label">SIZE (€)</label><input class="mi" id="f-size" type="number" placeholder="20"></div>
-        <div><label class="mi-label">ENTRY PRICE</label><input class="mi" id="f-entry" type="number" placeholder="118.50"></div>
-        <div><label class="mi-label">CURRENT PRICE</label><input class="mi" id="f-current" type="number" placeholder="120.00"></div>
-      </div>
-      <div class="form-grid" style="margin-bottom:8px">
+        <div><label class="mi-label">TAILLE (€)</label><input class="mi" id="f-size" type="number" placeholder="20"></div>
+        <div><label class="mi-label">PRIX ENTRÉE</label><input class="mi" id="f-entry" type="number" placeholder="155.00"></div>
+        <div><label class="mi-label">PRIX ACTUEL</label><input class="mi" id="f-current" type="number" placeholder="158.00"></div>
         <div><label class="mi-label">STOP-LOSS</label><input class="mi" id="f-stop" type="number" placeholder="112.00"></div>
-        <div><label class="mi-label">TARGET</label><input class="mi" id="f-target" type="number" placeholder="130.00"></div>
+        <div><label class="mi-label">TARGET</label><input class="mi" id="f-target" type="number" placeholder="175.00"></div>
       </div>
-      <button class="add-btn" onclick="addPosition()">+ ADD POSITION</button>
+      <button class="add-btn" onclick="addPosition()">+ AJOUTER POSITION</button>
     </div>
 
     <div style="display:flex;gap:8px;margin-top:10px">
@@ -445,67 +441,53 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
   </div>
 </div>
 
-<!-- ══════ PANEL: SCHEDULE ══════ -->
+<!-- SCHEDULE -->
 <div class="panel" id="p-schedule">
   <div class="scroll">
-    <div class="stitle">My <span>Schedule</span></div>
-
+    <div class="stitle">Mon <span>Schedule</span></div>
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Set Your Trading Window</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Ma Fenêtre de Trading</div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-        <div><div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:4px">FROM</div><input class="time-input" id="t-from" type="time" value="20:00"></div>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:4px">DE</div><input class="time-input" id="t-from" type="time" value="20:00"></div>
         <div style="color:var(--txt3);padding-top:20px">→</div>
-        <div><div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:4px">TO</div><input class="time-input" id="t-to" type="time" value="00:00"></div>
-        <button style="background:var(--gold);color:#000;border:none;border-radius:7px;padding:10px 18px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;margin-top:14px" onclick="saveScheduleAndPlan()">GET MY PLAN ▶</button>
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:4px">À</div><input class="time-input" id="t-to" type="time" value="00:00"></div>
+        <button style="background:var(--gold);color:#000;border:none;border-radius:7px;padding:10px 18px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;margin-top:14px" onclick="saveScheduleAndPlan()">MON PLAN ▶</button>
       </div>
-      <div id="schedule-result" style="font-size:12px;color:var(--txt2)">Click "Get My Plan" for a personalised trading plan for your window tonight.</div>
+      <div id="schedule-result" style="font-size:12px;color:var(--txt2)">Clique "Mon Plan" pour un plan heure par heure personnalisé.</div>
     </div>
-
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:10px">GLOBAL MARKET HOURS (CET) — YOUR WINDOW IN GREEN</div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:10px">HEURES DES MARCHÉS (CET)</div>
     <div class="market-hours">
-      <div class="mh-card" onclick="askAbout('Tokyo market opens — what to watch and trade?')">
-        <div class="mh-time">01:00–08:00</div><div class="mh-name">Tokyo</div><div class="mh-desc">Japan, Korea, futures</div><div class="mh-badge closed-b">OVERNIGHT</div>
-      </div>
-      <div class="mh-card" onclick="askAbout('London market analysis — what to trade in LSE?')">
-        <div class="mh-time">09:00–17:30</div><div class="mh-name">London (LSE)</div><div class="mh-desc">European stocks, forex</div><div class="mh-badge partial">DAYTIME</div>
-      </div>
-      <div class="mh-card open-now" onclick="askAbout('NYSE NASDAQ best trades right now?')">
-        <div class="mh-time">15:30–22:00 ✓</div><div class="mh-name">NYSE / NASDAQ</div><div class="mh-desc">Your primary window</div><div class="mh-badge open">YOUR WINDOW</div>
-      </div>
-      <div class="mh-card open-now" onclick="askAbout('After-hours earnings plays tonight?')">
-        <div class="mh-time">22:00–02:00 ✓</div><div class="mh-name">US After-Hours</div><div class="mh-desc">Earnings, news reactions</div><div class="mh-badge open">YOUR WINDOW</div>
-      </div>
-      <div class="mh-card open-now" onclick="askAbout('Bitcoin crypto trade signal for tonight?')">
-        <div class="mh-time">24/7 ✓</div><div class="mh-name">Crypto</div><div class="mh-desc">BTC, ETH — never closes</div><div class="mh-badge open">ALWAYS OPEN</div>
-      </div>
-      <div class="mh-card open-now" onclick="askAbout('Oil futures trading after 22h tonight?')">
-        <div class="mh-time">24h weekdays ✓</div><div class="mh-name">Oil Futures</div><div class="mh-desc">Brent, WTI — 24h</div><div class="mh-badge open">YOUR WINDOW</div>
-      </div>
+      <div class="mh-card" onclick="askAbout('Tokyo market — que surveiller et trader?')"><div class="mh-time">01:00–08:00</div><div class="mh-name">Tokyo</div><div class="mh-desc">Japon, Corée, futures</div><div class="mh-badge closed-b">NUIT</div></div>
+      <div class="mh-card" onclick="askAbout('London market — que trader au LSE?')"><div class="mh-time">09:00–17:30</div><div class="mh-name">Londres (LSE)</div><div class="mh-desc">Actions européennes, forex</div><div class="mh-badge partial">JOURNÉE</div></div>
+      <div class="mh-card open-now" onclick="askAbout('NYSE NASDAQ meilleurs trades maintenant?')"><div class="mh-time">15:30–22:00 ✓</div><div class="mh-name">NYSE / NASDAQ</div><div class="mh-desc">Ta fenêtre principale</div><div class="mh-badge open">TA FENÊTRE</div></div>
+      <div class="mh-card open-now" onclick="askAbout('After-hours earnings plays ce soir?')"><div class="mh-time">22:00–02:00 ✓</div><div class="mh-name">US After-Hours</div><div class="mh-desc">Earnings, news reactions</div><div class="mh-badge open">TA FENÊTRE</div></div>
+      <div class="mh-card open-now" onclick="askAbout('Bitcoin crypto signal pour ce soir?')"><div class="mh-time">24/7 ✓</div><div class="mh-name">Crypto</div><div class="mh-desc">BTC, ETH — jamais fermé</div><div class="mh-badge open">TOUJOURS OUVERT</div></div>
+      <div class="mh-card open-now" onclick="askAbout('Oil futures trading après 22h?')"><div class="mh-time">24h weekdays ✓</div><div class="mh-name">Oil Futures</div><div class="mh-desc">Brent, WTI — 24h</div><div class="mh-badge open">TA FENÊTRE</div></div>
     </div>
   </div>
 </div>
 
-<!-- ══════ PANEL: TAX ══════ -->
+<!-- TAX -->
 <div class="panel" id="p-tax">
   <div class="scroll">
-    <div class="stitle">Belgian <span>Tax</span></div>
-    <div class="alert red">⚠️ NEW 2026: Belgium introduced a <strong>10% capital gains tax</strong> from January 1, 2026. First <strong>€10,000/year exempt</strong>. Your whole journey to €10K profit is essentially tax-free.</div>
-    <div class="alert gold">💡 Using IBKR (foreign broker): you must self-declare TOB quarterly. Belgian brokers do it automatically. Calculator: <strong>tob.tax</strong></div>
+    <div class="stitle">Fiscalité <span>Belge</span></div>
+    <div class="alert red">⚠️ NOUVEAU 2026: Belgique introduced a <strong>10% capital gains tax</strong> from January 1, 2026. First <strong>€10,000/year exempt</strong>. Ton voyage entier de €1K à €10K est quasi tax-free.</div>
+    <div class="alert gold">💡 IBKR (broker étranger): tu dois auto-déclarer TOB chaque trimestre. Calculateur: <strong>tob.tax</strong></div>
     <table class="tax-table">
-      <thead><tr><th>TAX</th><th>RATE</th><th>WHAT IT HITS</th><th>YOUR SITUATION</th></tr></thead>
+      <thead><tr><th>TAXE</th><th>TAUX</th><th>S'APPLIQUE À</th><th>TA SITUATION</th></tr></thead>
       <tbody>
-        <tr><td><strong>TOB / Beurstaks</strong></td><td><span class="tbadge tbm">0.12–1.32%</span></td><td>Every stock/ETF buy & sell. NOT on CFDs.</td><td>Self-declare with IBKR. €0.07 on a €20 trade.</td></tr>
-        <tr><td><strong>Capital Gains</strong><br><small style="color:var(--txt3)">NEW 2026</small></td><td><span class="tbadge tbm">10%</span></td><td>Profits on stocks, ETFs, crypto.</td><td>First €10K/yr EXEMPT. Pay nothing until €10K profit.</td></tr>
-        <tr><td><strong>Dividends</strong></td><td><span class="tbadge tbh">30%</span></td><td>All dividends. First €833 exempt.</td><td>Use accumulating ETFs to avoid. IBKR deducts.</td></tr>
-        <tr><td><strong>CFD Gains</strong></td><td><span class="tbadge tbh">33%+</span></td><td>If classified as professional trader.</td><td>Risk: very active = up to 50% income tax rate.</td></tr>
+        <tr><td><strong>TOB / Beurstaks</strong></td><td><span class="tbadge tbm">0.12–1.32%</span></td><td>Chaque achat/vente d'action. PAS sur CFDs.</td><td>Auto-déclare avec IBKR. €0.07 sur trade €20.</td></tr>
+        <tr><td><strong>Plus-values</strong><br><small style="color:var(--txt3)">NOUVEAU 2026</small></td><td><span class="tbadge tbm">10%</span></td><td>Profits actions, ETFs, crypto.</td><td>Premiers €10K/an EXEMPTÉS. Rien jusqu'à €10K profit.</td></tr>
+        <tr><td><strong>Dividendes</strong></td><td><span class="tbadge tbh">30%</span></td><td>Tous dividendes. Premiers €833 exemptés.</td><td>Utilise ETFs accumulants. IBKR déduit.</td></tr>
+        <tr><td><strong>Gains CFD</strong></td><td><span class="tbadge tbh">33%+</span></td><td>Si classé trader professionnel.</td><td>Risque: trading très actif = jusqu'à 50% taux.</td></tr>
       </tbody>
     </table>
-    <div class="stitle" style="margin-top:10px">Real <span>Numbers</span></div>
+    <div class="stitle" style="margin-top:10px">Exemples <span>Réels</span></div>
     <table class="tax-table">
-      <thead><tr><th>SCENARIO</th><th>GAIN</th><th>TAX</th><th>YOU KEEP</th></tr></thead>
+      <thead><tr><th>SCÉNARIO</th><th>GAIN</th><th>TAXE</th><th>TU GARDES</th></tr></thead>
       <tbody>
-        <tr><td>€20 → €22</td><td>€2</td><td>TOB €0.07 + gains €0</td><td class="good" style="color:var(--green)">€1.93</td></tr>
-        <tr><td>€1K → €5K</td><td>€4K</td><td>TOB ~€17 + gains €0</td><td class="good" style="color:var(--green)">€3,983</td></tr>
+        <tr><td>€20 → €22</td><td>€2</td><td>TOB €0.07 + gains €0</td><td style="color:var(--green)">€1.93</td></tr>
+        <tr><td>€1K → €5K</td><td>€4K</td><td>TOB ~€17 + gains €0</td><td style="color:var(--green)">€3,983</td></tr>
         <tr><td>€1K → €12K</td><td>€11K</td><td>TOB ~€40 + 10% × €1K = €100</td><td style="color:var(--amber)">€10,860</td></tr>
         <tr><td>CFD €5K profit</td><td>€5K</td><td>33% = €1,650</td><td style="color:var(--amber)">€3,350</td></tr>
       </tbody>
@@ -513,14 +495,14 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
   </div>
 </div>
 
-<!-- ══════ PANEL: SETTINGS ══════ -->
+<!-- SETTINGS -->
 <div class="panel" id="p-settings">
   <div class="scroll">
     <div class="stitle">⚙️ <span>Settings</span></div>
 
-    <div class="api-setup" style="margin-bottom:14px;border-color:rgba(0,229,160,.3)">
-      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px">🤖 Anthropic API Key (AI Analyst)</div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Nécessaire pour que l'AI Analyst fonctionne. Stockée uniquement sur cet appareil, jamais visible sur GitHub.</div>
+    <div class="api-setup" style="border-color:rgba(0,229,160,.3);margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px">🤖 Clé API Anthropic (AI Analyst)</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Stockée uniquement sur cet appareil — jamais visible sur GitHub.</div>
       <div style="font-size:11px;font-family:var(--mono);color:var(--txt3);margin-bottom:6px">→ <strong style="color:var(--green)">console.anthropic.com</strong> → API Keys → Create → Colle ici</div>
       <div class="api-row">
         <input class="api-input" id="anthropic-key-input" type="password" placeholder="sk-ant-api03-...">
@@ -529,42 +511,40 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
       <div id="anthropic-status" style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:6px"></div>
     </div>
 
-    <div class="api-setup">
+    <div class="api-setup" style="margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">🔑 Finnhub Live Market Data</div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Free API for live stock prices, crypto, forex. 60 calls/minute on free tier.</div>
-      <div style="font-size:11px;font-family:var(--mono);color:var(--txt3);margin-bottom:6px">→ <strong style="color:var(--gold)">finnhub.io</strong> → Register free → Dashboard → Copy API Key</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Prix live gratuits. → <strong style="color:var(--gold)">finnhub.io</strong> → Register → Copy API Key</div>
       <div class="api-row">
-        <input class="api-input" id="fh-key" placeholder="d1abc123xyz... (your Finnhub key)">
+        <input class="api-input" id="fh-key" placeholder="d1abc123xyz...">
         <button class="api-save" onclick="saveFinnhubKey()">SAVE</button>
       </div>
       <div id="fh-status" style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:6px"></div>
     </div>
 
     <div class="api-setup" style="margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">🏛️ IBKR Connection</div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">When you click BUY/SELL, OmniVest opens your IBKR account in a new tab pre-filled with the trade. You confirm and execute there.</div>
-      <div style="font-size:11px;font-family:var(--mono);color:var(--txt3)">Status: <span style="color:var(--gold)">IBKR link ready — opens on every trade click</span></div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">🏛️ Connexion IBKR</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Le bouton Bracket Order ouvre IBKR avec tout pré-rempli. Tu confirmes en 1 clic.</div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--txt3)">Status: <span style="color:var(--gold)">Lien IBKR prêt — Bracket Orders activés</span></div>
     </div>
 
     <div class="api-setup" style="margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">📱 Install on This Device (PWA)</div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Install OmniVest as an app on your phone or desktop. Works offline.</div>
-      <div style="font-size:11px;font-family:var(--mono);color:var(--txt3)">Android: Chrome → ⋮ menu → Add to Home Screen<br>iPhone: Safari → Share → Add to Home Screen<br>Desktop: Chrome → address bar → install icon</div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">📱 Installer sur cet appareil (PWA)</div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--txt3)">Android: Chrome → ⋮ → Add to Home Screen<br>iPhone: Safari → Share → Add to Home Screen<br>Desktop: Chrome → icône installation dans barre d'adresse</div>
     </div>
 
     <div class="api-setup" style="margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">🔄 Cross-Device Sync</div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Export your positions and history, import on another device. All data stays private on your device.</div>
-      <div style="display:flex;gap:8px">
-        <button class="add-btn" style="background:var(--bdim);border-color:var(--blue);color:var(--blue)" onclick="exportData()">⬇ Export Data</button>
-        <button class="add-btn" style="background:var(--bdim);border-color:var(--blue);color:var(--blue)" onclick="document.getElementById('import-input').click()">⬆ Import Data</button>
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">🔄 Sync entre appareils</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="add-btn" style="background:var(--bdim);border-color:var(--blue);color:var(--blue)" onclick="exportData()">⬇ Export</button>
+        <button class="add-btn" style="background:var(--bdim);border-color:var(--blue);color:var(--blue)" onclick="document.getElementById('import-input2').click()">⬆ Import</button>
       </div>
+      <input type="file" id="import-input2" accept=".json" style="display:none" onchange="importData(event)">
     </div>
 
     <div class="api-setup">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">💰 My Starting Capital</div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">💰 Capital de départ</div>
       <div class="api-row">
-        <input class="api-input" id="capital-input" type="number" placeholder="1000" value="">
+        <input class="api-input" id="capital-input" type="number" placeholder="1000">
         <button class="api-save" onclick="saveCapital()">SAVE</button>
       </div>
     </div>
@@ -582,10 +562,10 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 
 <script>
 // ══ STORAGE ══
-const SK = 'omnivest_v4';
+const SK = 'omnivest_v5';
 function load() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
 function save() {
-  localStorage.setItem(SK, JSON.stringify({ positions, capital, tradingHours, chatHistory: chatHistory.slice(-30), finnhubKey }));
+  localStorage.setItem(SK, JSON.stringify({ positions, capital, tradingHours, chatHistory: chatHistory.slice(-30), finnhubKey, ibkrBalance }));
 }
 
 let st = load();
@@ -594,15 +574,24 @@ let capital = st.capital || 1000;
 let tradingHours = st.tradingHours || { from: '20:00', to: '00:00' };
 let chatHistory = st.chatHistory || [];
 let finnhubKey = st.finnhubKey || '';
-let currentAction = null;
+let ibkrBalance = st.ibkrBalance || { total: 20, available: 20, pnl: 0 };
+let currentBracket = null;
 
-// init time inputs
+// Restore inputs
 document.getElementById('t-from').value = tradingHours.from;
 document.getElementById('t-to').value = tradingHours.to;
+if (finnhubKey) document.getElementById('fh-key').value = '••••••••••••••••';
+document.getElementById('capital-input').value = capital;
+renderIBKRBalance();
+
+// Restore key statuses
+if (localStorage.getItem('anthropic_key')) {
+  document.getElementById('anthropic-status').textContent = '✓ Clé Anthropic active — AI Analyst prêt';
+  document.getElementById('anthropic-status').style.color = 'var(--green)';
+}
 if (finnhubKey) {
-  document.getElementById('fh-key').value = finnhubKey;
-  document.getElementById('capital-input').value = capital;
-  document.getElementById('api-setup-box').style.display = 'none';
+  document.getElementById('fh-status').textContent = '✓ Finnhub connecté — prix live actifs';
+  document.getElementById('fh-status').style.color = 'var(--green)';
 }
 
 // ══ TABS ══
@@ -610,28 +599,61 @@ function go(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab, .bnav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('p-' + id).classList.add('active');
-  if (el) el.classList.add('active');
-  // sync all matching buttons
   document.querySelectorAll('.tab, .bnav-btn').forEach(b => {
-    const oc = b.getAttribute('onclick') || '';
-    if (oc.includes("'" + id + "'")) b.classList.add('active');
+    if ((b.getAttribute('onclick') || '').includes("'" + id + "'")) b.classList.add('active');
   });
 }
 
-// ══ FINNHUB LIVE PRICES ══
-const SYMBOLS = { XOM:'XOM', CVX:'CVX', MOS:'MOS', BTC:'BINANCE:BTCUSDT', STNG:'STNG' };
-let liveprices = {};
+// ══ KEYS ══
+function saveAnthropicKey() {
+  const k = document.getElementById('anthropic-key-input').value.trim();
+  if (!k || k.startsWith('•')) return;
+  localStorage.setItem('anthropic_key', k);
+  document.getElementById('anthropic-status').textContent = '✓ Clé sauvegardée — AI Analyst activé !';
+  document.getElementById('anthropic-status').style.color = 'var(--green)';
+  document.getElementById('anthropic-key-input').value = '••••••••••••••••';
+  showToast('✓ Clé Anthropic sauvegardée', 'gain');
+}
 
 function saveFinnhubKey() {
-  const k = (document.getElementById('fh-key') || document.getElementById('finnhub-key-input')).value.trim();
-  if (!k) return;
+  const k = document.getElementById('fh-key').value.trim();
+  if (!k || k.startsWith('•')) return;
   finnhubKey = k;
-  document.getElementById('api-setup-box').style.display = 'none';
-  if (document.getElementById('fh-status')) document.getElementById('fh-status').textContent = '✓ Key saved — fetching live prices...';
+  document.getElementById('fh-status').textContent = '✓ Finnhub connecté — fetching prices...';
+  document.getElementById('fh-status').style.color = 'var(--green)';
+  document.getElementById('fh-key').value = '••••••••••••••••';
   save();
   fetchAllPrices();
   startLiveFeed();
+  showToast('✓ Finnhub connecté — prix live activés', 'gain');
 }
+
+// ══ IBKR BALANCE ══
+function renderIBKRBalance() {
+  document.getElementById('ibkr-total-val').textContent = ibkrBalance.total.toFixed(2);
+  document.getElementById('ibkr-avail-val').textContent = ibkrBalance.available.toFixed(2);
+  const pnlEl = document.getElementById('ibkr-pnl-val');
+  pnlEl.textContent = (ibkrBalance.pnl >= 0 ? '+' : '') + ibkrBalance.pnl.toFixed(2);
+  document.getElementById('ibkr-pnl').style.color = ibkrBalance.pnl >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+function updateIBKRBalance() {
+  const v = parseFloat(document.getElementById('ibkr-input-total').value);
+  if (isNaN(v)) return;
+  const prev = ibkrBalance.total;
+  ibkrBalance.total = v;
+  ibkrBalance.available = v;
+  ibkrBalance.pnl = v - prev;
+  renderIBKRBalance();
+  save();
+  setTotal(v);
+  document.getElementById('ibkr-input-total').value = '';
+  showToast('✓ Solde IBKR mis à jour: €' + v.toFixed(2), 'gain');
+}
+
+// ══ FINNHUB ══
+const SYMBOLS = { XOM:'XOM', CVX:'CVX', MOS:'MOS', BTC:'BINANCE:BTCUSDT', STNG:'STNG' };
+let liveprices = {};
 
 async function fetchPrice(symbol, displayKey) {
   if (!finnhubKey) return;
@@ -640,42 +662,26 @@ async function fetchPrice(symbol, displayKey) {
     ? 'https://finnhub.io/api/v1/crypto/candle?symbol=' + symbol + '&resolution=1&count=2&token=' + finnhubKey
     : 'https://finnhub.io/api/v1/quote?symbol=' + symbol + '&token=' + finnhubKey;
   try {
-    const r = await fetch(url);
-    const d = await r.json();
-    let price, chg, chgPct;
-    if (isCrypto && d.c) {
-      price = d.c[d.c.length - 1];
-      const prev = d.c[d.c.length - 2] || price;
-      chg = price - prev; chgPct = (chg / prev) * 100;
-    } else if (d.c) {
-      price = d.c; chg = d.d; chgPct = d.dp;
-    }
-    if (price) {
-      liveprices[displayKey] = { price, chg, chgPct };
-      updateGauge(displayKey, price, chgPct);
-      updateTicker();
-    }
+    const r = await fetch(url); const d = await r.json();
+    let price, chgPct;
+    if (isCrypto && d.c) { price = d.c[d.c.length-1]; const prev = d.c[d.c.length-2]||price; chgPct=(price-prev)/prev*100; }
+    else if (d.c) { price = d.c; chgPct = d.dp; }
+    if (price) { liveprices[displayKey] = { price, chgPct }; updateGauge(displayKey, price, chgPct); updateTicker(); }
   } catch {}
 }
 
 function updateGauge(key, price, chgPct) {
-  const el = document.getElementById('g-' + key);
-  const chgEl = document.getElementById('gc-' + key);
+  const el = document.getElementById('g-' + key); const chgEl = document.getElementById('gc-' + key);
   if (!el) return;
-  const fmt = price > 1000 ? '$' + (price/1000).toFixed(1) + 'K' : price > 100 ? '$' + price.toFixed(2) : '$' + price.toFixed(2);
-  el.textContent = fmt;
-  el.style.color = chgPct >= 0 ? 'var(--green)' : 'var(--red)';
-  if (chgEl) {
-    chgEl.textContent = (chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%';
-    chgEl.className = 'g-chg ' + (chgPct >= 0 ? 't-up' : 't-dn');
-  }
+  const fmt = price > 1000 ? '$' + (price/1000).toFixed(1) + 'K' : '$' + price.toFixed(2);
+  el.textContent = fmt; el.style.color = chgPct >= 0 ? 'var(--green)' : 'var(--red)';
+  if (chgEl) { chgEl.textContent = (chgPct>=0?'+':'') + chgPct.toFixed(2) + '%'; chgEl.className = 'g-chg ' + (chgPct>=0?'t-up':'t-dn'); }
 }
 
 function updateTicker() {
-  const items = Object.entries(liveprices).map(([k, v]) => {
-    const cls = v.chgPct >= 0 ? 't-up' : 't-dn';
-    const sign = v.chgPct >= 0 ? '+' : '';
-    const fmt = v.price > 1000 ? '$' + (v.price / 1000).toFixed(1) + 'K' : '$' + v.price.toFixed(2);
+  const items = Object.entries(liveprices).map(([k,v]) => {
+    const cls = v.chgPct>=0?'t-up':'t-dn'; const sign = v.chgPct>=0?'+':'';
+    const fmt = v.price>1000 ? '$'+(v.price/1000).toFixed(1)+'K' : '$'+v.price.toFixed(2);
     return '<span>' + k + ' <span class="' + cls + '">' + fmt + ' (' + sign + v.chgPct.toFixed(2) + '%)</span></span>';
   });
   const base = '<span>BRENT <span class="t-up">$118 ↑ Hormuz</span></span><span>GOLD <span class="t-up">$2,341</span></span><span>VIX <span class="t-warn">28.4</span></span><span>HORMUZ <span class="t-warn">5% OPEN</span></span><span>MARINE INS <span class="t-up">+340%</span></span>';
@@ -686,39 +692,65 @@ function updateTicker() {
 async function fetchAllPrices() {
   if (!finnhubKey) return;
   document.getElementById('live-lbl').textContent = 'FETCHING';
-  for (const [sym, key] of Object.entries(SYMBOLS)) {
-    await fetchPrice(sym, key);
-    await new Promise(r => setTimeout(r, 300));
-  }
+  for (const [sym, key] of Object.entries(SYMBOLS)) { await fetchPrice(sym, key); await new Promise(r=>setTimeout(r,300)); }
   document.getElementById('live-lbl').textContent = 'LIVE';
+  document.getElementById('live-pulse').style.background = 'var(--green)';
 }
 
-function startLiveFeed() {
-  if (!finnhubKey) return;
-  setInterval(fetchAllPrices, 60000); // refresh every 60s
+function startLiveFeed() { if (finnhubKey) setInterval(fetchAllPrices, 60000); }
+
+// ══ DYNAMIC SIGNALS — AI GENERATED ══
+async function refreshSignals() {
+  const anthropicKey = localStorage.getItem('anthropic_key') || '';
+  if (!anthropicKey) { showToast('⚠️ Entre ta clé Anthropic dans Settings', 'loss'); return; }
+
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  btn.disabled = true;
+  icon.className = 'spin';
+  icon.textContent = '↻';
+
+  // Build live prices context
+  let priceCtx = Object.entries(liveprices).map(([k,v]) => k + ': $' + v.price.toFixed(2) + ' (' + (v.chgPct>=0?'+':'') + v.chgPct.toFixed(2) + '%)').join(', ');
+  if (!priceCtx) priceCtx = 'XOM ~$155, CVX ~$191, STNG ~$80, MOS ~$22, BTC ~$93K';
+
+  const prompt = 'LIVE PRICES NOW: ' + priceCtx + '\n\nGenerate exactly 4 trading signals based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. Mix day trades and swing trades. Always include 1 crypto signal.';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      const signals = JSON.parse(jsonMatch[0]);
+      renderSignals(signals);
+      const now = new Date().toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('signals-updated').textContent = 'Signaux générés à ' + now + ' · Basés sur prix live';
+      showToast('✓ ' + signals.length + ' nouveaux signaux générés', 'gain');
+    } else {
+      showToast('⚠️ Erreur parsing signaux — réessaie', 'loss');
+    }
+  } catch(e) {
+    showToast('⚠️ Erreur connexion — réessaie', 'loss');
+  }
+
+  btn.disabled = false;
+  icon.className = '';
+  icon.textContent = '↻';
 }
 
-// ══ SIGNAL CARDS ══
-const STATIC_SIGNALS = [
-  { action:'BUY', asset:'XOM', name:'ExxonMobil', entry:'118.50', target:'135.00', stop:'112.00', confidence:9, timeframe:'Swing 2–4 weeks', why:'Hormuz crisis keeps oil premium. 1973 and 1979 patterns confirm energy stocks surge during prolonged strait closures. Marine insurance +340% signals tanker scarcity. Buffett: "buy what others flee." Energy stocks at undervalued relative to oil price.', hidden:'Refiners benefit MORE than E&P in closure — XOM integrated model captures both. Most traders only watch crude.', tax:'TOB: ~€0.07 per €20 trade. Capital gains exempt under €10K/yr.' },
-  { action:'BUY', asset:'STNG', name:'Scorpio Tankers', entry:'72.00', target:'110.00', stop:'65.00', confidence:9, timeframe:'Day/Swing 1–3 weeks', why:'HIDDEN SIGNAL: Marine insurance +340%. Simons-pattern: this spike historically precedes tanker stock 3–5x moves within 60 days. Wall St not covering this yet. Every day Hormuz stays closed = tanker premium grows.', hidden:'95% of traders watch oil price. Smart traders watch marine insurance and tanker rates. You now know.', tax:'TOB: ~€0.07 per €20 trade. Gains exempt under €10K.' },
-  { action:'BUY', asset:'MOS', name:'Mosaic (Fertilizers)', entry:'44.00', target:'58.00', stop:'40.00', confidence:8, timeframe:'Swing 2–6 weeks', why:'30% of global fertilizers transit Hormuz. Even if oil price reverses on ceasefire, fertilizer supply chain stays disrupted for months. Independent of oil price — protects you if Hormuz reopens and energy stocks fall.', hidden:'Portfolio hedge: MOS wins whether Hormuz stays closed OR opens. Insurance trade on the ceasefire risk.', tax:'TOB: €0.07 per €20. Gains exempt under €10K.' },
-  { action:'WATCH', asset:'BTC', name:'Bitcoin', entry:'90,000', target:'105,000', stop:'85,000', confidence:7, timeframe:'Day trade opportunity', why:'Geopolitical hedge demand growing. Dalio added BTC to all-weather portfolio. During Hormuz crisis, institutional BTC flows up 40%. Pattern mirrors gold in 1973 oil shock. Wait for $90K support test before entering.', hidden:'Crypto never closes — your best instrument for 22:00–00:00 window when stock markets close.', tax:'10% capital gains on profit above €10K annual exemption. No TOB on crypto.' },
-  { action:'SELL', asset:'EU INDUSTRY', name:'European Industrial Stocks', entry:'Current', target:'–15% to –25%', stop:'If ECB pivots', confidence:8, timeframe:'Medium-term short/avoid', why:'Germany industrial output –8.4%. Energy costs 4x US levels. Pattern exactly matches 1973 oil shock European industrial collapse. Avoid or short DAX, Siemens, BMW. Soros: "find the trend and ride it relentlessly."', hidden:'European energy crisis is structural not cyclical. Will take 2–3 years to resolve regardless of Hormuz.', tax:'CFD shorting gains = 33% Belgian tax if classified professional.' },
-  { action:'BUY', asset:'INDA', name:'India ETF', entry:'52.00', target:'75.00', stop:'47.00', confidence:9, timeframe:'Long-term 2–5 years', why:'India = USA 1950 + Japan 1960 + China 1990. World\'s most populous + youngest demographic + rising middle class. Buffett\'s framework at its purest. This is the most reliable long-term macro trade on earth right now.', hidden:'While everyone watches India\'s stock market rally, the real play is Indian banking (HDB) — it captures the consumer credit boom most foreigners miss.', tax:'Accumulating ETF: TOB 0.12%. No dividends = no 30% précompte. Clean Belgian tax structure.' },
-];
-
-function generateSignals() {
+function renderSignals(signals) {
   const container = document.getElementById('signal-cards');
   container.innerHTML = '';
-  STATIC_SIGNALS.forEach((s, i) => {
-    const liveP = liveprices[s.asset];
-    const priceStr = liveP ? '$' + liveP.price.toFixed(2) + ' (live)' : 'Entry: ' + (s.entry.includes('$') ? s.entry : '$' + s.entry);
-    const confColor = s.confidence >= 8 ? 'var(--green)' : s.confidence >= 6 ? 'var(--amber)' : 'var(--red)';
-    const confW = (s.confidence / 10 * 100) + '%';
+  signals.forEach((s, i) => {
     const actionClass = s.action;
-    const btnClass = s.action === 'BUY' ? 'buy-btn' : s.action === 'SELL' ? 'sell-btn' : 'watch-btn';
-    const btnText = s.action === 'BUY' ? '▶ BUY ON IBKR' : s.action === 'SELL' ? '▶ SELL/SHORT' : '👁 SET ALERT';
+    const confColor = s.confidence >= 8 ? 'var(--green)' : s.confidence >= 6 ? 'var(--amber)' : 'var(--red)';
+    const btnClass = s.action === 'BUY' ? 'buy' : s.action === 'SELL' ? 'sell' : 'watch';
+    const btnText = s.action === 'BUY' ? '▶ BUY ON IBKR' : s.action === 'SELL' ? '▶ SELL/SHORT' : '👁 SURVEILLER';
     const card = document.createElement('div');
     card.className = 'signal-alert ' + actionClass;
     card.innerHTML =
@@ -726,69 +758,93 @@ function generateSignals() {
         '<div>' +
           '<div class="sa-action ' + actionClass + '">' + s.action + '</div>' +
           '<div class="sa-asset">' + s.asset + ' <span style="font-size:13px;color:var(--txt2);font-weight:400">— ' + s.name + '</span></div>' +
-          '<div class="sa-price">' + priceStr + ' · Confidence: <span style="color:' + confColor + '">' + s.confidence + '/10</span> · ' + s.timeframe + '</div>' +
+          '<div class="sa-price">' + s.price + ' · Confiance: <span style="color:' + confColor + '">' + s.confidence + '/10</span> · ' + s.timeframe + '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="confidence-bar"><div class="confidence-fill" style="width:' + confW + ';background:' + confColor + '"></div></div>' +
-      '<div class="sa-why"><strong>Why:</strong> ' + s.why + '</div>' +
-      '<div style="font-size:11px;color:var(--amber);margin-bottom:10px;font-family:var(--mono)">🔍 Hidden insight: ' + s.hidden + '</div>' +
+      '<div class="conf-bar"><div class="conf-fill" style="width:' + (s.confidence/10*100) + '%;background:' + confColor + '"></div></div>' +
+      '<div class="sa-why"><strong>Pourquoi:</strong> ' + s.why + '</div>' +
+      '<div class="sa-hidden">🔍 Insight caché: ' + s.hidden + '</div>' +
       '<div class="sa-levels">' +
-        '<div class="sa-level"><span class="lbl">ENTRY</span><span class="val entry">$' + s.entry + '</span></div>' +
-        '<div class="sa-level"><span class="lbl">TARGET</span><span class="val target">' + s.target + '</span></div>' +
-        '<div class="sa-level"><span class="lbl">STOP-LOSS</span><span class="val stop">' + (s.stop.includes('$') ? s.stop : '$' + s.stop) + '</span></div>' +
-        '<div class="sa-level"><span class="lbl">BELGIAN TAX</span><span class="val">' + s.tax + '</span></div>' +
+        '<div class="sa-level"><span class="lbl">ENTRÉE</span><span class="val entry">$' + s.entry + '</span></div>' +
+        '<div class="sa-level"><span class="lbl">TARGET</span><span class="val target">$' + s.target + '</span></div>' +
+        '<div class="sa-level"><span class="lbl">STOP-LOSS</span><span class="val stop">$' + s.stop + '</span></div>' +
+        '<div class="sa-level"><span class="lbl">TAXE BELGE</span><span class="val tax">' + s.tax + '</span></div>' +
       '</div>' +
-      '<div class="sa-bottom">' +
-        '<div class="sa-meta">Click to place order · <span>You execute on IBKR</span></div>' +
-        '<button class="ibkr-btn ' + btnClass + '" onclick="openOrder(' + i + ')">' + btnText + '</button>' +
+      '<div class="sa-actions">' +
+        (s.action === 'BUY' || s.action === 'SELL' ?
+          '<button class="ibkr-main ' + btnClass + '" onclick="openBracket(' + i + ', ' + JSON.stringify(s).replace(/'/g,"\\'") + ')">' + btnText + '</button>' +
+          '<button class="bracket-btn" onclick="openBracket(' + i + ', ' + JSON.stringify(s).replace(/'/g,"\\'") + ')">🎯 Bracket Order</button>'
+          : '<button class="ibkr-main ' + btnClass + '" onclick="askAbout(\'Analyse ' + s.asset + ' signal: ' + s.why.substring(0,50) + '\')">' + btnText + '</button>'
+        ) +
       '</div>';
     container.appendChild(card);
   });
 }
 
-function openOrder(idx) {
-  const s = STATIC_SIGNALS[idx];
-  const liveP = liveprices[s.asset];
-  const price = liveP ? liveP.price.toFixed(2) : s.entry.replace('$','');
-  currentAction = { ...s, livePrice: price };
-  document.getElementById('order-title').textContent = 'Place Order — ' + s.action + ' ' + s.asset;
-  document.getElementById('order-action').value = s.action;
-  document.getElementById('order-asset').value = s.asset;
-  document.getElementById('order-price').value = price;
-  document.getElementById('order-stop').value = s.stop.replace('$','');
-  document.getElementById('order-target').value = s.target.replace('$','');
-  document.getElementById('order-amount').value = Math.max(capital * 0.1, 20).toFixed(0);
-  const btn = document.getElementById('order-submit');
-  btn.textContent = s.action === 'BUY' ? '✓ CONFIRM & OPEN IBKR' : '✓ CONFIRM & OPEN IBKR';
-  btn.className = 'order-submit ' + (s.action === 'BUY' ? 'buy' : 'sell');
-  const panel = document.getElementById('order-panel');
-  panel.classList.add('show');
-  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+// ══ BRACKET ORDER ══
+function openBracket(idx, signal) {
+  currentBracket = signal;
+  const liveP = liveprices[signal.asset];
+  const price = liveP ? liveP.price.toFixed(2) : signal.entry;
+  document.getElementById('bp-asset-title').textContent = signal.action + ' ' + signal.asset;
+  document.getElementById('bp-asset').value = signal.asset;
+  document.getElementById('bp-entry').value = price;
+  document.getElementById('bp-stop').value = signal.stop;
+  document.getElementById('bp-target').value = signal.target;
+  document.getElementById('bp-amount').value = Math.min(ibkrBalance.available, 20).toFixed(0);
+  updateBracketCalc();
+  document.getElementById('bracket-panel').classList.add('show');
+  document.getElementById('bracket-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function closeOrder() { document.getElementById('order-panel').classList.remove('show'); }
+function updateBracketCalc() {
+  const amount = parseFloat(document.getElementById('bp-amount').value) || 0;
+  const price = parseFloat(document.getElementById('bp-entry').value) || 1;
+  const stop = parseFloat(document.getElementById('bp-stop').value) || 0;
+  const target = parseFloat(document.getElementById('bp-target').value) || 0;
+  const qty = (amount / price).toFixed(4);
+  document.getElementById('bp-qty').value = qty + ' actions';
+  const maxLoss = ((price - stop) * qty).toFixed(2);
+  const maxGain = ((target - price) * qty).toFixed(2);
+  document.getElementById('bp-info').innerHTML =
+    'Quantité: <strong>' + qty + ' actions</strong> · ' +
+    'Perte max si stop-loss: <strong style="color:var(--red)">-€' + Math.abs(maxLoss) + '</strong> · ' +
+    'Gain max si target: <strong style="color:var(--green)">+€' + maxGain + '</strong><br>' +
+    '<strong>Bracket Order</strong> = IBKR gère automatiquement stop-loss ET take-profit sans surveillance 24/7.';
+}
 
-function executeOrder() {
-  if (!currentAction) return;
-  const amount = parseFloat(document.getElementById('order-amount').value);
-  const price = parseFloat(document.getElementById('order-price').value);
-  const stop = parseFloat(document.getElementById('order-stop').value);
-  const target = parseFloat(document.getElementById('order-target').value);
-  const shares = (amount / price).toFixed(4);
-  // Track position
+['bp-amount','bp-entry','bp-stop','bp-target'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', updateBracketCalc);
+});
+
+function executeBracket() {
+  if (!currentBracket) return;
+  const asset = document.getElementById('bp-asset').value;
+  const qty = parseFloat(document.getElementById('bp-qty').value);
+  const entry = document.getElementById('bp-entry').value;
+  const stop = document.getElementById('bp-stop').value;
+  const target = document.getElementById('bp-target').value;
+  const amount = document.getElementById('bp-amount').value;
+
+  // Add to positions tracker
   positions.push({
-    asset: currentAction.asset, name: currentAction.name,
-    size: amount, entry: price, current: price,
-    stop, target, action: currentAction.action,
-    openedAt: new Date().toISOString(), shares
+    asset, name: currentBracket.name,
+    size: parseFloat(amount), entry: parseFloat(entry), current: parseFloat(entry),
+    stop: parseFloat(stop), target: parseFloat(target),
+    action: currentBracket.action, openedAt: new Date().toISOString()
   });
-  renderPositions();
-  save();
-  closeOrder();
-  // Open IBKR
-  const ibkrUrl = 'https://www.interactivebrokers.co.uk/portal/?action=trade&symbol=' + currentAction.asset;
+  renderPositions(); save(); closeBracket();
+
+  // Open IBKR with bracket order URL
+  const ibkrUrl = 'https://clientportal.ibkr.ie/portal/#/trade?symbol=' + asset + '&exchange=SMART&currency=USD';
   window.open(ibkrUrl, '_blank');
-  showToast('Order logged · Confirm on IBKR · Tracking ' + currentAction.asset, 'gain');
+  showToast('✓ IBKR ouvert · Place: BUY ' + asset + ' + Stop $' + stop + ' + Target $' + target, 'gain');
+}
+
+function closeBracket() {
+  document.getElementById('bracket-panel').classList.remove('show');
+  currentBracket = null;
 }
 
 // ══ POSITIONS ══
@@ -797,37 +853,39 @@ function addPosition() {
   const size = parseFloat(document.getElementById('f-size').value);
   const entry = parseFloat(document.getElementById('f-entry').value);
   const current = parseFloat(document.getElementById('f-current').value) || entry;
-  const stop = parseFloat(document.getElementById('f-stop').value) || entry * 0.95;
+  const stop = parseFloat(document.getElementById('f-stop').value) || entry * 0.93;
   const target = parseFloat(document.getElementById('f-target').value) || entry * 1.15;
-  if (!asset || isNaN(size) || isNaN(entry)) { showToast('Fill in Asset, Size and Entry price', 'loss'); return; }
+  if (!asset || isNaN(size) || isNaN(entry)) { showToast('Remplis Asset, Taille et Prix Entrée', 'loss'); return; }
   positions.push({ asset, size, entry, current, stop, target, action: 'BUY', openedAt: new Date().toISOString() });
   ['f-asset','f-size','f-entry','f-current','f-stop','f-target'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  renderPositions();
-  save();
-  showToast('Position added: ' + asset, 'gain');
+  renderPositions(); save(); showToast('Position ajoutée: ' + asset, 'gain');
 }
 
 function closePosition(i) {
   const p = positions[i];
   const pl = ((p.current - p.entry) / p.entry) * p.size;
   const plPct = (p.current - p.entry) / p.entry * 100;
-  const ibkrUrl = 'https://www.interactivebrokers.co.uk/portal/?action=trade&symbol=' + p.asset;
-  window.open(ibkrUrl, '_blank');
-  showToast((pl >= 0 ? '✓ GAIN: +' : '✗ LOSS: ') + '€' + Math.abs(pl).toFixed(2) + ' (' + (plPct >= 0 ? '+' : '') + plPct.toFixed(1) + '%) on ' + p.asset, pl >= 0 ? 'gain' : 'loss');
-  positions.splice(i, 1);
-  renderPositions();
-  save();
+  window.open('https://clientportal.ibkr.ie/portal/#/trade?symbol=' + p.asset, '_blank');
+  showToast((pl>=0?'✓ GAIN: +':'✗ LOSS: ') + '€' + Math.abs(pl).toFixed(2) + ' (' + (plPct>=0?'+':'') + plPct.toFixed(1) + '%) — ' + p.asset, pl>=0?'gain':'loss');
+  positions.splice(i, 1); renderPositions(); save();
 }
 
 function updatePositionPrice(i) {
-  const newPrice = parseFloat(prompt('Enter current price for ' + positions[i].asset + ':'));
-  if (!isNaN(newPrice)) { positions[i].current = newPrice; renderPositions(); save(); }
+  const liveP = liveprices[positions[i].asset];
+  if (liveP) {
+    positions[i].current = liveP.price;
+    renderPositions(); save();
+    showToast('Prix mis à jour: ' + positions[i].asset + ' $' + liveP.price.toFixed(2), 'info');
+  } else {
+    const newPrice = parseFloat(prompt('Prix actuel pour ' + positions[i].asset + ':'));
+    if (!isNaN(newPrice)) { positions[i].current = newPrice; renderPositions(); save(); }
+  }
 }
 
 function renderPositions() {
   const el = document.getElementById('positions-list');
   if (!positions.length) {
-    el.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">No positions yet. Go to Signals tab → click BUY to open your first trade.</div>';
+    el.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">Aucune position. Va dans Signals → clique BUY.</div>';
     setTotal(capital); return;
   }
   let totalPL = 0;
@@ -835,27 +893,24 @@ function renderPositions() {
     const pl = ((p.current - p.entry) / p.entry) * p.size;
     const plPct = (p.current - p.entry) / p.entry * 100;
     totalPL += pl;
-    const col = pl >= 0 ? 'var(--green)' : 'var(--red)';
-    const distToStop = p.stop ? ((p.stop - p.entry) / p.entry * 100).toFixed(1) : '—';
-    const distToTarget = p.target ? ((p.target - p.entry) / p.entry * 100).toFixed(1) : '—';
-    const barW = Math.min(Math.abs(plPct) * 3, 100);
-    // Check stop/target alerts
+    const col = pl>=0 ? 'var(--green)' : 'var(--red)';
     let alertHtml = '';
-    if (p.stop && p.current <= p.stop) alertHtml = '<div style="font-family:var(--mono);font-size:10px;color:var(--red);margin-top:6px">⚠️ STOP-LOSS HIT — Consider closing this position now</div>';
-    if (p.target && p.current >= p.target) alertHtml = '<div style="font-family:var(--mono);font-size:10px;color:var(--green);margin-top:6px">🎯 TARGET HIT — Consider taking profit now</div>';
-    return '<div class="pos-card" onclick="updatePositionPrice(' + i + ')">' +
-      '<div class="pos-top"><span class="pos-ticker">' + p.asset + ' <span style="font-size:11px;font-weight:400;color:var(--txt2)">' + (p.name || '') + '</span></span>' +
-      '<span class="pos-pnl" style="color:' + col + '">' + (pl >= 0 ? '+' : '') + '€' + pl.toFixed(2) + ' (' + (plPct >= 0 ? '+' : '') + plPct.toFixed(1) + '%)</span></div>' +
-      '<div class="pos-bar-wrap"><div class="pos-bar" style="width:' + barW + '%;background:' + col + '"></div></div>' +
+    if (p.stop && p.current <= p.stop) alertHtml = '<div class="pos-alert stop">⚠️ STOP-LOSS ATTEINT — Ferme cette position sur IBKR maintenant !</div>';
+    if (p.target && p.current >= p.target) alertHtml = '<div class="pos-alert target">🎯 TARGET ATTEINT — Prends tes profits sur IBKR maintenant !</div>';
+    return '<div class="pos-card">' +
+      '<div class="pos-top"><span class="pos-ticker">' + p.asset + ' <span style="font-size:11px;font-weight:400;color:var(--txt2)">' + (p.name||'') + '</span></span>' +
+      '<span class="pos-pnl" style="color:' + col + '">' + (pl>=0?'+':'') + '€' + pl.toFixed(2) + ' (' + (plPct>=0?'+':'') + plPct.toFixed(1) + '%)</span></div>' +
+      '<div class="pos-bar-wrap"><div class="pos-bar" style="width:' + Math.min(Math.abs(plPct)*3,100) + '%;background:' + col + '"></div></div>' +
       '<div class="pos-details">' +
-        '<div class="pos-detail"><div class="pos-d-lbl">SIZE</div><div class="pos-d-val">€' + p.size + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">ENTRY</div><div class="pos-d-val">€' + p.entry + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">CURRENT</div><div class="pos-d-val" style="color:' + col + '">€' + p.current + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">STOP-LOSS</div><div class="pos-d-val" style="color:var(--red)">€' + (p.stop || '—') + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">TAILLE</div><div class="pos-d-val">€' + p.size + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">ENTRÉE</div><div class="pos-d-val">€' + p.entry + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">ACTUEL</div><div class="pos-d-val" style="color:' + col + '">€' + p.current + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">STOP-LOSS</div><div class="pos-d-val" style="color:var(--red)">€' + (p.stop||'—') + '</div></div>' +
       '</div>' + alertHtml +
       '<div class="pos-actions">' +
-        '<button class="pos-btn ai-review" onclick="event.stopPropagation();askAbout(\'Analyse my ' + p.asset + ' position: entry €' + p.entry + ', current €' + p.current + ', stop €' + (p.stop||'none') + ', target €' + (p.target||'none') + '. Should I hold, add, or close?\')" >🧠 AI ADVICE</button>' +
-        '<button class="pos-btn close-pos" onclick="event.stopPropagation();closePosition(' + i + ')">✕ CLOSE ON IBKR</button>' +
+        '<button class="pos-btn ai-review" onclick="askAbout(\'Analyse ma position ' + p.asset + ': entrée €' + p.entry + ', actuel €' + p.current + ', stop €' + (p.stop||\'aucun\') + ', target €' + (p.target||\'aucun\') + '. Tenir, ajouter ou sortir?\')">🧠 AI</button>' +
+        '<button class="pos-btn update-price" onclick="updatePositionPrice(' + i + ')">↻ PRIX</button>' +
+        '<button class="pos-btn close-pos" onclick="closePosition(' + i + ')">✕ FERMER</button>' +
       '</div></div>';
   }).join('');
   setTotal(capital + totalPL);
@@ -865,17 +920,12 @@ function setTotal(total) {
   document.getElementById('ptotal').textContent = total.toFixed(2);
   if (document.getElementById('phase-total')) document.getElementById('phase-total').textContent = '€' + total.toFixed(0);
   const pct = Math.min(((total - 1000) / 49000) * 100, 100);
-  const pfEl = document.getElementById('prog-fill');
-  if (pfEl) pfEl.style.width = Math.max(pct, 1) + '%';
-  const ppEl = document.getElementById('prog-pct');
-  if (ppEl) ppEl.textContent = pct.toFixed(1) + '%';
-  const pnEl = document.getElementById('phase-name');
-  if (pnEl) pnEl.textContent = total < 10000 ? 'Phase 1 — Learning & Trading' : total < 50000 ? 'Phase 2 — Scale Up' : 'Phase 3 — Diversify';
-  // milestones
-  [['m1',1000],['m2',5000],['m3',10000],['m4',25000],['m5',50000]].forEach(([id, val]) => {
-    const m = document.getElementById(id);
-    if (!m) return;
-    m.className = 'milestone ' + (total >= val ? 'done' : total > val * 0.8 ? 'current' : '');
+  const pfEl = document.getElementById('prog-fill'); if (pfEl) pfEl.style.width = Math.max(pct,1) + '%';
+  const ppEl = document.getElementById('prog-pct'); if (ppEl) ppEl.textContent = pct.toFixed(1) + '%';
+  const pnEl = document.getElementById('phase-name'); if (pnEl) pnEl.textContent = total < 10000 ? 'Phase 1 — Learning & Trading' : total < 50000 ? 'Phase 2 — Scale Up' : 'Phase 3 — Diversify';
+  [['m1',1000],['m2',5000],['m3',10000],['m4',25000],['m5',50000]].forEach(([id,val]) => {
+    const m = document.getElementById(id); if (!m) return;
+    m.className = 'milestone ' + (total>=val?'done':total>val*0.8?'current':'');
   });
 }
 
@@ -891,21 +941,21 @@ function saveScheduleAndPlan() {
   tradingHours.from = document.getElementById('t-from').value;
   tradingHours.to = document.getElementById('t-to').value;
   save();
-  document.getElementById('schedule-result').textContent = 'Getting your plan...';
-  askAbout('My trading window tonight is ' + tradingHours.from + ' to ' + tradingHours.to + ' CET. Give me a specific hour-by-hour trading plan. What markets are open each hour? What should I focus on? Which of the current signals (XOM, STNG, MOS, BTC) are most relevant for this specific window?');
+  document.getElementById('schedule-result').textContent = 'Génération de ton plan...';
+  askAbout('Ma fenêtre de trading ce soir est ' + tradingHours.from + ' à ' + tradingHours.to + ' CET. Donne-moi un plan heure par heure précis. Quels marchés sont ouverts? Sur quoi me concentrer? Quels signaux (XOM, STNG, MOS, BTC) sont les plus pertinents pour cette fenêtre?');
 }
 
 // ══ SETTINGS ══
 function saveCapital() {
   const v = parseFloat(document.getElementById('capital-input').value);
-  if (!isNaN(v)) { capital = v; save(); renderPositions(); showToast('Capital updated: €' + v, 'gain'); }
+  if (!isNaN(v)) { capital = v; save(); renderPositions(); showToast('Capital mis à jour: €' + v, 'gain'); }
 }
 
-// ══ EXPORT / IMPORT ══
+// ══ EXPORT/IMPORT ══
 function exportData() {
-  const data = JSON.stringify({ positions, capital, tradingHours, chatHistory: chatHistory.slice(-20), exportedAt: new Date().toISOString() }, null, 2);
+  const data = JSON.stringify({ positions, capital, tradingHours, chatHistory: chatHistory.slice(-20), ibkrBalance, exportedAt: new Date().toISOString() }, null, 2);
   const a = document.createElement('a'); a.href = 'data:application/json,' + encodeURIComponent(data);
-  a.download = 'omnivest-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  a.download = 'omnivest-v5-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
 }
 function importData(evt) {
   const file = evt.target.files[0]; if (!file) return;
@@ -917,31 +967,22 @@ function importData(evt) {
       if (d.capital) capital = d.capital;
       if (d.tradingHours) tradingHours = d.tradingHours;
       if (d.chatHistory) chatHistory = d.chatHistory;
-      renderPositions(); save();
-      showToast('✓ Data imported from other device', 'gain');
-    } catch { showToast('Invalid file', 'loss'); }
+      if (d.ibkrBalance) ibkrBalance = d.ibkrBalance;
+      renderPositions(); renderIBKRBalance(); save();
+      showToast('✓ Données importées', 'gain');
+    } catch { showToast('Fichier invalide', 'loss'); }
   };
   reader.readAsText(file);
 }
 
-// ══ ANTHROPIC KEY ══
-function saveAnthropicKey() {
-  const k = document.getElementById('anthropic-key-input').value.trim();
-  if (!k || k.startsWith('•')) return;
-  localStorage.setItem('anthropic_key', k);
-  document.getElementById('anthropic-status').textContent = '✓ Clé sauvegardée — AI Analyst activé !';
-  document.getElementById('anthropic-status').style.color = 'var(--green)';
-  document.getElementById('anthropic-key-input').value = '••••••••••••••••';
-}
-
 // ══ CHAT ══
 let msgN = 0;
-const SYS = 'You are OmniVest AI — elite trading analyst. User: Belgian investor in Liège. Capital: €' + capital + '. Goal: €1K→€10K→€50K→diversify. Platform: Interactive Brokers (IBKR), TWS API available. Trading hours: flexible, usually 20:00–00:00 CET. Belgian taxes: TOB 0.12–1.32% (self-declare with IBKR), 10% capital gains (first €10K/yr exempt), 30% dividend tax.\n\nYour DNA: Buffett (value, moats) + Soros (reflexivity, macro) + Lynch (10-baggers) + Livermore (tape, timing) + Simons (quant patterns) + Graham (margin of safety) + Templeton (contrarian) + Tudor Jones (macro, cut losses) + Dalio (all-weather) + Druckenmiller (concentrated bets) + Thorp (Kelly sizing) + Dennis (trend following). 120+ years market history pattern recognition.\n\nCurrent context (May 2026): Hormuz 95% closed, Brent $118, marine insurance +340% (hidden signal), Fed hold 5.25%, China GDP 3.8%, Europe recession, India demographic boom, Africa energy alternative boom, BTC $93K, VIX 28.4, US mid-terms Nov 2026 (+16% historical pattern).\n\nFormat every trading answer as:\n🎯 SIGNAL: [BUY/SELL/HOLD/WATCH] [ASSET]\n📊 Confidence: X/10 | Timeframe: [day/swing/long-term]\n💡 Why in 2–3 clear sentences a beginner understands\n📈 Entry: $X | Target: $X (+Y%) | Stop-loss: $X\n🔍 Hidden insight others miss\n🇧🇪 Belgian tax: [specific impact]\n⚠️ Risk: [main risk]\n\nBe bold, specific, and clear. User executes on IBKR — never Claude. Always give entry/target/stop numbers.';
+const SYS = 'You are OmniVest AI — elite trading analyst for a Belgian investor named Didier in Liège. Capital: €20 real on IBKR (account U25981774). Goal: €20→€1K→€10K→€50K→diversify (long-term + Africa business + passive income). Platform: Interactive Brokers (IBKR), Bracket Orders available. Trading hours: 20:00–00:00 CET weekdays.\n\nBelgian taxes: TOB 0.12–1.32% per transaction (self-declare quarterly), 10% capital gains (first €10K/yr exempt), 30% dividend withholding tax.\n\nYour DNA: Buffett (value, moats, patience) + Soros (reflexivity, macro regime bets) + Peter Lynch (10-baggers, growth) + Jesse Livermore (tape reading, timing) + Jim Simons (quant patterns, signal extraction) + Graham (margin of safety) + Templeton (contrarian, max pessimism) + Paul Tudor Jones (macro, cut losses fast) + Ray Dalio (all-weather, debt cycles) + Druckenmiller (concentrated bets) + Thorp (Kelly sizing) + Dennis (trend following). 120+ years market history.\n\nCurrent context (May 2026): Hormuz 95% closed, Brent $118, marine insurance +340% (KEY hidden signal), Fed hold 5.25%, China GDP 3.8%, Europe recession, India demographic boom, Africa energy alternative boom, BTC ~$93K, VIX 28.4.\n\nFormat:\n🎯 SIGNAL: [BUY/SELL/HOLD/WATCH] [ASSET]\n📊 Confiance: X/10 | Durée: [jour/swing/long terme]\n💡 Pourquoi: 2-3 phrases claires pour débutant\n📈 Entrée: $X | Target: $X (+Y%) | Stop-loss: $X\n🎯 Bracket Order: entre ces 3 valeurs sur IBKR\n🔍 Insight caché que 95% des traders manquent\n🇧🇪 Taxe belge: impact spécifique\n⚠️ Risque principal\n\nSois spécifique, direct, bold quand le signal est clair. Didier exécute sur IBKR avec Bracket Orders — donne toujours les 3 prix précis.';
 
 function addMsg(role, html) {
   const id = 'm' + (++msgN);
   const d = document.createElement('div'); d.className = 'msg ' + role; d.id = id;
-  d.innerHTML = '<div class="av ' + role + '">' + (role === 'ai' ? 'OV' : 'YOU') + '</div><div class="bub">' + html + '</div>';
+  d.innerHTML = '<div class="av ' + role + '">' + (role==='ai'?'OV':'YOU') + '</div><div class="bub">' + html + '</div>';
   document.getElementById('chat-msgs').appendChild(d);
   document.getElementById('chat-msgs').scrollTop = 99999;
   return id;
@@ -967,13 +1008,15 @@ async function sendMsg(override) {
   inp.value = '';
   document.getElementById('go-btn').disabled = true;
   addMsg('user', text.replace(/</g,'&lt;'));
-  chatHistory.push({ role:'user', content: text + '\n[Portfolio: ' + getPosCtx() + '] [Hours: ' + tradingHours.from + '-' + tradingHours.to + ']' });
-  const tid = addMsg('ai','<span class="dots">Analysing global signals</span>');
+  const liveCtx = Object.entries(liveprices).map(([k,v]) => k + ': $' + v.price.toFixed(2)).join(', ');
+  chatHistory.push({ role:'user', content: text + '\n[Portfolio: ' + getPosCtx() + '] [Live prices: ' + (liveCtx||'unavailable') + '] [Hours: ' + tradingHours.from + '-' + tradingHours.to + '] [IBKR balance: €' + ibkrBalance.total + ']' });
+  const tid = addMsg('ai','<span class="dots">Analyse des signaux globaux</span>');
+  const anthropicKey = localStorage.getItem('anthropic_key') || '';
+  if (!anthropicKey) { updMsg(tid, '⚠️ Clé Anthropic manquante — va dans Settings ⚙️ et entre ta clé API.'); document.getElementById('go-btn').disabled = false; return; }
   try {
-    const anthropicKey = localStorage.getItem('anthropic_key') || '';
-    if (!anthropicKey) { updMsg(tid, '⚠️ Clé Anthropic manquante — va dans Settings ⚙️ et entre ta clé API.'); document.getElementById('go-btn').disabled = false; return; }
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:1000, system:SYS, messages:chatHistory.slice(-20) })
     });
     const data = await res.json();
@@ -982,7 +1025,7 @@ async function sendMsg(override) {
     chatHistory.push({ role:'assistant', content:reply });
     if (chatHistory.length > 40) chatHistory = chatHistory.slice(-30);
     save();
-  } catch { updMsg(tid, '⚠️ Connection error. Check network and retry.'); }
+  } catch { updMsg(tid, '⚠️ Erreur connexion. Vérifie ton réseau et réessaie.'); }
   document.getElementById('go-btn').disabled = false;
 }
 
@@ -993,24 +1036,17 @@ function askAbout(q) {
 }
 
 // ══ PWA ══
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
 if ('serviceWorker' in navigator) {
-  const sw = 'const C="ov4";self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["/"])))}); self.addEventListener("fetch",e=>{if(e.request.url.includes("api.anthropic")||e.request.url.includes("finnhub")||e.request.url.includes("fonts.googleapis"))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})';
+  const sw = 'const C="ov5";self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["/"])))}); self.addEventListener("fetch",e=>{if(e.request.url.includes("api.anthropic")||e.request.url.includes("finnhub")||e.request.url.includes("fonts.googleapis"))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})';
   const blob = new Blob([sw],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
 }
 
 // ══ INIT ══
-generateSignals();
 renderPositions();
+renderIBKRBalance();
 if (finnhubKey) { fetchAllPrices(); startLiveFeed(); }
 else { document.getElementById('live-lbl').textContent = 'NO KEY'; document.getElementById('live-pulse').style.background='var(--amber)'; }
-// Restore anthropic key status
-if (localStorage.getItem('anthropic_key')) {
-  const el = document.getElementById('anthropic-status');
-  if (el) { el.textContent = '✓ Clé Anthropic active — AI Analyst prêt'; el.style.color = 'var(--green)'; }
-}
 </script>
 </body>
 </html>
