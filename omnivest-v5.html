@@ -744,6 +744,7 @@ async function refreshSignals() {
 }
 
 function renderSignals(signals) {
+  lastSignals = signals;
   const container = document.getElementById('signal-cards');
   container.innerHTML = '';
   signals.forEach((s, i) => {
@@ -772,8 +773,8 @@ function renderSignals(signals) {
       '</div>' +
       '<div class="sa-actions">' +
         (s.action === 'BUY' || s.action === 'SELL' ?
-          '<button class="ibkr-main ' + btnClass + '" onclick="openBracket(' + i + ', ' + JSON.stringify(s).replace(/'/g,"\\'") + ')">' + btnText + '</button>' +
-          '<button class="bracket-btn" onclick="openBracket(' + i + ', ' + JSON.stringify(s).replace(/'/g,"\\'") + ')">🎯 Bracket Order</button>'
+          '<button class="ibkr-main ' + btnClass + '" onclick="openBracketIdx(' + i + ')">' + btnText + '</button>' +
+          '<button class="bracket-btn" onclick="openBracketIdx(' + i + ')">🎯 Bracket Order</button>'
           : '<button class="ibkr-main ' + btnClass + '" onclick="askAbout(\'Analyse ' + s.asset + ' signal: ' + s.why.substring(0,50) + '\')">' + btnText + '</button>'
         ) +
       '</div>';
@@ -782,6 +783,12 @@ function renderSignals(signals) {
 }
 
 // ══ BRACKET ORDER ══
+
+let lastSignals = [];
+function openBracketIdx(i) {
+  if (lastSignals[i]) openBracket(i, lastSignals[i]);
+}
+
 function openBracket(idx, signal) {
   currentBracket = signal;
   const liveP = liveprices[signal.asset];
@@ -908,7 +915,7 @@ function renderPositions() {
         '<div class="pos-detail"><div class="pos-d-lbl">STOP-LOSS</div><div class="pos-d-val" style="color:var(--red)">€' + (p.stop||'—') + '</div></div>' +
       '</div>' + alertHtml +
       '<div class="pos-actions">' +
-        '<button class="pos-btn ai-review" onclick="askAbout(\'Analyse ma position ' + p.asset + ': entrée €' + p.entry + ', actuel €' + p.current + ', stop €' + (p.stop||\'aucun\') + ', target €' + (p.target||\'aucun\') + '. Tenir, ajouter ou sortir?\')">🧠 AI</button>' +
+        '<button class="pos-btn ai-review" onclick="askPosAI(' + i + ')" data-asset="' + p.asset + '">🧠 AI</button>' +
         '<button class="pos-btn update-price" onclick="updatePositionPrice(' + i + ')">↻ PRIX</button>' +
         '<button class="pos-btn close-pos" onclick="closePosition(' + i + ')">✕ FERMER</button>' +
       '</div></div>';
@@ -1000,6 +1007,14 @@ function fmt(t) {
 function getPosCtx() {
   if (!positions.length) return 'No open positions.';
   return positions.map(p => p.asset + ': entry €' + p.entry + ', current €' + p.current + ', size €' + p.size).join(' | ');
+}
+
+
+function askPosAI(i) {
+  const p = positions[i];
+  if (!p) return;
+  const q = 'Analyse my ' + p.asset + ' position: entry $' + p.entry + ', current $' + p.current + ', stop $' + (p.stop||'none') + ', target $' + (p.target||'none') + '. Should I hold, add, or close?';
+  askAbout(q);
 }
 
 async function sendMsg(override) {
