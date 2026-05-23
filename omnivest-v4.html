@@ -952,7 +952,7 @@ async function sendMsg(override) {
   const tid = addMsg('ai','<span class="dots">Analysing global signals</span>');
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system:SYS, messages:chatHistory.slice(-20) })
     });
     const data = await res.json();
