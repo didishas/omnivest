@@ -247,14 +247,74 @@ select.inp{cursor:pointer}
 <div class="panel" id="p-budget">
   <div class="scroll">
 
-    <!-- Revenus fixes -->
+    <!-- Revenus éditables -->
     <div class="card green-border">
-      <div class="card-title">REVENUS MENSUELS</div>
-      <div class="budget-row"><span class="lbl">Salaire net</span><span class="val-pos">+€2,400</span></div>
-      <div class="budget-row"><span class="lbl">Remboursement KM</span><span class="val-pos">+€600</span></div>
-      <div class="budget-row"><span class="lbl">Location maison familiale</span><span class="val-pos">+€<span id="rental-eur">365</span> <span style="color:var(--txt3);font-size:10px">(395 USD)</span></span></div>
-      <div class="budget-row"><span class="lbl">Autres revenus</span><span class="val-pos">+€<span id="other-rev">0</span></span></div>
-      <div class="budget-row"><span>TOTAL REVENUS</span><span class="val-pos" style="font-size:16px">+€<span id="total-rev">3,365</span></span></div>
+      <div class="card-title">REVENUS MENSUELS — MODIFIER AU BESOIN</div>
+
+      <div style="display:grid;gap:8px;margin-bottom:12px">
+
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+          <div>
+            <label class="inp-lbl">SALAIRE NET (€)</label>
+            <input class="inp" id="rev-salaire" type="number" placeholder="2400" value="2400" oninput="recalcRevenues()">
+          </div>
+          <div style="text-align:right;padding-top:16px">
+            <span class="val-pos" id="rev-salaire-disp">+€2,400</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+          <div>
+            <label class="inp-lbl">REMBOURSEMENT KM (€)</label>
+            <input class="inp" id="rev-km" type="number" placeholder="600" value="600" oninput="recalcRevenues()">
+          </div>
+          <div style="text-align:right;padding-top:16px">
+            <span class="val-pos" id="rev-km-disp">+€600</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+          <div>
+            <label class="inp-lbl">LOCATION MAISON FAMILIALE (€) <span style="color:var(--txt3)">(défaut 395 USD ≈ €365)</span></label>
+            <input class="inp" id="rev-location" type="number" placeholder="365" value="365" oninput="recalcRevenues()">
+          </div>
+          <div style="text-align:right;padding-top:16px">
+            <span class="val-pos" id="rev-location-disp">+€365</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+          <div>
+            <label class="inp-lbl">AUTRES REVENUS (€) <span style="color:var(--txt3)">freelance, bonus, remb...</span></label>
+            <input class="inp" id="rev-autres" type="number" placeholder="0" value="0" oninput="recalcRevenues()">
+          </div>
+          <div style="text-align:right;padding-top:16px">
+            <span class="val-pos" id="rev-autres-disp">+€0</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+          <div>
+            <label class="inp-lbl">REVENUS EXCEPTIONNELS (€) <span style="color:var(--txt3)">pécule, 13ème mois...</span></label>
+            <input class="inp" id="rev-excep" type="number" placeholder="0" value="0" oninput="recalcRevenues()">
+          </div>
+          <div style="text-align:right;padding-top:16px">
+            <span class="val-pos" id="rev-excep-disp">+€0</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:700">TOTAL REVENUS CE MOIS</span>
+        <span class="val-pos" style="font-size:20px" id="total-rev">+€3,365</span>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-gold" onclick="saveRevenues()" style="flex:1">💾 SAUVEGARDER CE MOIS</button>
+        <button class="btn btn-blue" onclick="resetRevenues()">↺ RÉINITIALISER</button>
+      </div>
+      <div id="rev-saved-msg" style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:6px;text-align:center"></div>
     </div>
 
     <!-- Charges fixes -->
@@ -512,7 +572,7 @@ select.inp{cursor:pointer}
 // ══ STORAGE ══
 const SK = 'financeiq_v1';
 function load() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
-function save() { localStorage.setItem(SK, JSON.stringify({ expenses, ibkrBalance, investedThisMonth, debtHuissier, debtOnem, currentMonth, realCapital })); }
+function save() { localStorage.setItem(SK, JSON.stringify({ expenses, ibkrBalance, investedThisMonth, debtHuissier, debtOnem, currentMonth, realCapital, revenues })); }
 
 let st = load();
 let expenses = st.expenses || [];
@@ -548,12 +608,14 @@ function toast(msg, type) {
 // ══ DASHBOARD ══
 function renderDashboard() {
   const totalExp = expenses.filter(e => isThisMonth(e.date)).reduce((s,e) => s + e.amt, 0);
-  const reste = 3365 - 1220 - totalExp - investedThisMonth;
+  const totalRev = getTotalRevenues();
+  const reste = totalRev - 1220 - totalExp - investedThisMonth;
   const debtTotal = debtHuissier + debtOnem;
   const debtPct = Math.max(0, 100 - (debtTotal / 15300 * 100));
   const capitalPct = Math.min(100, realCapital / 10000 * 100);
   const planPct = Math.min(100, (currentMonth / 60) * 100);
 
+  document.getElementById('d-revenus').textContent = '+€' + totalRev.toLocaleString('fr-BE');
   document.getElementById('d-depenses').textContent = '-€' + totalExp.toFixed(2);
   document.getElementById('d-investi').textContent = '+€' + investedThisMonth.toFixed(2);
   document.getElementById('d-reste').textContent = '€' + reste.toFixed(2);
@@ -569,7 +631,7 @@ function renderDashboard() {
 
   // Métriques
   const dm = [
-    { lbl: 'REVENUS/MOIS', val: '€3,365', cls: 'm-green', sub: 'Salaire + KM + Location' },
+    { lbl: 'REVENUS/MOIS', val: '€'+totalRev.toLocaleString('fr-BE'), cls: 'm-green', sub: 'Salaire + KM + Location + autres' },
     { lbl: 'CHARGES FIXES', val: '-€1,220', cls: 'm-red', sub: 'Loyer, tél, ONEM, huissier' },
     { lbl: 'DETTE TOTALE', val: '-€' + debtTotal.toLocaleString('fr-BE'), cls: 'm-red', sub: 'Huissier + ONEM' },
     { lbl: 'CAPITAL IBKR', val: '€' + realCapital.toLocaleString('fr-BE'), cls: 'm-gold', sub: 'Compte réel U25981774' },
@@ -586,7 +648,64 @@ function isThisMonth(dateStr) {
   return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 }
 
-// ══ BUDGET ══
+// ══ REVENUS ══
+let revenues = st.revenues || { salaire:2400, km:600, location:365, autres:0, excep:0 };
+
+function getTotalRevenues() {
+  return revenues.salaire + revenues.km + revenues.location + revenues.autres + revenues.excep;
+}
+
+function recalcRevenues() {
+  const s = parseFloat(document.getElementById('rev-salaire').value) || 0;
+  const k = parseFloat(document.getElementById('rev-km').value) || 0;
+  const l = parseFloat(document.getElementById('rev-location').value) || 0;
+  const a = parseFloat(document.getElementById('rev-autres').value) || 0;
+  const e = parseFloat(document.getElementById('rev-excep').value) || 0;
+  document.getElementById('rev-salaire-disp').textContent = '+€' + s.toLocaleString('fr-BE');
+  document.getElementById('rev-km-disp').textContent = '+€' + k.toLocaleString('fr-BE');
+  document.getElementById('rev-location-disp').textContent = '+€' + l.toLocaleString('fr-BE');
+  document.getElementById('rev-autres-disp').textContent = '+€' + a.toLocaleString('fr-BE');
+  document.getElementById('rev-excep-disp').textContent = '+€' + e.toLocaleString('fr-BE');
+  const total = s + k + l + a + e;
+  document.getElementById('total-rev').textContent = '+€' + total.toLocaleString('fr-BE');
+  renderBilan();
+  renderDashboard();
+}
+
+function saveRevenues() {
+  revenues.salaire = parseFloat(document.getElementById('rev-salaire').value) || 2400;
+  revenues.km = parseFloat(document.getElementById('rev-km').value) || 600;
+  revenues.location = parseFloat(document.getElementById('rev-location').value) || 365;
+  revenues.autres = parseFloat(document.getElementById('rev-autres').value) || 0;
+  revenues.excep = parseFloat(document.getElementById('rev-excep').value) || 0;
+  save();
+  document.getElementById('rev-saved-msg').textContent = '✓ Revenus sauvegardés — ' + new Date().toLocaleDateString('fr-BE');
+  document.getElementById('rev-saved-msg').style.color = 'var(--green)';
+  toast('Revenus sauvegardés: €' + getTotalRevenues().toLocaleString('fr-BE'));
+  renderBilan();
+  renderDashboard();
+}
+
+function resetRevenues() {
+  revenues = { salaire:2400, km:600, location:365, autres:0, excep:0 };
+  document.getElementById('rev-salaire').value = 2400;
+  document.getElementById('rev-km').value = 600;
+  document.getElementById('rev-location').value = 365;
+  document.getElementById('rev-autres').value = 0;
+  document.getElementById('rev-excep').value = 0;
+  recalcRevenues();
+  toast('Revenus réinitialisés aux valeurs par défaut');
+}
+
+function restoreRevenues() {
+  document.getElementById('rev-salaire').value = revenues.salaire;
+  document.getElementById('rev-km').value = revenues.km;
+  document.getElementById('rev-location').value = revenues.location;
+  document.getElementById('rev-autres').value = revenues.autres;
+  document.getElementById('rev-excep').value = revenues.excep;
+  recalcRevenues();
+}
+
 function addExpense() {
   const name = document.getElementById('exp-name').value.trim();
   const amt = parseFloat(document.getElementById('exp-amt').value);
@@ -623,7 +742,9 @@ function delExpense(i) { expenses.splice(i,1); save(); renderExpenses(); renderB
 
 function renderBilan() {
   const totalVar = expenses.filter(e => isThisMonth(e.date)).reduce((s,e) => s + e.amt, 0);
-  const reste = 3365 - 1220 - totalVar - investedThisMonth;
+  const totalRev = getTotalRevenues();
+  const reste = totalRev - 1220 - totalVar - investedThisMonth;
+  document.getElementById('bilan-rev').textContent = totalRev.toLocaleString('fr-BE');
   document.getElementById('bilan-var').textContent = totalVar.toFixed(2);
   document.getElementById('bilan-inv').textContent = investedThisMonth.toFixed(2);
   document.getElementById('bilan-reste').textContent = '€' + reste.toFixed(2);
@@ -798,6 +919,7 @@ function saveKeyQuick() {
 }
 
 // ══ INIT ══
+restoreRevenues();
 renderExpenses();
 renderBilan();
 renderDashboard();
