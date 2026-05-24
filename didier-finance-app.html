@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#07080a">
+<title>FinanceIQ — Didier Ukanda</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080a;--bg2:#0d0f13;--bg3:#13161c;--bg4:#1a1e26;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --gold:#c9a84c;--gold2:#e8c97a;--gdim:rgba(201,168,76,0.13);
+  --green:#00e5a0;--gdim2:rgba(0,229,160,0.1);
+  --red:#ff4757;--rdim:rgba(255,71,87,0.1);
+  --blue:#4a9eff;--bdim:rgba(74,158,255,0.1);
+  --amber:#ffa502;--purple:#a78bfa;
+  --txt:#e8eaed;--txt2:#8b919e;--txt3:#4a5260;
+  --mono:'DM Mono',monospace;--sans:'Bricolage Grotesque',sans-serif;
+  --r:12px;--sb:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(7,8,10,.97);backdrop-filter:blur(20px);flex-shrink:0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px}
+.bmark{width:32px;height:32px;border:1.5px solid var(--gold);border-radius:8px;display:grid;place-items:center;font-size:16px;color:var(--gold);font-weight:800;flex-shrink:0}
+.bname{font-size:15px;font-weight:800;letter-spacing:-.5px}.bname em{color:var(--gold);font-style:normal}
+.bsub{font-size:9px;color:var(--txt3);font-family:var(--mono);letter-spacing:.8px}
+.tabs{display:flex;gap:0;flex:1;overflow-x:auto;justify-content:center}.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--mono);font-size:9px;letter-spacing:.8px;padding:8px 10px;border:none;background:transparent;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab:hover{color:var(--txt2)}.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.date-chip{font-family:var(--mono);font-size:9px;color:var(--txt3);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0}
+
+/* PANELS */
+.panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.panel.active{display:flex}
+.scroll{flex:1;overflow-y:auto;padding:14px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card-title{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:10px}
+.card.gold-border{border-color:rgba(201,168,76,.3)}
+.card.green-border{border-color:rgba(0,229,160,.3)}
+.card.red-border{border-color:rgba(255,71,87,.3)}
+.card.blue-border{border-color:rgba(74,158,255,.3)}
+.card.purple-border{border-color:rgba(167,139,250,.3)}
+
+/* METRICS GRID */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+.metric{background:var(--bg3);border-radius:10px;padding:12px;border:1px solid var(--border);position:relative;overflow:hidden}
+.metric::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px}
+.m-gold::after{background:var(--gold)}
+.m-green::after{background:var(--green)}
+.m-red::after{background:var(--red)}
+.m-blue::after{background:var(--blue)}
+.m-purple::after{background:var(--purple)}
+.m-amber::after{background:var(--amber)}
+.m-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:4px}
+.m-val{font-size:18px;font-weight:700}
+.m-sub{font-size:10px;color:var(--txt2);margin-top:2px}
+
+/* PROGRESS */
+.prog-wrap{margin:10px 0}
+.prog-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:5px}
+.prog-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s}
+
+/* BUDGET ROWS */
+.budget-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.budget-row:last-child{border-bottom:none;font-weight:700;padding-top:10px;margin-top:2px}
+.budget-row .lbl{color:var(--txt2)}
+.budget-row .val-pos{color:var(--green);font-family:var(--mono)}
+.budget-row .val-neg{color:var(--red);font-family:var(--mono)}
+.budget-row .val-neu{color:var(--gold);font-family:var(--mono);font-size:16px}
+
+/* EXPENSE FORM */
+.expense-form{background:var(--bg3);border-radius:10px;padding:12px;margin-top:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end}
+.inp{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--txt);font-family:var(--mono);font-size:12px;outline:none;width:100%;transition:border-color .2s}
+.inp:focus{border-color:var(--gold)}
+.inp::placeholder{color:var(--txt3)}
+.inp-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--txt3);display:block;margin-bottom:4px}
+.btn{padding:8px 14px;border-radius:7px;border:none;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .15s;white-space:nowrap}
+.btn-gold{background:var(--gold);color:#000}
+.btn-red{background:var(--rdim);color:var(--red);border:1px solid rgba(255,71,87,.3)}
+.btn-green{background:var(--gdim2);color:var(--green);border:1px solid rgba(0,229,160,.3)}
+.btn-blue{background:var(--bdim);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.btn:hover{opacity:.85}
+
+/* EXPENSE LIST */
+.expense-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px}
+.ei-cat{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;flex-shrink:0}
+.ei-name{flex:1;font-size:12px}
+.ei-date{font-family:var(--mono);font-size:9px;color:var(--txt3)}
+.ei-amt{font-family:var(--mono);font-size:13px;font-weight:500;flex-shrink:0}
+.ei-del{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:14px;flex-shrink:0;padding:2px 6px}
+.ei-del:hover{color:var(--red)}
+
+/* ALERT */
+.alert{border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono)}
+.alert.urgent{background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.3);color:var(--red)}
+.alert.info{background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.25);color:var(--blue)}
+.alert.success{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.25);color:var(--green)}
+.alert.gold{background:var(--gdim);border:1px solid rgba(201,168,76,.3);color:var(--gold2)}
+
+/* FISCAL ITEMS */
+.fiscal-item{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid}
+.fi-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.fi-detail{font-size:11px;color:var(--txt2);line-height:1.7}
+.fi-detail strong{color:var(--txt)}
+.fi-badge{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:8px}
+.deadline{background:rgba(255,71,87,.15);color:var(--red);border:1px solid rgba(255,71,87,.2)}
+.optional{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2)}
+.done{background:rgba(0,229,160,.1);color:var(--green);border:1px solid rgba(0,229,160,.2)}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msg{display:flex;gap:8px;animation:si .2s ease}
+@keyframes si{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0;font-family:var(--mono)}
+.av.ai{background:var(--gdim);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.av.user{background:var(--bdim);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.bub{max-width:88%;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.7}
+.msg.ai .bub{background:var(--bg3);border:1px solid var(--border)}
+.msg.user .bub{background:var(--bdim);border:1px solid rgba(74,158,255,.15)}
+.shortcuts{display:flex;gap:6px;padding:8px 14px;border-top:1px solid var(--border);overflow-x:auto;flex-shrink:0}.shortcuts::-webkit-scrollbar{display:none}
+.sc{font-family:var(--mono);font-size:9px;padding:5px 11px;border:1px solid var(--border);border-radius:20px;color:var(--txt3);cursor:pointer;background:transparent;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.sc:hover{border-color:var(--gold);color:var(--gold);background:var(--gdim)}
+.chat-in-row{display:flex;gap:8px;padding:10px 14px;padding-bottom:calc(10px + var(--sb));border-top:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.cin{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--txt);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .2s}
+.cin:focus{border-color:var(--gold)}
+.cin::placeholder{color:var(--txt3)}
+.go{background:var(--gold);color:#000;border:none;border-radius:9px;padding:11px 18px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;flex-shrink:0}
+.go:disabled{opacity:.3;cursor:not-allowed}
+
+/* PROJECTION */
+.proj-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.proj-table th{padding:7px 10px;text-align:left;color:var(--txt3);font-size:9px;letter-spacing:1px;border-bottom:1px solid var(--border2);background:var(--bg3)}
+.proj-table td{padding:7px 10px;border-bottom:1px solid var(--border)}
+.proj-table tr.milestone td{background:rgba(201,168,76,.07);border-left:2px solid var(--gold)}
+.proj-table tr.current-month td{background:rgba(0,229,160,.07);border-left:2px solid var(--green)}
+.ahead{color:var(--green)}.behind{color:var(--red)}.ontrack{color:var(--amber)}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 18px;font-family:var(--mono);font-size:11px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:rgba(0,229,160,.4);color:var(--green)}
+.toast.err{border-color:rgba(255,71,87,.4);color:var(--red)}
+
+/* BNAV */
+.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(5,1fr)}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px 0;font-family:var(--mono);font-size:8px;letter-spacing:.4px;transition:color .2s}
+.bnav-btn.active{color:var(--gold)}
+.bnav-icon{font-size:18px}
+@media(max-width:700px){.tabs{display:none}.bnav{display:grid}}
+
+.dots::after{content:'.';animation:el 1.2s steps(3,end) infinite}
+@keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+select.inp{cursor:pointer}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="bmark">₣</div>
+    <div><div class="bname">Finance<em>IQ</em></div><div class="bsub">Didier Ukanda · Flobecq</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="go('dashboard',this)">📊 DASHBOARD</button>
+    <button class="tab" onclick="go('budget',this)">💰 BUDGET</button>
+    <button class="tab" onclick="go('fiscal',this)">🇧🇪 FISCAL</button>
+    <button class="tab" onclick="go('projection',this)">📈 PROJECTION</button>
+    <button class="tab" onclick="go('advisor',this)">🧠 CONSEILLER</button>
+  </div>
+  <div class="date-chip" id="date-chip"></div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div class="panel active" id="p-dashboard">
+  <div class="scroll">
+
+    <div class="alert urgent" id="bnb-alert">
+      ⚠️ <strong>URGENT — Avant le 30 juin 2026 :</strong> Tu dois déclarer ton compte IBKR étranger (Irlande) à la Banque Nationale de Belgique. Voir onglet Fiscal pour les instructions exactes.
+    </div>
+
+    <div class="alert success">
+      ✓ <strong>Remboursement fiscal 2025 : €3,143.75</strong> en ta faveur. Tu recevras cet argent au plus tard le 30 juin 2027 sur BE86 3770 4249 7050.
+    </div>
+
+    <!-- Métriques clés -->
+    <div class="metrics" id="dash-metrics"></div>
+
+    <!-- Santé financière -->
+    <div class="card gold-border">
+      <div class="card-title">SANTÉ FINANCIÈRE</div>
+      <div class="prog-wrap">
+        <div class="prog-lbl"><span>Dette totale</span><span id="debt-pct-lbl">—</span></div>
+        <div class="prog-track"><div class="prog-fill" id="debt-prog" style="background:var(--red);width:0%"></div></div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-lbl"><span>Objectif €10K capital</span><span id="capital-pct-lbl">—</span></div>
+        <div class="prog-track"><div class="prog-fill" id="capital-prog" style="background:var(--gold);width:0%"></div></div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-lbl"><span>Avancement plan financier</span><span id="plan-pct-lbl">—</span></div>
+        <div class="prog-track"><div class="prog-fill" id="plan-prog" style="background:var(--green);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Résumé mois actuel -->
+    <div class="card">
+      <div class="card-title">RÉSUMÉ DU MOIS</div>
+      <div class="budget-row"><span class="lbl">Revenus totaux</span><span class="val-pos" id="d-revenus">€3,365</span></div>
+      <div class="budget-row"><span class="lbl">Dépenses saisies</span><span class="val-neg" id="d-depenses">€0</span></div>
+      <div class="budget-row"><span class="lbl">Charges fixes</span><span class="val-neg">-€1,100</span></div>
+      <div class="budget-row"><span class="lbl">Investi ce mois</span><span class="val-pos" id="d-investi">€0</span></div>
+      <div class="budget-row"><span class="lbl">Reste disponible</span><span class="val-neu" id="d-reste">€0</span></div>
+    </div>
+
+    <!-- IBKR -->
+    <div class="card green-border">
+      <div class="card-title">COMPTE IBKR — U25981774</div>
+      <div class="metrics" style="margin-bottom:8px">
+        <div class="metric m-green"><div class="m-lbl">SOLDE RÉEL</div><div class="m-val" style="color:var(--green)">€<span id="ibkr-bal">20.00</span></div><div class="m-sub">Compte réel</div></div>
+        <div class="metric m-gold"><div class="m-lbl">PAPER TRADING</div><div class="m-val" style="color:var(--gold)">$1M</div><div class="m-sub">Virtuel</div></div>
+        <div class="metric m-blue"><div class="m-lbl">P&L TOTAL</div><div class="m-val" style="color:var(--txt2)">€<span id="ibkr-pnl">0.00</span></div><div class="m-sub">Gains/pertes</div></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input class="inp" id="ibkr-input" type="number" placeholder="Nouveau solde IBKR (€)" style="flex:1">
+        <button class="btn btn-green" onclick="updateIBKR()">UPDATE</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ BUDGET ══ -->
+<div class="panel" id="p-budget">
+  <div class="scroll">
+
+    <!-- Revenus fixes -->
+    <div class="card green-border">
+      <div class="card-title">REVENUS MENSUELS</div>
+      <div class="budget-row"><span class="lbl">Salaire net</span><span class="val-pos">+€2,400</span></div>
+      <div class="budget-row"><span class="lbl">Remboursement KM</span><span class="val-pos">+€600</span></div>
+      <div class="budget-row"><span class="lbl">Location maison familiale</span><span class="val-pos">+€<span id="rental-eur">365</span> <span style="color:var(--txt3);font-size:10px">(395 USD)</span></span></div>
+      <div class="budget-row"><span class="lbl">Autres revenus</span><span class="val-pos">+€<span id="other-rev">0</span></span></div>
+      <div class="budget-row"><span>TOTAL REVENUS</span><span class="val-pos" style="font-size:16px">+€<span id="total-rev">3,365</span></span></div>
+    </div>
+
+    <!-- Charges fixes -->
+    <div class="card red-border">
+      <div class="card-title">CHARGES FIXES MENSUELLES</div>
+      <div class="budget-row"><span class="lbl">Loyer</span><span class="val-neg">-€700</span></div>
+      <div class="budget-row"><span class="lbl">Téléphone</span><span class="val-neg">-€100</span></div>
+      <div class="budget-row"><span class="lbl">ONEM <span style="color:var(--txt3);font-size:10px">(€1,300 restants)</span></span><span class="val-neg">-€150</span></div>
+      <div class="budget-row"><span class="lbl">Huissier <span style="color:var(--txt3);font-size:10px">(€<span id="huissier-bal">14,000</span> restants)</span></span><span class="val-neg">-€150</span></div>
+      <div class="budget-row"><span class="lbl">Eau + électricité (épouse)</span><span style="color:var(--txt3);font-family:var(--mono)">~€120</span></div>
+      <div class="budget-row"><span>TOTAL CHARGES</span><span class="val-neg" style="font-size:16px">-€1,220</span></div>
+    </div>
+
+    <!-- Dépenses variables -->
+    <div class="card">
+      <div class="card-title">DÉPENSES VARIABLES CE MOIS</div>
+      <div id="expense-list">
+        <div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:16px">Aucune dépense saisie ce mois.</div>
+      </div>
+      <div class="expense-form">
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--gold)">+ Ajouter une dépense</div>
+        <div class="form-row">
+          <div>
+            <label class="inp-lbl">DESCRIPTION</label>
+            <input class="inp" id="exp-name" placeholder="ex: Courses, Carburant...">
+          </div>
+          <div>
+            <label class="inp-lbl">MONTANT (€)</label>
+            <input class="inp" id="exp-amt" type="number" placeholder="150">
+          </div>
+          <div>
+            <label class="inp-lbl">CATÉGORIE</label>
+            <select class="inp" id="exp-cat">
+              <option value="alimentaire">🛒 Alimentaire</option>
+              <option value="transport">🚗 Transport</option>
+              <option value="sante">💊 Santé</option>
+              <option value="loisirs">🎮 Loisirs</option>
+              <option value="vetements">👕 Vêtements</option>
+              <option value="education">📚 Éducation</option>
+              <option value="investissement">📈 Investissement</option>
+              <option value="autre">📦 Autre</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-gold" onclick="addExpense()" style="width:100%">+ AJOUTER</button>
+      </div>
+    </div>
+
+    <!-- Bilan mensuel -->
+    <div class="card gold-border">
+      <div class="card-title">BILAN DU MOIS</div>
+      <div class="budget-row"><span class="lbl">Revenus</span><span class="val-pos">+€<span id="bilan-rev">3,365</span></span></div>
+      <div class="budget-row"><span class="lbl">Charges fixes</span><span class="val-neg">-€1,220</span></div>
+      <div class="budget-row"><span class="lbl">Dépenses variables</span><span class="val-neg">-€<span id="bilan-var">0</span></span></div>
+      <div class="budget-row"><span class="lbl">Investi</span><span class="val-pos">+€<span id="bilan-inv">0</span></span></div>
+      <div class="budget-row"><span>DISPONIBLE RESTANT</span><span class="val-neu" id="bilan-reste">€2,145</span></div>
+    </div>
+
+    <!-- Investissement ce mois -->
+    <div class="card green-border">
+      <div class="card-title">INVESTISSEMENT CE MOIS</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input class="inp" id="inv-input" type="number" placeholder="Montant investi ce mois (€)" style="flex:1">
+        <button class="btn btn-green" onclick="updateInvested()">SAUVER</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--txt3)">Objectif mensuel: <span style="color:var(--gold)">€1,000</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ FISCAL ══ -->
+<div class="panel" id="p-fiscal">
+  <div class="scroll">
+
+    <div class="alert urgent">
+      ⚠️ <strong>ACTION REQUISE AVANT 30 JUIN 2026</strong><br>
+      Ton compte IBKR est domicilié en Irlande = compte étranger = déclaration obligatoire BNB.
+    </div>
+
+    <!-- Déclaration BNB -->
+    <div class="fiscal-item" style="border-color:var(--red)">
+      <span class="fi-badge deadline">⚠️ URGENT — avant 30 juin 2026</span>
+      <div class="fi-title">1. Déclaration Compte Étranger — BNB</div>
+      <div class="fi-detail">
+        Ton compte IBKR Ireland (U25981774) = compte étranger obligatoirement déclaré.<br><br>
+        <strong>Comment faire :</strong><br>
+        → Va sur <strong>myminfin.be</strong> → Ma déclaration → Comptes étrangers<br>
+        → Ou sur <strong>bnb.be</strong> → Point de contact central<br>
+        → Infos à fournir : IBKR Ireland, IBAN du compte, date d'ouverture 2026<br><br>
+        <strong>Sanctions si non-déclaré :</strong> amende €1,250 minimum par compte non déclaré.
+      </div>
+    </div>
+
+    <!-- Remboursement -->
+    <div class="fiscal-item" style="border-color:var(--green)">
+      <span class="fi-badge done">✓ EN COURS</span>
+      <div class="fi-title">2. Remboursement Fiscal 2025 — €3,143.75</div>
+      <div class="fi-detail">
+        <strong>Montant :</strong> €3,143.75 en ta faveur<br>
+        <strong>Compte de remboursement :</strong> BE86 3770 4249 7050<br>
+        <strong>Délai :</strong> reçu au plus tard le 30 juin 2027<br>
+        <strong>Taux d'imposition :</strong> 0% grâce à tes 5 enfants à charge + quotités exemptées<br><br>
+        <strong>Ta déclaration est correcte ?</strong> Tu ne dois rien faire — le SPF traitera automatiquement.<br>
+        Si incorrecte → corriger avant le <strong>15 juillet 2026</strong> sur myminfin.be
+      </div>
+    </div>
+
+    <!-- TOB -->
+    <div class="fiscal-item" style="border-color:var(--amber)">
+      <span class="fi-badge" style="background:rgba(255,165,2,.1);color:var(--amber);border:1px solid rgba(255,165,2,.2)">📅 TRIMESTRIEL</span>
+      <div class="fi-title">3. TOB — Taxe sur les Opérations Boursières</div>
+      <div class="fi-detail">
+        <strong>Taux :</strong> 0.12% sur actions ordinaires (comme STNG, XOM, MOS)<br>
+        <strong>Exemple :</strong> Trade €1,000 → TOB = €1.20 par trade<br>
+        <strong>IBKR ne retient pas le TOB</strong> → tu dois le déclarer toi-même<br><br>
+        <strong>Calendrier déclaration TOB :</strong><br>
+        → Q1 (jan-mar) : déclarer avant 20 avril<br>
+        → Q2 (avr-jun) : déclarer avant 20 juillet<br>
+        → Q3 (jul-sep) : déclarer avant 20 octobre<br>
+        → Q4 (oct-dec) : déclarer avant 20 janvier<br><br>
+        <strong>Comment :</strong> myminfin.be → Ma déclaration → TOB<br>
+        <strong>Calculateur :</strong> tob.tax
+      </div>
+    </div>
+
+    <!-- Plus-values -->
+    <div class="fiscal-item" style="border-color:var(--blue)">
+      <span class="fi-badge optional">📋 ANNUEL</span>
+      <div class="fi-title">4. Plus-values sur Actions — 10% (nouveau 2026)</div>
+      <div class="fi-detail">
+        <strong>Taux :</strong> 10% sur les gains nets annuels<br>
+        <strong>Exemption :</strong> premiers €10,000 de gains par an = EXEMPTÉ<br>
+        <strong>Exemple :</strong> Tu gagnes €3,000 cette année → impôt = €0<br>
+        <strong>Exemple :</strong> Tu gagnes €15,000 → impôt = 10% × €5,000 = €500<br><br>
+        <strong>Quand déclarer :</strong> Dans ta déclaration annuelle MyMinfin<br>
+        <strong>Rubrique :</strong> Code 1440 (gains mobiliers)<br><br>
+        <strong>Pour toi cette année :</strong> Tant que tes gains restent sous €10,000 → rien à payer ni déclarer spécifiquement.
+      </div>
+    </div>
+
+    <!-- Dividendes -->
+    <div class="fiscal-item" style="border-color:var(--purple)">
+      <span class="fi-badge optional">📋 SI APPLICABLE</span>
+      <div class="fi-title">5. Dividendes — 30% précompte mobilier</div>
+      <div class="fi-detail">
+        <strong>Taux :</strong> 30% sur dividendes reçus<br>
+        <strong>Exemption :</strong> premiers €833/an exemptés → récupère le précompte via code 1437<br>
+        <strong>IBKR déduit automatiquement</strong> le précompte sur les dividendes US<br><br>
+        <strong>Stratégie :</strong> Préfère les actions de croissance (pas de dividende) pour éviter cette taxe.<br>
+        STNG, XOM, MOS versent des dividendes → IBKR déduira automatiquement.
+      </div>
+    </div>
+
+    <!-- Données déclaration -->
+    <div class="card blue-border">
+      <div class="card-title">TES DONNÉES FISCALES 2025</div>
+      <div class="budget-row"><span class="lbl">Traitements et salaires</span><span style="font-family:var(--mono);color:var(--blue)">€30,914.09</span></div>
+      <div class="budget-row"><span class="lbl">Allocations chômage</span><span style="font-family:var(--mono);color:var(--blue)">€8,964.85</span></div>
+      <div class="budget-row"><span class="lbl">Autres revenus remplacement</span><span style="font-family:var(--mono);color:var(--blue)">€2,106.08</span></div>
+      <div class="budget-row"><span class="lbl">Enfants à charge</span><span style="font-family:var(--mono);color:var(--green)">5 enfants</span></div>
+      <div class="budget-row"><span class="lbl">Impôt total dû</span><span style="font-family:var(--mono);color:var(--green)">€0.00 ✓</span></div>
+      <div class="budget-row"><span class="lbl">Remboursement prévu</span><span style="font-family:var(--mono);color:var(--green);font-size:16px">+€3,143.75</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ PROJECTION ══ -->
+<div class="panel" id="p-projection">
+  <div class="scroll">
+
+    <div class="card gold-border">
+      <div class="card-title">AVANCEMENT VS PLAN INITIAL</div>
+      <div class="metrics" id="proj-metrics"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">MISE À JOUR MANUELLE</div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr">
+        <div>
+          <label class="inp-lbl">CAPITAL IBKR ACTUEL (€)</label>
+          <input class="inp" id="proj-capital" type="number" placeholder="20">
+        </div>
+        <div>
+          <label class="inp-lbl">MOIS EN COURS (1-60)</label>
+          <input class="inp" id="proj-month" type="number" placeholder="1" min="1" max="60">
+        </div>
+      </div>
+      <button class="btn btn-gold" onclick="updateProjection()" style="width:100%;margin-top:8px">RECALCULER MA PROJECTION</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">TABLEAU PROJECTION — 60 MOIS</div>
+      <div style="overflow-x:auto">
+        <table class="proj-table" id="proj-table">
+          <thead>
+            <tr>
+              <th>MOIS</th>
+              <th>PRÉVU</th>
+              <th>RÉEL</th>
+              <th>ÉCART</th>
+              <th>STATUT</th>
+              <th>ÉVÉNEMENT</th>
+            </tr>
+          </thead>
+          <tbody id="proj-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ CONSEILLER IA ══ -->
+<div class="panel" id="p-advisor">
+  <div class="chat-wrap">
+    <div class="chat-msgs" id="chat-msgs">
+      <div class="msg ai">
+        <div class="av ai">IQ</div>
+        <div class="bub">
+          Bonjour Didier ! Je suis ton conseiller financier IA personnel.<br><br>
+          Je connais ta situation complète : <strong style="color:var(--gold)">salaire €3,365/mois</strong>, 5 enfants, dette huissier €14,000, compte IBKR U25981774, remboursement fiscal €3,143.75 en attente.<br><br>
+          Je peux t'aider sur la <strong>fiscalité belge</strong>, ton <strong>budget</strong>, ta <strong>stratégie d'investissement</strong>, ou analyser ton <strong>avancement</strong>. Pose-moi n'importe quelle question !
+        </div>
+      </div>
+    </div>
+    <div class="shortcuts">
+      <button class="sc" onclick="ask('Comment déclarer mon compte IBKR étranger à la BNB avant le 30 juin 2026 ?')">Déclaration BNB</button>
+      <button class="sc" onclick="ask('Mon remboursement fiscal de €3,143.75 - quand le recevoir et que faire avec ?')">Remboursement €3,143</button>
+      <button class="sc" onclick="ask('Comment optimiser mon budget pour investir maximum chaque mois ?')">Optimiser budget</button>
+      <button class="sc" onclick="ask('Dois-je déclarer mes gains IBKR cette année et comment ?')">Déclarer gains IBKR</button>
+      <button class="sc" onclick="ask('Stratégie pour rembourser la dette huissier tout en investissant — est-ce que ma stratégie actuelle est bonne ?')">Stratégie dette</button>
+      <button class="sc" onclick="ask('Suis-je en avance ou en retard sur mon plan financier ?')">Mon avancement</button>
+      <button class="sc" onclick="ask('Que faire avec mon remboursement fiscal de €3,143.75 pour maximiser la croissance ?')">Quoi faire avec le remboursement</button>
+      <button class="sc" onclick="ask('Comment déclarer la TOB chaque trimestre avec IBKR ?')">TOB trimestrielle</button>
+    </div>
+    <div class="chat-in-row">
+      <input class="cin" id="cin" placeholder="Pose une question fiscale, budgétaire ou stratégique..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendMsg()}">
+      <button class="go" id="go-btn" onclick="sendMsg()">ASK ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="bnav-btn active" onclick="go('dashboard',this)"><span class="bnav-icon">📊</span>DASH</button>
+  <button class="bnav-btn" onclick="go('budget',this)"><span class="bnav-icon">💰</span>BUDGET</button>
+  <button class="bnav-btn" onclick="go('fiscal',this)"><span class="bnav-icon">🇧🇪</span>FISCAL</button>
+  <button class="bnav-btn" onclick="go('projection',this)"><span class="bnav-icon">📈</span>PROJ.</button>
+  <button class="bnav-btn" onclick="go('advisor',this)"><span class="bnav-icon">🧠</span>CONSEIL</button>
+</div>
+
+<script>
+// ══ STORAGE ══
+const SK = 'financeiq_v1';
+function load() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
+function save() { localStorage.setItem(SK, JSON.stringify({ expenses, ibkrBalance, investedThisMonth, debtHuissier, debtOnem, currentMonth, realCapital })); }
+
+let st = load();
+let expenses = st.expenses || [];
+let ibkrBalance = st.ibkrBalance || { total: 20, pnl: 0 };
+let investedThisMonth = st.investedThisMonth || 0;
+let debtHuissier = st.debtHuissier || 14000;
+let debtOnem = st.debtOnem || 1300;
+let currentMonth = st.currentMonth || 1;
+let realCapital = st.realCapital || 20;
+
+// Date
+const now = new Date();
+document.getElementById('date-chip').textContent = now.toLocaleDateString('fr-BE', { day:'2-digit', month:'short', year:'numeric' });
+
+// ══ TABS ══
+function go(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab, .bnav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('p-' + id).classList.add('active');
+  document.querySelectorAll('.tab, .bnav-btn').forEach(b => {
+    if ((b.getAttribute('onclick')||'').includes("'"+id+"'")) b.classList.add('active');
+  });
+  if (id === 'projection') renderProjection();
+}
+
+// ══ TOAST ══
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + (type||'ok');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ══ DASHBOARD ══
+function renderDashboard() {
+  const totalExp = expenses.filter(e => isThisMonth(e.date)).reduce((s,e) => s + e.amt, 0);
+  const reste = 3365 - 1220 - totalExp - investedThisMonth;
+  const debtTotal = debtHuissier + debtOnem;
+  const debtPct = Math.max(0, 100 - (debtTotal / 15300 * 100));
+  const capitalPct = Math.min(100, realCapital / 10000 * 100);
+  const planPct = Math.min(100, (currentMonth / 60) * 100);
+
+  document.getElementById('d-depenses').textContent = '-€' + totalExp.toFixed(2);
+  document.getElementById('d-investi').textContent = '+€' + investedThisMonth.toFixed(2);
+  document.getElementById('d-reste').textContent = '€' + reste.toFixed(2);
+  document.getElementById('ibkr-bal').textContent = ibkrBalance.total.toFixed(2);
+  document.getElementById('ibkr-pnl').textContent = (ibkrBalance.pnl >= 0 ? '+' : '') + ibkrBalance.pnl.toFixed(2);
+  document.getElementById('huissier-bal').textContent = debtHuissier.toLocaleString('fr-BE');
+  document.getElementById('debt-prog').style.width = debtPct + '%';
+  document.getElementById('debt-pct-lbl').textContent = 'Remboursé ' + debtPct.toFixed(0) + '%';
+  document.getElementById('capital-prog').style.width = capitalPct + '%';
+  document.getElementById('capital-pct-lbl').textContent = '€' + realCapital.toLocaleString('fr-BE') + ' / €10,000';
+  document.getElementById('plan-prog').style.width = planPct + '%';
+  document.getElementById('plan-pct-lbl').textContent = 'Mois ' + currentMonth + ' / 60';
+
+  // Métriques
+  const dm = [
+    { lbl: 'REVENUS/MOIS', val: '€3,365', cls: 'm-green', sub: 'Salaire + KM + Location' },
+    { lbl: 'CHARGES FIXES', val: '-€1,220', cls: 'm-red', sub: 'Loyer, tél, ONEM, huissier' },
+    { lbl: 'DETTE TOTALE', val: '-€' + debtTotal.toLocaleString('fr-BE'), cls: 'm-red', sub: 'Huissier + ONEM' },
+    { lbl: 'CAPITAL IBKR', val: '€' + realCapital.toLocaleString('fr-BE'), cls: 'm-gold', sub: 'Compte réel U25981774' },
+    { lbl: 'REMB. FISCAL', val: '+€3,143', cls: 'm-green', sub: 'Attendu avant juin 2027' },
+    { lbl: 'MOIS DU PLAN', val: 'M' + currentMonth, cls: 'm-blue', sub: 'Sur 60 mois total' }
+  ];
+  document.getElementById('dash-metrics').innerHTML = dm.map(m =>
+    '<div class="metric ' + m.cls + '"><div class="m-lbl">' + m.lbl + '</div><div class="m-val">' + m.val + '</div><div class="m-sub">' + m.sub + '</div></div>'
+  ).join('');
+}
+
+function isThisMonth(dateStr) {
+  const d = new Date(dateStr);
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+// ══ BUDGET ══
+function addExpense() {
+  const name = document.getElementById('exp-name').value.trim();
+  const amt = parseFloat(document.getElementById('exp-amt').value);
+  const cat = document.getElementById('exp-cat').value;
+  if (!name || isNaN(amt)) { toast('Remplis description et montant', 'err'); return; }
+  expenses.push({ name, amt, cat, date: new Date().toISOString() });
+  document.getElementById('exp-name').value = '';
+  document.getElementById('exp-amt').value = '';
+  save(); renderExpenses(); renderBilan(); renderDashboard();
+  toast('Dépense ajoutée: ' + name + ' €' + amt);
+}
+
+const catIcons = { alimentaire:'🛒', transport:'🚗', sante:'💊', loisirs:'🎮', vetements:'👕', education:'📚', investissement:'📈', autre:'📦' };
+const catColors = { alimentaire:'rgba(255,165,2,.15)', transport:'rgba(74,158,255,.15)', sante:'rgba(255,71,87,.15)', loisirs:'rgba(167,139,250,.15)', vetements:'rgba(0,229,160,.15)', education:'rgba(201,168,76,.15)', investissement:'rgba(0,229,160,.2)', autre:'rgba(255,255,255,.07)' };
+
+function renderExpenses() {
+  const thisMonth = expenses.filter(e => isThisMonth(e.date));
+  const el = document.getElementById('expense-list');
+  if (!thisMonth.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:16px">Aucune dépense saisie ce mois.</div>';
+    return;
+  }
+  el.innerHTML = thisMonth.map((e, i) => {
+    const realIdx = expenses.indexOf(e);
+    return '<div class="expense-item"><span class="ei-cat" style="background:' + (catColors[e.cat]||catColors.autre) + '">' + (catIcons[e.cat]||'📦') + ' ' + e.cat + '</span>' +
+      '<span class="ei-name">' + e.name + '</span>' +
+      '<span class="ei-date">' + new Date(e.date).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'}) + '</span>' +
+      '<span class="ei-amt" style="color:var(--red)">-€' + e.amt.toFixed(2) + '</span>' +
+      '<button class="ei-del" onclick="delExpense(' + realIdx + ')">✕</button></div>';
+  }).join('');
+}
+
+function delExpense(i) { expenses.splice(i,1); save(); renderExpenses(); renderBilan(); renderDashboard(); toast('Dépense supprimée'); }
+
+function renderBilan() {
+  const totalVar = expenses.filter(e => isThisMonth(e.date)).reduce((s,e) => s + e.amt, 0);
+  const reste = 3365 - 1220 - totalVar - investedThisMonth;
+  document.getElementById('bilan-var').textContent = totalVar.toFixed(2);
+  document.getElementById('bilan-inv').textContent = investedThisMonth.toFixed(2);
+  document.getElementById('bilan-reste').textContent = '€' + reste.toFixed(2);
+  document.getElementById('bilan-reste').style.color = reste > 0 ? 'var(--gold)' : 'var(--red)';
+}
+
+function updateInvested() {
+  const v = parseFloat(document.getElementById('inv-input').value);
+  if (!isNaN(v)) { investedThisMonth = v; save(); renderBilan(); renderDashboard(); toast('Investissement mis à jour: €' + v); }
+  document.getElementById('inv-input').value = '';
+}
+
+function updateIBKR() {
+  const v = parseFloat(document.getElementById('ibkr-input').value);
+  if (!isNaN(v)) {
+    ibkrBalance.pnl = v - ibkrBalance.total;
+    ibkrBalance.total = v;
+    realCapital = v;
+    save(); renderDashboard(); toast('Solde IBKR mis à jour: €' + v);
+  }
+  document.getElementById('ibkr-input').value = '';
+}
+
+// ══ PROJECTION ══
+function calcProjection() {
+  const rate = 0.10;
+  const data = [];
+  let cap = 1000;
+  let totalC = 1000;
+  let dH = 14000;
+  let huissierPaid = false;
+
+  for (let m = 0; m <= 60; m++) {
+    if (m > 0) {
+      cap *= (1 + rate);
+      const apport = m === 13 ? 3200 : m > 9 ? 1150 : 1000;
+      cap += apport;
+      totalC += apport;
+      if (dH > 0) dH = Math.max(0, dH - 150);
+      if (cap >= 100000 && !huissierPaid && dH > 0) { cap -= dH; dH = 0; huissierPaid = true; }
+    }
+    data.push({ m, prevu: Math.round(cap), dette: Math.round(dH) });
+  }
+  return data;
+}
+
+function renderProjection() {
+  const projData = calcProjection();
+  const cm = currentMonth;
+  const real = realCapital;
+  const prevu = projData[cm]?.prevu || 0;
+  const ecart = real - prevu;
+  const ecartPct = prevu > 0 ? (ecart / prevu * 100).toFixed(1) : 0;
+
+  // Metrics
+  const pm = [
+    { lbl: 'CAPITAL PRÉVU M'+cm, val: '€'+prevu.toLocaleString('fr-BE'), cls: 'm-blue', sub: 'Selon plan initial' },
+    { lbl: 'CAPITAL RÉEL', val: '€'+real.toLocaleString('fr-BE'), cls: ecart >= 0 ? 'm-green' : 'm-red', sub: 'Ton compte IBKR' },
+    { lbl: 'ÉCART', val: (ecart >= 0 ? '+' : '') + '€'+Math.abs(ecart).toLocaleString('fr-BE'), cls: ecart >= 0 ? 'm-green' : 'm-red', sub: ecartPct + '% vs plan' },
+    { lbl: 'STATUT', val: ecart >= 0 ? '✓ EN AVANCE' : '⚠ EN RETARD', cls: ecart >= 0 ? 'm-green' : 'm-red', sub: ecart >= 0 ? 'Continue comme ça !' : 'Rattrapage possible' }
+  ];
+  document.getElementById('proj-metrics').innerHTML = pm.map(m =>
+    '<div class="metric ' + m.cls + '"><div class="m-lbl">' + m.lbl + '</div><div class="m-val" style="font-size:15px">' + m.val + '</div><div class="m-sub">' + m.sub + '</div></div>'
+  ).join('');
+
+  // Table
+  const milestones = { 9:'✓ ONEM soldé', 13:'🎉 13ème mois', 22:'🏆 €100K + huissier soldé', 36:'Phase 3', 60:'🎯 Fin' };
+  const tbody = document.getElementById('proj-tbody');
+  tbody.innerHTML = projData.map(d => {
+    const isNow = d.m === cm;
+    const isMilestone = milestones[d.m];
+    const rowReal = isNow ? real : (d.m < cm ? '—' : '');
+    const rowEcart = isNow ? (ecart >= 0 ? '<span class="ahead">+€'+Math.abs(ecart).toLocaleString('fr-BE')+'</span>' : '<span class="behind">-€'+Math.abs(ecart).toLocaleString('fr-BE')+'</span>') : '—';
+    const status = isNow ? (ecart >= 0 ? '<span class="ahead">EN AVANCE</span>' : '<span class="behind">EN RETARD</span>') : (d.m < cm ? '<span class="ontrack">PASSÉ</span>' : '—');
+    return '<tr class="' + (isNow ? 'current-month' : isMilestone ? 'milestone' : '') + '">' +
+      '<td style="color:var(--gold);font-weight:600">M'+d.m+'</td>' +
+      '<td style="color:var(--blue);font-family:var(--mono)">€'+d.prevu.toLocaleString('fr-BE')+'</td>' +
+      '<td style="font-family:var(--mono)">' + (rowReal ? (typeof rowReal === 'number' ? '€'+rowReal.toLocaleString('fr-BE') : rowReal) : '—') + '</td>' +
+      '<td>' + rowEcart + '</td>' +
+      '<td>' + status + '</td>' +
+      '<td style="color:var(--txt3);font-size:10px">' + (milestones[d.m]||'') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function updateProjection() {
+  const c = parseFloat(document.getElementById('proj-capital').value);
+  const m = parseInt(document.getElementById('proj-month').value);
+  if (!isNaN(c)) { realCapital = c; ibkrBalance.total = c; }
+  if (!isNaN(m) && m >= 1 && m <= 60) currentMonth = m;
+  save(); renderProjection(); renderDashboard();
+  toast('Projection mise à jour — Mois ' + currentMonth + ', Capital €' + realCapital);
+}
+
+// ══ CONSEILLER IA ══
+let chatHistory = [];
+let msgN = 0;
+
+const SYS = `Tu es le conseiller financier personnel de Didier Ukanda Okitapoy, investisseur belge à Flobecq.
+
+SITUATION COMPLÈTE:
+- Revenus: salaire €2,400 + KM €600 + location maison €365 = €3,365/mois
+- Charges: loyer €700 + téléphone €100 + ONEM €150 + huissier €150 = €1,100/mois
+- Disponible investissement: ~€1,265/mois
+- Dette huissier: €14,000 (€150/mois, non urgent)
+- Dette ONEM: €1,300 restants (€150/mois, soldé ~mois 9)
+- 5 enfants à charge fiscalement
+- Compte IBKR Ireland: U25981774 (compte étranger à déclarer BNB)
+- Capital IBKR actuel: €20 (compte réel)
+- Paper Trading: $1,000,000 virtuel
+- Remboursement fiscal 2025: €3,143.75 en attente (max juin 2027)
+- Pécule vacances prévu: ~€2,200 (mois prochain)
+- 13ème mois annuel: ~€2,200
+- Stratégie: investir max, payer huissier normalement, rembourser d'un coup à €100K capital
+
+FISCAL BELGE:
+- TOB: 0.12% à auto-déclarer trimestriellement (IBKR ne le fait pas)
+- Plus-values: 10% sur gains nets > €10,000/an (nouveau 2026)
+- Dividendes: 30% précompte mobilier (premiers €833 exemptés, code 1437)
+- Compte étranger: IBKR Ireland doit être déclaré BNB avant 30 juin 2026
+- MyMinfin codes: plus-values → 1440, dividendes → 1437, comptes étrangers → section dédiée
+
+OBJECTIFS:
+€20 → €1K → €10K → €50K → diversifier (business Afrique + revenus passifs + immobilier)
+
+Réponds en français principalement. Sois précis, pratique, et donne des actions concrètes.
+Pour les questions fiscales: sois précis sur les codes MyMinfin, délais, et montants.
+Pour le budget: calcule avec les vrais chiffres de Didier.
+Pour l'investissement: référence les signaux OmniVest (STNG, XOM, MOS, BTC).`;
+
+function addMsg(role, html) {
+  const id = 'm' + (++msgN);
+  const el = document.createElement('div');
+  el.className = 'msg ' + role; el.id = id;
+  el.innerHTML = '<div class="av ' + role + '">' + (role==='ai'?'IQ':'YOU') + '</div><div class="bub">' + html + '</div>';
+  document.getElementById('chat-msgs').appendChild(el);
+  document.getElementById('chat-msgs').scrollTop = 99999;
+  return id;
+}
+function updMsg(id, html) { const el = document.getElementById(id); if (el) el.querySelector('.bub').innerHTML = html; }
+
+async function sendMsg() {
+  const inp = document.getElementById('cin');
+  const text = inp.value.trim(); if (!text) return;
+  inp.value = '';
+  document.getElementById('go-btn').disabled = true;
+  addMsg('user', text.replace(/</g,'&lt;'));
+  chatHistory.push({ role:'user', content: text + '\n[Capital réel IBKR: €'+realCapital+', Mois plan: '+currentMonth+', Dette huissier: €'+debtHuissier+', Dette ONEM: €'+debtOnem+']' });
+  const tid = addMsg('ai','<span class="dots">Analyse en cours</span>');
+  const key = localStorage.getItem('anthropic_key') || '';
+  if (!key) { updMsg(tid, '⚠️ Clé Anthropic manquante. Va dans OmniVest → Settings → entre ta clé, puis reviens ici et saisis-la ci-dessous.<br><br><input id="key-quick" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--txt);font-family:var(--mono);font-size:11px;width:100%;margin-bottom:6px" placeholder="sk-ant-..."><button onclick="saveKeyQuick()" style="background:var(--green);color:#000;border:none;border-radius:6px;padding:6px 14px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">SAUVER</button>'); document.getElementById('go-btn').disabled=false; return; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:1200, system:SYS, messages:chatHistory.slice(-16) })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Erreur — réessaie.';
+    updMsg(tid, reply.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'));
+    chatHistory.push({ role:'assistant', content:reply });
+    if (chatHistory.length > 30) chatHistory = chatHistory.slice(-20);
+  } catch { updMsg(tid, '⚠️ Erreur de connexion. Vérifie ton réseau.'); }
+  document.getElementById('go-btn').disabled = false;
+}
+
+function ask(q) { document.getElementById('cin').value = q; sendMsg(); }
+
+function saveKeyQuick() {
+  const k = document.getElementById('key-quick')?.value?.trim();
+  if (k) { localStorage.setItem('anthropic_key', k); toast('Clé sauvegardée !'); }
+}
+
+// ══ INIT ══
+renderExpenses();
+renderBilan();
+renderDashboard();
+</script>
+</body>
+</html>
