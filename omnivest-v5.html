@@ -652,7 +652,28 @@ function updateIBKRBalance() {
 }
 
 // ══ FINNHUB ══
-const SYMBOLS = { XOM:'XOM', CVX:'CVX', MOS:'MOS', BTC:'COINBASE:BTC-USD', STNG:'STNG' };
+const SYMBOLS = { XOM:'XOM', CVX:'CVX', MOS:'MOS', STNG:'STNG' };
+
+// BTC via CoinGecko (free, no key needed)
+async function fetchBTC() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+    const d = await r.json();
+    if (d.bitcoin) {
+      const price = d.bitcoin.usd;
+      const chgPct = d.bitcoin.usd_24h_change || 0;
+      liveprices['BTC'] = { price, chgPct };
+      updateGauge('BTC', price, chgPct);
+      updateTicker();
+    }
+  } catch(e) {
+    // fallback static
+    const el = document.getElementById('g-BTC');
+    const chgEl = document.getElementById('gc-BTC');
+    if (el) el.textContent = '~$93K';
+    if (chgEl) { chgEl.textContent = 'Géo-hedge'; chgEl.className = 'g-chg t-up'; }
+  }
+}
 let liveprices = {};
 
 async function fetchPrice(symbol, displayKey) {
@@ -693,6 +714,7 @@ async function fetchAllPrices() {
   if (!finnhubKey) return;
   document.getElementById('live-lbl').textContent = 'FETCHING';
   for (const [sym, key] of Object.entries(SYMBOLS)) { await fetchPrice(sym, key); await new Promise(r=>setTimeout(r,300)); }
+  await fetchBTC(); // CoinGecko — free, no key
   document.getElementById('live-lbl').textContent = 'LIVE';
   document.getElementById('live-pulse').style.background = 'var(--green)';
 }
