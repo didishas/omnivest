@@ -221,7 +221,7 @@ select.inp{cursor:pointer}
       <div class="card-title">RÉSUMÉ DU MOIS</div>
       <div class="budget-row"><span class="lbl">Revenus totaux</span><span class="val-pos" id="d-revenus">€3,365</span></div>
       <div class="budget-row"><span class="lbl">Dépenses saisies</span><span class="val-neg" id="d-depenses">€0</span></div>
-      <div class="budget-row"><span class="lbl">Charges fixes</span><span class="val-neg">-€1,100</span></div>
+      <div class="budget-row"><span class="lbl">Charges fixes</span><span class="val-neg">-€1,220</span></div>
       <div class="budget-row"><span class="lbl">Investi ce mois</span><span class="val-pos" id="d-investi">€0</span></div>
       <div class="budget-row"><span class="lbl">Reste disponible</span><span class="val-neu" id="d-reste">€0</span></div>
     </div>
@@ -500,8 +500,8 @@ select.inp{cursor:pointer}
           <input class="inp" id="proj-capital" type="number" placeholder="20">
         </div>
         <div>
-          <label class="inp-lbl">MOIS EN COURS (1-60)</label>
-          <input class="inp" id="proj-month" type="number" placeholder="1" min="1" max="60">
+          <label class="inp-lbl">MOIS EN COURS (0-60)</label>
+          <input class="inp" id="proj-month" type="number" placeholder="0" min="0" max="60">
         </div>
       </div>
       <button class="btn btn-gold" onclick="updateProjection()" style="width:100%;margin-top:8px">RECALCULER MA PROJECTION</button>
@@ -571,8 +571,54 @@ select.inp{cursor:pointer}
 <script>
 // ══ STORAGE ══
 const SK = 'financeiq_v1';
+
+// Date de départ du plan financier.
+// M0 = mai 2026. Donc M1 = juin 2026, M2 = juillet 2026, etc.
+// L'affichage de la date du jour reste automatique via l'horloge du téléphone/PC.
+const PLAN_START_DATE = '2026-05-01';
+
+// Pour tester une date précise, tu peux exécuter dans la console :
+// localStorage.setItem('financeiq_today_override', '2026-05-25')
+// Pour revenir en mode automatique :
+// localStorage.removeItem('financeiq_today_override')
+const DATE_OVERRIDE_KEY = 'financeiq_today_override';
+
+function parseDateLocal(isoDate) {
+  // Évite les décalages UTC selon le navigateur/mobile.
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+function getAppToday() {
+  const override = localStorage.getItem(DATE_OVERRIDE_KEY);
+  return override ? parseDateLocal(override) : new Date();
+}
+
+function getAutoCurrentMonth() {
+  const start = parseDateLocal(PLAN_START_DATE);
+  const today = getAppToday();
+  // M0 = tout le mois de mai 2026.
+  // M1 = juin 2026, M2 = juillet 2026, etc.
+  const diff = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+  return Math.min(60, Math.max(0, diff));
+}
+
 function load() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
-function save() { localStorage.setItem(SK, JSON.stringify({ expenses, ibkrBalance, investedThisMonth, debtHuissier, debtOnem, currentMonth, realCapital, revenues })); }
+function save() {
+  localStorage.setItem(SK, JSON.stringify({
+    expenses,
+    ibkrBalance,
+    investedThisMonth,
+    debtHuissier,
+    debtOnem,
+    currentMonth,
+    manualPlanMonth,
+    realCapital,
+    revenues,
+    planStartDate: PLAN_START_DATE,
+    lastSavedAt: new Date().toISOString()
+  }));
+}
 
 let st = load();
 let expenses = st.expenses || [];
@@ -580,11 +626,16 @@ let ibkrBalance = st.ibkrBalance || { total: 20, pnl: 0 };
 let investedThisMonth = st.investedThisMonth || 0;
 let debtHuissier = st.debtHuissier || 14000;
 let debtOnem = st.debtOnem || 1300;
-let currentMonth = st.currentMonth || 1;
+// Si l'utilisateur avait une ancienne version avec un départ février/janvier,
+// on ignore l'ancien mois sauvegardé pour éviter de rester bloqué sur une mauvaise projection.
+let manualPlanMonth = st.planStartDate === PLAN_START_DATE && st.manualPlanMonth === true;
+let currentMonth = manualPlanMonth
+  ? (Number.isFinite(Number(st.currentMonth)) ? Number(st.currentMonth) : getAutoCurrentMonth())
+  : getAutoCurrentMonth();
 let realCapital = st.realCapital || 20;
 
-// Date
-const now = new Date();
+// Date affichée dans la barre du haut
+const now = getAppToday();
 document.getElementById('date-chip').textContent = now.toLocaleDateString('fr-BE', { day:'2-digit', month:'short', year:'numeric' });
 
 // ══ TABS ══
@@ -636,7 +687,7 @@ function renderDashboard() {
     { lbl: 'DETTE TOTALE', val: '-€' + debtTotal.toLocaleString('fr-BE'), cls: 'm-red', sub: 'Huissier + ONEM' },
     { lbl: 'CAPITAL IBKR', val: '€' + realCapital.toLocaleString('fr-BE'), cls: 'm-gold', sub: 'Compte réel U25981774' },
     { lbl: 'REMB. FISCAL', val: '+€3,143', cls: 'm-green', sub: 'Attendu avant juin 2027' },
-    { lbl: 'MOIS DU PLAN', val: 'M' + currentMonth, cls: 'm-blue', sub: 'Sur 60 mois total' }
+    { lbl: 'MOIS DU PLAN', val: 'M' + currentMonth, cls: 'm-blue', sub: 'M0 = mai 2026' }
   ];
   document.getElementById('dash-metrics').innerHTML = dm.map(m =>
     '<div class="metric ' + m.cls + '"><div class="m-lbl">' + m.lbl + '</div><div class="m-val">' + m.val + '</div><div class="m-sub">' + m.sub + '</div></div>'
@@ -811,7 +862,7 @@ function renderProjection() {
   ).join('');
 
   // Table
-  const milestones = { 9:'✓ ONEM soldé', 13:'🎉 13ème mois', 22:'🏆 €100K + huissier soldé', 36:'Phase 3', 60:'🎯 Fin' };
+  const milestones = { 0:'🚀 Départ mai 2026', 9:'✓ ONEM soldé', 13:'🎉 13ème mois', 22:'🏆 €100K + huissier soldé', 36:'Phase 3', 60:'🎯 Fin' };
   const tbody = document.getElementById('proj-tbody');
   tbody.innerHTML = projData.map(d => {
     const isNow = d.m === cm;
@@ -834,7 +885,11 @@ function updateProjection() {
   const c = parseFloat(document.getElementById('proj-capital').value);
   const m = parseInt(document.getElementById('proj-month').value);
   if (!isNaN(c)) { realCapital = c; ibkrBalance.total = c; }
-  if (!isNaN(m) && m >= 1 && m <= 60) currentMonth = m;
+  if (!isNaN(m) && m >= 0 && m <= 60) {
+    currentMonth = m;
+    // Si tu modifies le mois à la main, l'app respecte ton choix.
+    manualPlanMonth = true;
+  }
   save(); renderProjection(); renderDashboard();
   toast('Projection mise à jour — Mois ' + currentMonth + ', Capital €' + realCapital);
 }
@@ -846,9 +901,10 @@ let msgN = 0;
 const SYS = `Tu es le conseiller financier personnel de Didier Ukanda Okitapoy, investisseur belge à Flobecq.
 
 SITUATION COMPLÈTE:
+- Date actuelle de l'app: ${now.toLocaleDateString('fr-BE')} ; départ du plan: mai 2026 (M0) ; mois automatique du plan: M${currentMonth}
 - Revenus: salaire €2,400 + KM €600 + location maison €365 = €3,365/mois
-- Charges: loyer €700 + téléphone €100 + ONEM €150 + huissier €150 = €1,100/mois
-- Disponible investissement: ~€1,265/mois
+- Charges: loyer €700 + téléphone €100 + ONEM €150 + huissier €150 + eau/électricité estimées €120 = €1,220/mois
+- Disponible avant dépenses variables/investissement: environ revenus - €1,220 de charges fixes
 - Dette huissier: €14,000 (€150/mois, non urgent)
 - Dette ONEM: €1,300 restants (€150/mois, soldé ~mois 9)
 - 5 enfants à charge fiscalement
