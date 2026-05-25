@@ -216,6 +216,47 @@ select.inp{cursor:pointer}
       </div>
     </div>
 
+    <!-- Synchronisation Supabase sécurisée -->
+    <div class="card blue-border">
+      <div class="card-title">SYNCHRONISATION SUPABASE — SANS CLÉ DANS GITHUB</div>
+      <div class="alert info" style="margin-bottom:10px">
+        La clé Supabase n'est pas écrite dans le code. Elle est enregistrée uniquement dans ce navigateur avec localStorage.
+        Utilise seulement la <strong>Project URL</strong> et la <strong>Publishable key / anon key</strong>. Jamais la service_role key.
+      </div>
+
+      <div class="form-row" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <div>
+          <label class="inp-lbl">PROJECT URL</label>
+          <input class="inp" id="supabase-url" placeholder="https://xxxxx.supabase.co" autocomplete="off">
+        </div>
+        <div>
+          <label class="inp-lbl">PUBLISHABLE KEY / ANON KEY</label>
+          <input class="inp" id="supabase-key" placeholder="sb_publishable_... ou eyJ..." autocomplete="off">
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="saveSupabaseSettings()" style="width:100%;margin-bottom:10px">💾 SAUVER LA CONFIG SUPABASE SUR CET APPAREIL</button>
+
+      <div class="form-row" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <div>
+          <label class="inp-lbl">EMAIL</label>
+          <input class="inp" id="supabase-email" type="email" placeholder="ton@email.com" autocomplete="email">
+        </div>
+        <div>
+          <label class="inp-lbl">MOT DE PASSE</label>
+          <input class="inp" id="supabase-password" type="password" placeholder="Minimum 6 caractères" autocomplete="current-password">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:8px">
+        <button class="btn btn-green" onclick="supabaseSignUp()">Créer compte</button>
+        <button class="btn btn-gold" onclick="supabaseLogin()">Connexion</button>
+        <button class="btn btn-blue" onclick="pushToSupabase()">Sauver cloud</button>
+        <button class="btn btn-red" onclick="supabaseLogout()">Déconnexion</button>
+      </div>
+      <button class="btn btn-blue" onclick="pullFromSupabase()" style="width:100%;margin-top:8px">⬇ Charger les données du cloud vers cette app</button>
+      <div id="supabase-status" style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:8px;text-align:center">Supabase non configuré.</div>
+    </div>
+
     <!-- Résumé mois actuel -->
     <div class="card">
       <div class="card-title">RÉSUMÉ DU MOIS</div>
@@ -494,7 +535,7 @@ select.inp{cursor:pointer}
 
     <div class="card">
       <div class="card-title">MISE À JOUR MANUELLE</div>
-      <div class="form-row" style="grid-template-columns:1fr 1fr">
+      <div class="form-row" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
         <div>
           <label class="inp-lbl">CAPITAL IBKR ACTUEL (€)</label>
           <input class="inp" id="proj-capital" type="number" placeholder="20">
@@ -568,6 +609,7 @@ select.inp{cursor:pointer}
   <button class="bnav-btn" onclick="go('advisor',this)"><span class="bnav-icon">🧠</span>CONSEIL</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ══ STORAGE ══
 const SK = 'financeiq_v1';
@@ -654,6 +696,287 @@ function toast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast show ' + (type||'ok');
   setTimeout(() => t.className = 'toast', 3000);
+}
+
+
+// ══ SUPABASE CONFIG + SYNC ══
+// Important : aucune clé Supabase n'est écrite en dur dans ce fichier.
+// L'utilisateur colle Project URL + Publishable/Anon key dans l'interface.
+// Ces valeurs sont stockées uniquement dans le localStorage du navigateur.
+const SUPABASE_CONFIG_KEY = 'financeiq_supabase_config_v1';
+let sbClient = null;
+let sbUser = null;
+let sbRealtimeChannel = null;
+
+function readJsonFromLocalStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getSupabaseConfig() {
+  return readJsonFromLocalStorage(SUPABASE_CONFIG_KEY, { url: '', key: '' });
+}
+
+function setSupabaseStatus(message, color) {
+  const el = document.getElementById('supabase-status');
+  if (!el) return;
+  el.textContent = message;
+  el.style.color = color || 'var(--txt3)';
+}
+
+function restoreSupabaseSettings() {
+  const cfg = getSupabaseConfig();
+  const urlEl = document.getElementById('supabase-url');
+  const keyEl = document.getElementById('supabase-key');
+  if (urlEl) urlEl.value = cfg.url || '';
+  if (keyEl) keyEl.value = cfg.key || '';
+  if (cfg.url && cfg.key) {
+    setSupabaseStatus('Configuration Supabase trouvée sur cet appareil. Connecte-toi pour synchroniser.', 'var(--blue)');
+  }
+}
+
+function getSupabaseClient(forceNew) {
+  const cfg = getSupabaseConfig();
+  if (!cfg.url || !cfg.key) return null;
+  if (!window.supabase || !window.supabase.createClient) {
+    setSupabaseStatus('Librairie Supabase non chargée. Vérifie ta connexion internet.', 'var(--red)');
+    return null;
+  }
+  if (!sbClient || forceNew) {
+    sbClient = window.supabase.createClient(cfg.url, cfg.key);
+  }
+  return sbClient;
+}
+
+function saveSupabaseSettings() {
+  const url = (document.getElementById('supabase-url')?.value || '').trim();
+  const key = (document.getElementById('supabase-key')?.value || '').trim();
+
+  if (!url || !key) {
+    toast('URL et clé Supabase obligatoires', 'err');
+    return;
+  }
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)) {
+    toast('URL incorrecte : elle doit ressembler à https://xxxxx.supabase.co', 'err');
+    return;
+  }
+  if (key.toLowerCase().includes('service_role') || key.toLowerCase().includes('secret')) {
+    toast('Ne mets jamais une clé service_role/secret dans le navigateur', 'err');
+    return;
+  }
+
+  localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({ url, key }));
+  sbClient = null;
+  getSupabaseClient(true);
+  setSupabaseStatus('✓ Configuration Supabase sauvegardée localement. Maintenant connecte-toi.', 'var(--green)');
+  toast('Configuration Supabase enregistrée sur cet appareil');
+}
+
+async function getLoggedSupabaseUser() {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client.auth.getSession();
+  if (error) {
+    setSupabaseStatus('Erreur session Supabase : ' + error.message, 'var(--red)');
+    return null;
+  }
+  sbUser = data.session?.user || null;
+  return sbUser;
+}
+
+async function refreshSupabaseStatus() {
+  const cfg = getSupabaseConfig();
+  if (!cfg.url || !cfg.key) {
+    setSupabaseStatus('Supabase non configuré : colle Project URL + Publishable key.', 'var(--txt3)');
+    return;
+  }
+  const user = await getLoggedSupabaseUser();
+  if (user) {
+    setSupabaseStatus('✓ Connecté : ' + user.email + ' — synchronisation possible.', 'var(--green)');
+    startSupabaseRealtime();
+  } else {
+    setSupabaseStatus('Configuration OK. Non connecté.', 'var(--blue)');
+  }
+}
+
+async function supabaseSignUp() {
+  const client = getSupabaseClient();
+  if (!client) { toast('Configure Supabase d’abord', 'err'); return; }
+  const email = (document.getElementById('supabase-email')?.value || '').trim();
+  const password = document.getElementById('supabase-password')?.value || '';
+  if (!email || password.length < 6) { toast('Email + mot de passe de minimum 6 caractères', 'err'); return; }
+
+  const { data, error } = await client.auth.signUp({ email, password });
+  if (error) { toast(error.message, 'err'); setSupabaseStatus('Erreur inscription : ' + error.message, 'var(--red)'); return; }
+  sbUser = data.user || null;
+  setSupabaseStatus('Compte créé. Si Supabase demande une confirmation email, confirme puis reconnecte-toi.', 'var(--green)');
+  toast('Compte Supabase créé');
+}
+
+async function supabaseLogin() {
+  const client = getSupabaseClient();
+  if (!client) { toast('Configure Supabase d’abord', 'err'); return; }
+  const email = (document.getElementById('supabase-email')?.value || '').trim();
+  const password = document.getElementById('supabase-password')?.value || '';
+  if (!email || !password) { toast('Email et mot de passe obligatoires', 'err'); return; }
+
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) { toast(error.message, 'err'); setSupabaseStatus('Erreur connexion : ' + error.message, 'var(--red)'); return; }
+  sbUser = data.user || null;
+  setSupabaseStatus('✓ Connecté : ' + (sbUser?.email || email), 'var(--green)');
+  startSupabaseRealtime();
+  toast('Connecté à Supabase');
+}
+
+async function supabaseLogout() {
+  const client = getSupabaseClient();
+  if (!client) { toast('Supabase non configuré', 'err'); return; }
+  if (sbRealtimeChannel) {
+    await client.removeChannel(sbRealtimeChannel);
+    sbRealtimeChannel = null;
+  }
+  await client.auth.signOut();
+  sbUser = null;
+  setSupabaseStatus('Déconnecté. Les données restent disponibles localement.', 'var(--txt3)');
+  toast('Déconnecté');
+}
+
+async function ensureSupabaseReady() {
+  const client = getSupabaseClient();
+  if (!client) {
+    toast('Configure Supabase d’abord', 'err');
+    return null;
+  }
+  const user = await getLoggedSupabaseUser();
+  if (!user) {
+    toast('Connecte-toi à Supabase d’abord', 'err');
+    return null;
+  }
+  return { client, user };
+}
+
+function buildFinanceStateRow(userId) {
+  return {
+    user_id: userId,
+    current_month: currentMonth,
+    plan_start_date: PLAN_START_DATE,
+    real_capital: realCapital,
+    invested_this_month: investedThisMonth,
+    debt_huissier: debtHuissier,
+    debt_onem: debtOnem,
+    revenues,
+    updated_at: new Date().toISOString()
+  };
+}
+
+async function pushToSupabase() {
+  const ready = await ensureSupabaseReady();
+  if (!ready) return;
+  const { client, user } = ready;
+
+  try {
+    const stateRow = buildFinanceStateRow(user.id);
+    const existing = await client.from('finance_state').select('id').eq('user_id', user.id).maybeSingle();
+    if (existing.error) throw existing.error;
+
+    if (existing.data?.id) {
+      const { error } = await client.from('finance_state').update(stateRow).eq('id', existing.data.id);
+      if (error) throw error;
+    } else {
+      const { error } = await client.from('finance_state').insert(stateRow);
+      if (error) throw error;
+    }
+
+    const del = await client.from('finance_expenses').delete().eq('user_id', user.id);
+    if (del.error) throw del.error;
+
+    const rows = expenses.map(e => ({
+      user_id: user.id,
+      name: e.name,
+      amount: Number(e.amt) || 0,
+      category: e.cat || 'autre',
+      expense_date: e.date || new Date().toISOString()
+    }));
+
+    if (rows.length) {
+      const ins = await client.from('finance_expenses').insert(rows);
+      if (ins.error) throw ins.error;
+    }
+
+    setSupabaseStatus('✓ Données sauvegardées dans Supabase : ' + new Date().toLocaleTimeString('fr-BE'), 'var(--green)');
+    toast('Données sauvegardées dans Supabase');
+  } catch (err) {
+    const msg = err?.message || String(err);
+    setSupabaseStatus('Erreur sauvegarde Supabase : ' + msg, 'var(--red)');
+    toast('Erreur Supabase : ' + msg, 'err');
+  }
+}
+
+async function pullFromSupabase() {
+  const ready = await ensureSupabaseReady();
+  if (!ready) return;
+  const { client, user } = ready;
+
+  try {
+    const stateRes = await client.from('finance_state').select('*').eq('user_id', user.id).maybeSingle();
+    if (stateRes.error) throw stateRes.error;
+
+    const expRes = await client.from('finance_expenses').select('*').eq('user_id', user.id).order('expense_date', { ascending: false });
+    if (expRes.error) throw expRes.error;
+
+    if (stateRes.data) {
+      const row = stateRes.data;
+      currentMonth = Number.isFinite(Number(row.current_month)) ? Number(row.current_month) : getAutoCurrentMonth();
+      manualPlanMonth = true;
+      realCapital = Number(row.real_capital ?? realCapital);
+      investedThisMonth = Number(row.invested_this_month ?? investedThisMonth);
+      debtHuissier = Number(row.debt_huissier ?? debtHuissier);
+      debtOnem = Number(row.debt_onem ?? debtOnem);
+      revenues = row.revenues || revenues;
+      ibkrBalance.total = realCapital;
+    }
+
+    expenses = (expRes.data || []).map(e => ({
+      id: e.id,
+      name: e.name,
+      amt: Number(e.amount) || 0,
+      cat: e.category || 'autre',
+      date: e.expense_date || e.created_at || new Date().toISOString()
+    }));
+
+    save();
+    restoreRevenues();
+    renderExpenses();
+    renderBilan();
+    renderDashboard();
+    if (document.getElementById('p-projection').classList.contains('active')) renderProjection();
+
+    setSupabaseStatus('✓ Données chargées depuis Supabase : ' + new Date().toLocaleTimeString('fr-BE'), 'var(--green)');
+    toast('Données chargées depuis Supabase');
+  } catch (err) {
+    const msg = err?.message || String(err);
+    setSupabaseStatus('Erreur chargement Supabase : ' + msg, 'var(--red)');
+    toast('Erreur Supabase : ' + msg, 'err');
+  }
+}
+
+function startSupabaseRealtime() {
+  const client = getSupabaseClient();
+  if (!client || !sbUser || sbRealtimeChannel) return;
+
+  sbRealtimeChannel = client
+    .channel('financeiq-sync-' + sbUser.id)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'finance_state', filter: 'user_id=eq.' + sbUser.id }, () => {
+      setSupabaseStatus('Modification détectée dans Supabase. Clique sur “Charger les données du cloud”.', 'var(--amber)');
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'finance_expenses', filter: 'user_id=eq.' + sbUser.id }, () => {
+      setSupabaseStatus('Modification de dépenses détectée dans Supabase. Clique sur “Charger les données du cloud”.', 'var(--amber)');
+    })
+    .subscribe();
 }
 
 // ══ DASHBOARD ══
@@ -979,6 +1302,8 @@ restoreRevenues();
 renderExpenses();
 renderBilan();
 renderDashboard();
+restoreSupabaseSettings();
+refreshSupabaseStatus();
 </script>
 </body>
 </html>
