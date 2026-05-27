@@ -30,7 +30,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 .bmark{width:32px;height:32px;border:1.5px solid var(--gold);border-radius:8px;display:grid;place-items:center;font-size:16px;color:var(--gold);font-weight:800;flex-shrink:0}
 .bname{font-size:15px;font-weight:800;letter-spacing:-.5px}.bname em{color:var(--gold);font-style:normal}
 .bsub{font-size:9px;color:var(--txt3);font-family:var(--mono);letter-spacing:.8px}
-.tabs{display:flex;gap:0;flex:1;overflow-x:auto;justify-content:center}.tabs::-webkit-scrollbar{display:none}
+.tabs{display:flex;gap:0;flex:1;overflow-x:auto;justify-content:flex-start}.tabs::-webkit-scrollbar{display:none}
 .tab{font-family:var(--mono);font-size:9px;letter-spacing:.8px;padding:8px 10px;border:none;background:transparent;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
 .tab:hover{color:var(--txt2)}.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 .date-chip{font-family:var(--mono);font-size:9px;color:var(--txt3);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0}
@@ -154,11 +154,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 .toast.err{border-color:rgba(255,71,87,.4);color:var(--red)}
 
 /* BNAV */
-.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(5,1fr)}
+.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(6,1fr)}
 .bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px 0;font-family:var(--mono);font-size:8px;letter-spacing:.4px;transition:color .2s}
 .bnav-btn.active{color:var(--gold)}
 .bnav-icon{font-size:18px}
 @media(max-width:700px){.tabs{display:none}.bnav{display:grid}}
+@media(min-width:701px){.bnav{display:none}}
 
 .dots::after{content:'.';animation:el 1.2s steps(3,end) infinite}
 @keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
@@ -308,6 +309,7 @@ function scheduleSave() {
     <button class="tab" onclick="go('fiscal',this)">🇧🇪 FISCAL</button>
     <button class="tab" onclick="go('projection',this)">📈 PROJECTION</button>
     <button class="tab" onclick="go('advisor',this)">🧠 CONSEILLER</button>
+    <button class="tab" onclick="go('parametres',this)">⚙️ PARAMÈTRES</button>
   </div>
   <div class="date-chip" id="date-chip"></div>
   <div id="sync-indicator" style="font-family:var(--mono);font-size:9px;color:#4a5260;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0;cursor:pointer" onclick="syncToCloud()" title="Cliquer pour forcer la synchronisation">☁️ Cloud</div>
