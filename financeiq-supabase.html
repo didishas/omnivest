@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#07080a">
 <title>FinanceIQ — Didier Ukanda</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -162,6 +163,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 @media(min-width:701px){.bnav{display:none}}
 
 .dots::after{content:'.';animation:el 1.2s steps(3,end) infinite}
+@keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+.sim-badge{display:inline-block;background:rgba(167,139,250,.15);color:var(--purple);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;margin-top:6px}
 @keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
 select.inp{cursor:pointer}
 </style>
@@ -618,28 +621,76 @@ function scheduleSave() {
 <div class="panel" id="p-projection">
   <div class="scroll">
 
+    <!-- KPI AVANCEMENT -->
+    <div class="metrics" id="proj-metrics"></div>
+
+    <!-- ALERTE AVANCEMENT -->
+    <div id="proj-alert" style="display:none;border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono)"></div>
+
+    <!-- GRAPHIQUE PRINCIPAL -->
     <div class="card gold-border">
-      <div class="card-title">AVANCEMENT VS PLAN INITIAL</div>
-      <div class="metrics" id="proj-metrics"></div>
+      <div class="card-title">📈 COURBE RÉELLE VS PLAN — 60 MOIS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;font-size:10px;font-family:var(--mono);color:var(--txt3)">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:var(--gold);border-radius:2px;display:inline-block"></span>Plan prévu</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:var(--green);border-radius:2px;display:inline-block"></span>Capital réel</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:var(--blue);opacity:.6;border-radius:2px;display:inline-block"></span>Apports cumulés</span>
+      </div>
+      <div style="position:relative;height:280px">
+        <canvas id="proj-chart"></canvas>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">MISE À JOUR MANUELLE</div>
-      <div class="form-row" style="grid-template-columns:1fr 1fr">
-        <div>
+    <!-- MISE A JOUR + SIMULATEUR -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+
+      <div class="card">
+        <div class="card-title">🔄 MISE À JOUR RÉELLE</div>
+        <div style="margin-bottom:8px">
           <label class="inp-lbl">CAPITAL IBKR ACTUEL (€)</label>
           <input class="inp" id="proj-capital" type="number" placeholder="20">
         </div>
-        <div>
+        <div style="margin-bottom:8px">
           <label class="inp-lbl">MOIS EN COURS (0-60)</label>
           <input class="inp" id="proj-month" type="number" placeholder="0" min="0" max="60">
         </div>
+        <button class="btn btn-gold" onclick="updateProjection()" style="width:100%">↻ RECALCULER</button>
       </div>
-      <button class="btn btn-gold" onclick="updateProjection()" style="width:100%;margin-top:8px">RECALCULER MA PROJECTION</button>
+
+      <div class="card" style="border-color:rgba(167,139,250,.3)">
+        <div class="card-title">🔮 SIMULATEUR "ET SI ?"</div>
+        <div style="margin-bottom:8px">
+          <label class="inp-lbl">ET SI J'INVESTIS (€/MOIS)</label>
+          <input class="inp" id="sim-apport" type="number" placeholder="1000" value="1000" oninput="runSimulator()">
+        </div>
+        <div style="margin-bottom:8px">
+          <label class="inp-lbl">RENDEMENT MENSUEL (%)</label>
+          <input class="inp" id="sim-rate" type="number" placeholder="10" value="10" step="0.5" oninput="runSimulator()">
+        </div>
+        <div id="sim-result" style="font-family:var(--mono);font-size:10px;color:var(--purple);background:rgba(167,139,250,.08);border-radius:6px;padding:8px;line-height:1.6"></div>
+      </div>
+
     </div>
 
+    <!-- SIMULATEUR ACHAT RAPIDE -->
+    <div class="card" style="border-color:rgba(74,158,255,.3);margin-bottom:12px">
+      <div class="card-title">💭 ET SI JE RETIRE / DÉPENSE ?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
+        <div>
+          <label class="inp-lbl">MONTANT (€)</label>
+          <input class="inp" id="sim-retrait" type="number" placeholder="500">
+        </div>
+        <div>
+          <label class="inp-lbl">AU MOIS</label>
+          <input class="inp" id="sim-retrait-month" type="number" placeholder="6" min="0" max="60">
+        </div>
+        <button class="btn btn-blue" onclick="simRetrait()" style="white-space:nowrap">SIMULER</button>
+      </div>
+      <div id="sim-retrait-result" style="font-family:var(--mono);font-size:10px;margin-top:10px;color:var(--txt2);display:none;line-height:1.7"></div>
+    </div>
+
+    <!-- TABLEAU DÉTAILLÉ -->
     <div class="card">
-      <div class="card-title">TABLEAU PROJECTION — 60 MOIS</div>
+      <div class="card-title">📋 TABLEAU DÉTAILLÉ — 60 MOIS</div>
       <div style="overflow-x:auto">
         <table class="proj-table" id="proj-table">
           <thead>
@@ -1018,8 +1069,10 @@ function updateIBKR() {
 }
 
 // ══ PROJECTION ══
-function calcProjection() {
-  const rate = 0.10;
+let projChart = null;
+
+function calcProjection(apportOverride, rateOverride) {
+  const rate = (rateOverride !== undefined ? rateOverride : 10) / 100;
   const data = [];
   let cap = 1000;
   let totalC = 1000;
@@ -1029,13 +1082,14 @@ function calcProjection() {
   for (let m = 0; m <= 60; m++) {
     if (m > 0) {
       cap *= (1 + rate);
-      const apport = m === 13 ? 3200 : m > 9 ? 1150 : 1000;
+      const baseApport = apportOverride !== undefined ? apportOverride : (m === 13 ? 3200 : m > 9 ? 1150 : 1000);
+      const apport = apportOverride !== undefined && m === 13 ? apportOverride + 2200 : baseApport;
       cap += apport;
       totalC += apport;
       if (dH > 0) dH = Math.max(0, dH - 150);
       if (cap >= 100000 && !huissierPaid && dH > 0) { cap -= dH; dH = 0; huissierPaid = true; }
     }
-    data.push({ m, prevu: Math.round(cap), dette: Math.round(dH) });
+    data.push({ m, prevu: Math.round(cap), dette: Math.round(dH), contrib: Math.round(totalC) });
   }
   return data;
 }
