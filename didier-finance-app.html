@@ -1112,12 +1112,13 @@ function saveSupaKeys() {
   if (!key.startsWith('eyJ')) { toast('Clé Supabase invalide'); return; }
   localStorage.setItem('financeiq_supa_url', url);
   localStorage.setItem('financeiq_supa_key', key);
-  const st = document.getElementById('supa-status');
-  if (st) { st.textContent = '✓ Clés sauvegardées — synchronisation activée'; st.style.color = 'var(--green)'; }
+  // Masquer immédiatement les clés à l'écran
   const ui = document.getElementById('supa-url-input');
   const ki = document.getElementById('supa-key-input');
-  if (ui) ui.value = url.slice(0, 30) + '...';
-  if (ki) ki.value = '••••••••••••••••';
+  if (ui) { ui.value = ''; ui.placeholder = '✓ ' + url.replace('https://','').slice(0,20) + '... (sauvegardé)'; ui.style.color = 'var(--green)'; }
+  if (ki) { ki.value = ''; ki.placeholder = '✓ ••••••••••••••••••••• (sauvegardé)'; ki.style.color = 'var(--green)'; }
+  const st = document.getElementById('supa-status');
+  if (st) { st.textContent = '✓ Clés sauvegardées et masquées — sync activée'; st.style.color = 'var(--green)'; }
   toast('✅ Clés Supabase sauvegardées !');
   syncToCloud();
 }
@@ -1126,6 +1127,10 @@ function clearSupaKeys() {
   localStorage.removeItem('financeiq_supa_url');
   localStorage.removeItem('financeiq_supa_key');
   localStorage.removeItem('financeiq_last_sync');
+  const ui = document.getElementById('supa-url-input');
+  const ki = document.getElementById('supa-key-input');
+  if (ui) { ui.value = ''; ui.placeholder = 'https://xxxxx.supabase.co'; ui.style.color = ''; }
+  if (ki) { ki.value = ''; ki.placeholder = 'eyJhbGci...'; ki.style.color = ''; }
   const st = document.getElementById('supa-status');
   if (st) { st.textContent = 'Clés supprimées — sync désactivée'; st.style.color = 'var(--txt3)'; }
   setSyncUI('idle');
@@ -1165,10 +1170,13 @@ function restoreSupaUI() {
   const ui = document.getElementById('supa-url-input');
   const ki = document.getElementById('supa-key-input');
   if (url && key) {
-    if (ui) ui.value = url.slice(0, 30) + '...';
-    if (ki) ki.value = '••••••••••••••••';
-    if (st) { st.textContent = '✓ Clés configurées — sync active'; st.style.color = 'var(--green)'; }
+    // Ne jamais afficher les vraies valeurs — seulement placeholder masqué
+    if (ui) { ui.value = ''; ui.placeholder = '✓ ' + url.replace('https://','').slice(0,22) + '... (configuré)'; ui.style.color = 'var(--green)'; }
+    if (ki) { ki.value = ''; ki.placeholder = '✓ ••••••••••••••••••••• (configuré)'; ki.style.color = 'var(--green)'; }
+    if (st) { st.textContent = '✓ Sync active — clés configurées sur cet appareil'; st.style.color = 'var(--green)'; }
   } else {
+    if (ui) { ui.placeholder = 'https://xxxxx.supabase.co'; ui.style.color = ''; }
+    if (ki) { ki.placeholder = 'eyJhbGci...'; ki.style.color = ''; }
     if (st) { st.textContent = 'Non configuré — entrez vos clés pour activer la sync'; st.style.color = 'var(--txt3)'; }
   }
 }
