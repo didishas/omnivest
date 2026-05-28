@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="omnivest-icon.svg">
 <link rel="apple-touch-icon" href="omnivest-icon.png">
 <link rel="manifest" href="manifest.json">
-<title>OmniVest v5 — Live Intelligence</title>
+<title>OmniVest — Live Intelligence</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -285,7 +285,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 <div class="topbar">
   <div class="brand">
     <div class="bmark">O</div>
-    <div><div class="bname">Omni<em>Vest</em></div><div class="bsub">v5 · LIVE INTELLIGENCE</div></div>
+    <div><div class="bname">Omni<em>Vest</em></div><div class="bsub">LIVE INTELLIGENCE</div></div>
   </div>
   <div class="tabs">
     <button class="tab active" onclick="go('signals',this)">📡 SIGNALS</button>
@@ -580,7 +580,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 
 <script>
 // ══ STORAGE ══
-const SK = 'omnivest_v5';
+const SK = 'omnivest_v6';
 function load() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
 function save() {
   localStorage.setItem(SK, JSON.stringify({ positions, capital, tradingHours, chatHistory: chatHistory.slice(-30), finnhubKey, ibkrBalance }));
