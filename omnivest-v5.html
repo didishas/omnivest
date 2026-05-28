@@ -1442,6 +1442,11 @@ function dismissTrailAlert(el) {
 
 // Check trailing stops every 30 seconds when prices update
 var trailCheckInterval = null;
+function dismissTrailInstructions() {
+  var el = document.getElementById('trail-instructions-container');
+  if (el) el.innerHTML = '';
+}
+
 function startTrailMonitor() {
   if (trailCheckInterval) clearInterval(trailCheckInterval);
   trailCheckInterval = setInterval(function() {
