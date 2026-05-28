@@ -250,7 +250,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 .spin{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
-.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(5,1fr)}
+.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(6,1fr)}
 .bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px 0;font-family:var(--mono);font-size:8px;letter-spacing:.4px;transition:color .2s}
 .bnav-btn.active{color:var(--gold)}
 .bnav-icon{font-size:19px}
@@ -290,6 +290,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
   <div class="tabs">
     <button class="tab active" onclick="go('signals',this)">📡 SIGNALS</button>
     <button class="tab" onclick="go('chat',this)">🧠 AI ANALYST</button>
+    <button class="tab" onclick="go('journal',this)">📋 JOURNAL</button>
     <button class="tab" onclick="go('portfolio',this)">📊 PORTFOLIO</button>
     <button class="tab" onclick="go('schedule',this)">⏱ SCHEDULE</button>
     <button class="tab" onclick="go('tax',this)">🇧🇪 TAX</button>
@@ -311,16 +312,8 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 <!-- SIGNALS -->
 <div class="panel active" id="p-signals">
   <div class="scroll">
-    <div class="gauge-grid" id="gauges">
-      <div class="gauge" onclick="askAbout('XOM ExxonMobil buy or sell now?')"><div class="g-lbl">XOM</div><div class="g-val" id="g-XOM" style="color:var(--green)">—</div><div class="g-chg" id="gc-XOM">Loading...</div></div>
-      <div class="gauge" onclick="askAbout('CVX Chevron trade signal?')"><div class="g-lbl">CVX</div><div class="g-val" id="g-CVX" style="color:var(--green)">—</div><div class="g-chg" id="gc-CVX">Loading...</div></div>
-      <div class="gauge" onclick="askAbout('MOS Mosaic fertilizer trade?')"><div class="g-lbl">MOS</div><div class="g-val" id="g-MOS" style="color:var(--gold)">—</div><div class="g-chg" id="gc-MOS">Loading...</div></div>
-      <div class="gauge" onclick="askAbout('GOLD gold buy or sell?')"><div class="g-lbl">GOLD</div><div class="g-val" id="g-GOLD" style="color:var(--gold)">$2,341</div><div class="g-chg t-up">↑ Safe haven</div></div>
-      <div class="gauge" onclick="askAbout('BTC Bitcoin trade signal now?')"><div class="g-lbl">BTC</div><div class="g-val" id="g-BTC" style="color:var(--green)">—</div><div class="g-chg" id="gc-BTC">Loading...</div></div>
-      <div class="gauge" onclick="askAbout('OIL Brent crude trade?')"><div class="g-lbl">BRENT</div><div class="g-val" style="color:var(--red)">$118</div><div class="g-chg t-up">↑ Hormuz</div></div>
-      <div class="gauge" onclick="askAbout('VIX fear index meaning for my trades?')"><div class="g-lbl">VIX</div><div class="g-val" style="color:var(--amber)">28.4</div><div class="g-chg t-warn">Elevated</div></div>
-      <div class="gauge" onclick="askAbout('STNG tanker stock hidden signal?')"><div class="g-lbl">STNG</div><div class="g-val" id="g-STNG" style="color:var(--green)">—</div><div class="g-chg" id="gc-STNG">Loading...</div></div>
-    </div>
+    <div class="gauge-grid" id="gauges"></div>
+
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div>
@@ -366,13 +359,32 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
   </div>
 </div>
 
+
+<!-- JOURNAL -->
+<div class="panel" id="p-journal">
+  <div class="scroll">
+    <div class="stitle">Mon <span>Journal</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button onclick="aiReviewAllPositions()" style="flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--gold);background:var(--gdim);color:var(--gold);font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">&#129504; ANALYSE IA TOUTES POSITIONS</button>
+      <button onclick="runTrailAdvisor()" style="padding:10px 14px;border-radius:8px;border:1.5px solid var(--green);background:var(--gdim2);color:var(--green);font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">&#128276; VERIFIER STOPS</button>
+    </div>
+    <div id="ai-all-advice" style="display:none;background:var(--bg2);border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;line-height:1.8"></div>
+    <div id="trail-advice-box"></div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:8px">POSITIONS OUVERTES</div>
+    <div id="journal-open"></div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--txt3);margin:16px 0 8px;display:flex;justify-content:space-between">
+      <span>HISTORIQUE</span>
+      <button onclick="clearTradeHistory()" style="background:none;border:none;color:var(--txt3);font-family:var(--mono);font-size:9px;cursor:pointer">EFFACER</button>
+    </div>
+    <div id="journal-history"></div>
+    <div id="journal-stats" style="margin-top:12px"></div>
+  </div>
+</div>
+
 <!-- PORTFOLIO -->
 <div class="panel" id="p-portfolio">
   <div class="scroll">
-    <div class="stitle" style="display:flex;justify-content:space-between;align-items:center">
-  <span>Mon <span style="color:var(--gold)">Portfolio</span></span>
-  <button onclick="checkAllTrailingStops();showToast('Vérification stops...','info')" style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--gold);background:var(--gdim);color:var(--gold);font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">🔔 VÉRIFIER STOPS</button>
-</div>
+    <div class="stitle">Mon <span>Portfolio</span></div>
 
     <!-- IBKR Live Balance -->
     <div class="ibkr-balance">
@@ -516,35 +528,6 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
       <div id="anthropic-status" style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:6px"></div>
     </div>
 
-
-    <!-- SCANNER PROACTIF -->
-    <div class="api-setup" style="border-color:rgba(0,229,160,.3);margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px">🔔 Scanner Proactif — Alertes auto</div>
-      <div style="font-size:11px;color:var(--txt2);margin-bottom:10px">L'IA surveille le marche et tes positions. Alerte si opportunite urgente.</div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <button id="scanner-toggle-btn" onclick="toggleScanner()" style="padding:8px 14px;border-radius:7px;border:1px solid var(--border);font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;background:var(--bg3);color:var(--txt2)">START</button>
-        <span id="scanner-status" style="font-family:var(--mono);font-size:10px;color:var(--txt3)">Inactif</span>
-      </div>
-    </div>
-    <!-- WATCHLIST -->
-    <div class="api-setup" style="border-color:rgba(167,139,250,.3);margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:6px">🎯 Ma Watchlist</div>
-      <div id="watchlist-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
-      <div style="display:flex;gap:6px">
-        <input class="api-input" id="wl-input" placeholder="AAPL TSLA NVDA..." style="flex:1;text-transform:uppercase" onkeydown="if(event.key==='Enter')addToWatchlist()">
-        <button class="api-save" style="background:var(--purple);color:#fff" onclick="addToWatchlist()">+ ADD</button>
-      </div>
-    </div>
-    <!-- FREE ROAM -->
-    <div class="api-setup" style="border-color:rgba(255,165,2,.3);margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px">🌍 Mode Libre — IA scanne tout</div>
-      <div style="font-size:11px;color:var(--txt2);margin-bottom:10px">L'IA propose des picks sur n'importe quel actif mondial + regles Turtle (S1/S2 breakout).</div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <button id="free-roam-toggle" onclick="toggleFreeRoam()" style="padding:8px 14px;border-radius:7px;border:none;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;background:var(--amber);color:#000">ACTIF</button>
-        <span id="free-roam-status" style="font-family:var(--mono);font-size:10px;color:var(--amber)">Actif - IA libre sur tout le marche</span>
-      </div>
-    </div>
-
     <div class="api-setup" style="margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">🔑 Finnhub Live Market Data</div>
       <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Prix live gratuits. → <strong style="color:var(--gold)">finnhub.io</strong> → Register → Copy API Key</div>
@@ -589,6 +572,7 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 <div class="bnav">
   <button class="bnav-btn active" onclick="go('signals',this)"><span class="bnav-icon">📡</span>SIGNALS</button>
   <button class="bnav-btn" onclick="go('chat',this)"><span class="bnav-icon">🧠</span>ANALYST</button>
+  <button class="bnav-btn" onclick="go('journal',this)"><span class="bnav-icon">📋</span>JOURNAL</button>
   <button class="bnav-btn" onclick="go('portfolio',this)"><span class="bnav-icon">📊</span>PORTFOLIO</button>
   <button class="bnav-btn" onclick="go('schedule',this)"><span class="bnav-icon">⏱</span>SCHEDULE</button>
   <button class="bnav-btn" onclick="go('settings',this)"><span class="bnav-icon">⚙️</span>SETTINGS</button>
@@ -630,7 +614,7 @@ if (finnhubKey) {
 
 // ══ TABS ══
 function go(id, el) {
-  if(id==='settings'){if(typeof renderWatchlistChips==='function')renderWatchlistChips();if(typeof updateFreeRoamUI==='function')updateFreeRoamUI();}
+  if(id==='journal' && typeof renderJournal==='function') renderJournal();
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab, .bnav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('p-' + id).classList.add('active');
@@ -687,7 +671,7 @@ function updateIBKRBalance() {
 }
 
 // ══ FINNHUB ══
-const SYMBOLS = { XOM:'XOM', CVX:'CVX', MOS:'MOS', STNG:'STNG' }; // watchlist managed dynamically
+const SYMBOLS = { XOM:'XOM', CVX:'CVX', MOS:'MOS', STNG:'STNG' };
 
 // BTC via CoinGecko (free, no key needed)
 async function fetchBTC() {
@@ -771,10 +755,7 @@ async function refreshSignals() {
   let priceCtx = Object.entries(liveprices).map(([k,v]) => k + ': $' + v.price.toFixed(2) + ' (' + (v.chgPct>=0?'+':'') + v.chgPct.toFixed(2) + '%)').join(', ');
   if (!priceCtx) priceCtx = 'XOM ~$155, CVX ~$191, STNG ~$80, MOS ~$22, BTC ~$93K';
 
-  var watchlist = getWatchlist();
-  var freeRoam = typeof freeRoamMode !== 'undefined' ? freeRoamMode : true;
-  var freeInstr = freeRoam ? ' FREE ROAM: scan entire global market, any asset class. Min 2 picks outside watchlist. Turtle rules: flag if price near 20/55-day high (S1/S2 breakout).' : ' Limit to watchlist: '+watchlist.join(',');
-  const prompt = 'DATE: '+new Date().toLocaleDateString('en-US')+' LIVE: ' + priceCtx + ' WATCHLIST: '+watchlist.join(',')+ freeInstr + '\n\nGenerate exactly 4 trading signals based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. Mix day trades and swing trades. Always include 1 crypto signal.';
+  const prompt = 'LIVE PRICES NOW: ' + priceCtx + '\n\nGenerate exactly 4 trading signals based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. Mix day trades and swing trades. Always include 1 crypto signal.';
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -942,68 +923,47 @@ function updatePositionPrice(i) {
   if (liveP) {
     positions[i].current = liveP.price;
     renderPositions(); save();
-    showToast('Prix mis a jour: ' + positions[i].asset + ' $' + liveP.price.toFixed(2), 'info');
+    showToast('Prix mis à jour: ' + positions[i].asset + ' $' + liveP.price.toFixed(2), 'info');
   } else {
     const newPrice = parseFloat(prompt('Prix actuel pour ' + positions[i].asset + ':'));
     if (!isNaN(newPrice)) { positions[i].current = newPrice; renderPositions(); save(); }
   }
-  // Check if trailing stop needs adjustment
-  setTimeout(checkAllTrailingStops, 500);
 }
 
 function renderPositions() {
-  var el = document.getElementById('positions-list');
+  const el = document.getElementById('positions-list');
   if (!positions.length) {
-    el.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">Aucune position. Va dans Signals et clique BUY.</div>';
+    el.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">Aucune position. Va dans Signals → clique BUY.</div>';
     setTotal(capital); return;
   }
-  var totalPL = 0;
-  var html = '';
-  for (var i = 0; i < positions.length; i++) {
-    var p = positions[i];
-    // Trailing stop — follow price up
-    if (p.trailingStop && p.current > p.entry && p.stop) {
-      var dist = p.entry - p.stop;
-      var ns = parseFloat((p.current - dist).toFixed(2));
-      if (ns > p.stop) { positions[i].stop = ns; save(); }
-    }
-    var pl = ((p.current - p.entry) / p.entry) * p.size;
-    var plPct = (p.current - p.entry) / p.entry * 100;
+  let totalPL = 0;
+  el.innerHTML = positions.map((p, i) => {
+    const pl = ((p.current - p.entry) / p.entry) * p.size;
+    const plPct = (p.current - p.entry) / p.entry * 100;
     totalPL += pl;
-    var col = pl >= 0 ? 'var(--green)' : 'var(--red)';
-    var rr = (p.stop && p.target && p.entry > p.stop) ? ((p.target - p.entry) / (p.entry - p.stop)).toFixed(1) : null;
-    var alertHtml = '';
-    if (p.stop && p.current <= p.stop) alertHtml = '<div class="pos-alert stop">STOP ATTEINT — Ferme sur IBKR!</div>';
-    if (p.target && p.current >= p.target) alertHtml = '<div class="pos-alert target">TARGET ATTEINT — Prends tes profits!</div>';
-    var trailBadge = p.trailingStop ? '<span style="background:rgba(167,139,250,.2);color:var(--purple);border-radius:4px;padding:1px 6px;font-size:9px;font-family:var(--mono);margin-left:4px">TRAIL</span>' : '';
-    html += '<div class="pos-card">' +
-      '<div class="pos-top"><span class="pos-ticker">' + p.asset + trailBadge + '</span>' +
+    const col = pl>=0 ? 'var(--green)' : 'var(--red)';
+    let alertHtml = '';
+    if (p.stop && p.current <= p.stop) alertHtml = '<div class="pos-alert stop">⚠️ STOP-LOSS ATTEINT — Ferme cette position sur IBKR maintenant !</div>';
+    if (p.target && p.current >= p.target) alertHtml = '<div class="pos-alert target">🎯 TARGET ATTEINT — Prends tes profits sur IBKR maintenant !</div>';
+    return '<div class="pos-card">' +
+      '<div class="pos-top"><span class="pos-ticker">' + p.asset + ' <span style="font-size:11px;font-weight:400;color:var(--txt2)">' + (p.name||'') + '</span></span>' +
       '<span class="pos-pnl" style="color:' + col + '">' + (pl>=0?'+':'') + '€' + pl.toFixed(2) + ' (' + (plPct>=0?'+':'') + plPct.toFixed(1) + '%)</span></div>' +
       '<div class="pos-bar-wrap"><div class="pos-bar" style="width:' + Math.min(Math.abs(plPct)*3,100) + '%;background:' + col + '"></div></div>' +
       '<div class="pos-details">' +
         '<div class="pos-detail"><div class="pos-d-lbl">TAILLE</div><div class="pos-d-val">€' + p.size + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">ENTREE</div><div class="pos-d-val">$' + p.entry + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">ACTUEL</div><div class="pos-d-val" style="color:' + col + '">$' + p.current + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">STOP</div><div class="pos-d-val" style="color:var(--red)">$' + (p.stop||'—') + ' <button onclick="editStop(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--txt3)">✏️</button></div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">TARGET</div><div class="pos-d-val" style="color:var(--green)">$' + (p.target||'—') + ' <button onclick="editTarget(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--txt3)">✏️</button></div></div>' +
-        (rr ? '<div class="pos-detail"><div class="pos-d-lbl">R:R</div><div class="pos-d-val" style="color:var(--amber)">' + rr + 'x</div></div>' : '') +
-      '</div>' +
-      '<div style="padding:6px 0;display:flex;justify-content:flex-end">' +
-        '<label style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--txt3);cursor:pointer">' +
-          '<input type="checkbox" ' + (p.trailingStop?'checked':'') + ' onchange="toggleTrailingStop(' + i + ',this.checked)"> Trailing Stop' +
-        '</label>' +
-      '</div>' +
-      alertHtml +
+        '<div class="pos-detail"><div class="pos-d-lbl">ENTRÉE</div><div class="pos-d-val">€' + p.entry + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">ACTUEL</div><div class="pos-d-val" style="color:' + col + '">€' + p.current + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">STOP-LOSS</div><div class="pos-d-val" style="color:var(--red)">€' + (p.stop||'—') + '</div></div>' +
+      '</div>' + alertHtml +
       '<div class="pos-actions">' +
-        '<button class="pos-btn ai-review" onclick="askPosAI(' + i + ')">🧠 AI</button>' +
+        '<button class="pos-btn ai-review" onclick="askPosAI(' + i + ')" data-asset="' + p.asset + '">🧠 AI</button>' +
         '<button class="pos-btn update-price" onclick="updatePositionPrice(' + i + ')">↻ PRIX</button>' +
-        '<button class="pos-btn" onclick="adaptStopsAI(' + i + ')" style="background:rgba(255,165,2,.15);color:var(--amber);border:1px solid rgba(255,165,2,.3)">🎯 ADAPTER</button>' +
         '<button class="pos-btn close-pos" onclick="closePosition(' + i + ')">✕ FERMER</button>' +
       '</div></div>';
-  }
-  el.innerHTML = html;
+  }).join('');
   setTotal(capital + totalPL);
 }
+
 function setTotal(total) {
   document.getElementById('ptotal').textContent = total.toFixed(2);
   if (document.getElementById('phase-total')) document.getElementById('phase-total').textContent = '€' + total.toFixed(0);
@@ -1141,277 +1101,170 @@ if ('serviceWorker' in navigator) {
 // ══ INIT ══
 renderPositions();
 renderIBKRBalance();
-startTrailMonitor();
-requestNotifPermission();
 if (finnhubKey) { fetchAllPrices(); startLiveFeed(); }
 else { document.getElementById('live-lbl').textContent = 'NO KEY'; document.getElementById('live-pulse').style.background='var(--amber)'; }
-
-// ══ WATCHLIST & FREE ROAM ══
-var DEFAULT_WATCHLIST=['XOM','CVX','STNG','MOS','NVDA','AMD','MSFT','AAPL','META','TSLA','SPY','QQQ','SCHD','JEPI','GLD','BTC','ETH','TQQQ','SOXL','LMT','VXX'];
-var freeRoamMode=JSON.parse(localStorage.getItem('omnivest_free_roam')||'true');
-var scanInterval=null;
-var lastScanTime=0;
-
-function getWatchlist(){var s=localStorage.getItem('omnivest_watchlist');return s?JSON.parse(s):DEFAULT_WATCHLIST.slice();}
-function saveWatchlist(l){localStorage.setItem('omnivest_watchlist',JSON.stringify(l));}
-
-function renderWatchlistChips(){
-  var el=document.getElementById('watchlist-chips');
-  if(!el)return;
-  var list=getWatchlist();
-  var html='';
-  for(var i=0;i<list.length;i++){
-    html+='<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:6px;padding:3px 8px;font-family:var(--mono);font-size:10px;color:var(--purple)">'+list[i]+'<button onclick="removeFromWatchlist(this.dataset.sym)" data-sym="'+list[i]+'" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:12px">&times;</button></span>';
+// == DYNAMIC GAUGES ==
+function buildGauges() {
+  var grid = document.getElementById('gauges');
+  if (!grid) return;
+  var list = typeof getWatchlist === 'function' ? getWatchlist() : ['XOM','CVX','MOS','STNG','BTC'];
+  var html = '';
+  list.forEach(function(sym) {
+    html += '<div class="gauge" id="gauge-' + sym + '" onclick="askAbout(this.dataset.q)" data-q="' + sym + ' trade signal entry target stop?">' +
+      '<div class="g-lbl">' + sym + '</div><div class="g-val" id="g-' + sym + '" style="color:var(--txt2)">--</div><div class="g-chg" id="gc-' + sym + '">Loading</div></div>';
+  });
+  html += '<div class="gauge" onclick="askAbout(this.dataset.q)" data-q="Gold GLD trade signal now?">' +
+    '<div class="g-lbl">GOLD</div><div class="g-val" id="g-GOLD" style="color:var(--gold)">--</div><div class="g-chg" id="gc-GOLD">Loading</div></div>';
+  html += '<div class="gauge" onclick="askAbout(this.dataset.q)" data-q="VIX fear index impact?">' +
+    '<div class="g-lbl">VIX</div><div class="g-val" id="g-VIX" style="color:var(--amber)">--</div><div class="g-chg" id="gc-VIX">Vol</div></div>';
+  grid.innerHTML = html;
+  if (finnhubKey) {
+    list.forEach(function(s) { fetchPrice(s, s); });
+    fetchBTC();
+    if (finnhubKey) {
+      fetch('https://finnhub.io/api/v1/quote?symbol=GLD&token=' + finnhubKey)
+        .then(function(r){return r.json();}).then(function(d){ if(d.c) updateGauge('GOLD',d.c,d.dp||0); }).catch(function(){});
+    }
   }
-  el.innerHTML=html;
 }
 
-function addToWatchlist(){
-  var inp=document.getElementById('wl-input');
-  if(!inp)return;
-  var syms=inp.value.toUpperCase().replace(/,/g,' ').trim().split(' ').filter(function(s){return s.length>0;});
-  var list=getWatchlist();
-  syms.forEach(function(s){if(!list.includes(s))list.push(s);});
-  saveWatchlist(list);inp.value='';
-  renderWatchlistChips();
-  showToast('+'+syms.join(', '),'gain');
+// == TRADE HISTORY ==
+var tradeHistory = JSON.parse(localStorage.getItem('omnivest_history') || '[]');
+function saveHistory(){ localStorage.setItem('omnivest_history', JSON.stringify(tradeHistory)); }
+
+function renderJournal(){ renderJournalOpen(); renderJournalHistory(); renderJournalStats(); }
+
+function renderJournalOpen() {
+  var el = document.getElementById('journal-open');
+  if (!el) return;
+  if (!positions.length) { el.innerHTML = '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:20px">Aucune position.</div>'; return; }
+  var html = '';
+  for (var i=0; i<positions.length; i++) {
+    var p = positions[i];
+    var pl = ((p.current-p.entry)/p.entry)*p.size;
+    var plP = ((p.current-p.entry)/p.entry*100);
+    var col = pl>=0?'var(--green)':'var(--red)';
+    var od = p.openedAt ? new Date(p.openedAt).toLocaleDateString('fr-BE') : '--';
+    var dh = p.openedAt ? Math.floor((Date.now()-new Date(p.openedAt))/86400000) : '?';
+    var rr = (p.stop&&p.target&&p.entry>p.stop) ? ((p.target-p.entry)/(p.entry-p.stop)).toFixed(1) : '?';
+    html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<div><span style="font-family:var(--mono);font-size:14px;font-weight:700">' + p.asset + '</span>' +
+        '<span style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-left:8px">depuis ' + od + ' (' + dh + 'j)</span></div>' +
+        '<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:' + col + '">' + (pl>=0?'+':'') + 'EUR' + pl.toFixed(2) + ' (' + (plP>=0?'+':'') + plP.toFixed(1) + '%)</span>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px">' +
+        '<div style="background:var(--bg3);border-radius:6px;padding:7px;text-align:center"><div style="font-family:var(--mono);font-size:8px;color:var(--txt3)">TAILLE</div><div style="font-family:var(--mono);font-size:11px">EUR' + p.size + '</div></div>' +
+        '<div style="background:var(--bg3);border-radius:6px;padding:7px;text-align:center"><div style="font-family:var(--mono);font-size:8px;color:var(--txt3)">ENTREE</div><div style="font-family:var(--mono);font-size:11px">$' + p.entry + '</div></div>' +
+        '<div style="background:var(--bg3);border-radius:6px;padding:7px;text-align:center"><div style="font-family:var(--mono);font-size:8px;color:var(--txt3)">ACTUEL</div><div style="font-family:var(--mono);font-size:11px;color:' + col + '">$' + p.current + '</div></div>' +
+        '<div style="background:var(--bg3);border-radius:6px;padding:7px;text-align:center"><div style="font-family:var(--mono);font-size:8px;color:var(--txt3)">STOP</div><div style="font-family:var(--mono);font-size:11px;color:var(--red)">$' + (p.stop||'--') + '</div></div>' +
+        '<div style="background:var(--bg3);border-radius:6px;padding:7px;text-align:center"><div style="font-family:var(--mono);font-size:8px;color:var(--txt3)">R:R</div><div style="font-family:var(--mono);font-size:11px;color:var(--amber)">' + rr + 'x</div></div>' +
+      '</div>' +
+      '<div id="jad-' + i + '" style="display:none;background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;line-height:1.7;color:var(--txt)"></div>' +
+      '<div style="display:flex;gap:6px">' +
+        '<button onclick="aiSingleAdvice(' + i + ')" style="flex:2;padding:8px;border-radius:7px;border:1px solid rgba(201,168,76,.3);background:var(--gdim);color:var(--gold);font-family:var(--mono);font-size:9px;font-weight:700;cursor:pointer">CONSEIL IA</button>' +
+        '<button onclick="updatePositionPrice(' + i + ')" style="flex:1;padding:8px;border-radius:7px;border:1px solid rgba(74,158,255,.3);background:var(--bdim);color:var(--blue);font-family:var(--mono);font-size:9px;cursor:pointer">PRIX</button>' +
+        '<button onclick="editStop(' + i + ')" style="flex:1;padding:8px;border-radius:7px;border:1px solid rgba(255,71,87,.2);background:var(--rdim);color:var(--red);font-family:var(--mono);font-size:9px;cursor:pointer">STOP</button>' +
+        '<button onclick="closeFromJournal(' + i + ')" style="flex:1;padding:8px;border-radius:7px;border:1px solid rgba(255,71,87,.3);background:var(--rdim);color:var(--red);font-family:var(--mono);font-size:9px;font-weight:700;cursor:pointer">FERMER</button>' +
+      '</div>' +
+    '</div>';
+  }
+  el.innerHTML = html;
 }
 
-function removeFromWatchlist(sym){
-  var list=getWatchlist().filter(function(s){return s!==sym;});
-  saveWatchlist(list);renderWatchlistChips();
-  showToast(sym+' retire','loss');
+function closeFromJournal(i) {
+  var p = positions[i];
+  var pl = ((p.current-p.entry)/p.entry)*p.size;
+  var plP = (p.current-p.entry)/p.entry*100;
+  tradeHistory.unshift({asset:p.asset,entry:p.entry,exit:p.current,size:p.size,
+    pl:parseFloat(pl.toFixed(2)),plPct:parseFloat(plP.toFixed(2)),
+    openedAt:p.openedAt||null,closedAt:new Date().toISOString(),
+    days:p.openedAt?Math.floor((Date.now()-new Date(p.openedAt))/86400000):0});
+  saveHistory();
+  positions.splice(i,1); save(); renderPositions(); renderJournal();
+  showToast((pl>=0?'+':'')+'EUR'+pl.toFixed(2)+' sur '+p.asset, pl>=0?'gain':'loss');
+  window.open('https://www.interactivebrokers.co.uk/portal/?action=trade&symbol='+p.asset,'_blank');
 }
 
-function toggleFreeRoam(){
-  freeRoamMode=!freeRoamMode;
-  localStorage.setItem('omnivest_free_roam',JSON.stringify(freeRoamMode));
-  updateFreeRoamUI();
-  showToast(freeRoamMode?'Mode Libre ACTIF':'Mode Libre desactive',freeRoamMode?'gain':'loss');
+function renderJournalHistory() {
+  var el = document.getElementById('journal-history');
+  if (!el) return;
+  if (!tradeHistory.length) { el.innerHTML='<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:14px">Aucun trade ferme.</div>'; return; }
+  var h = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px"><thead><tr style="border-bottom:1px solid var(--border2)">';
+  ['ASSET','ENTREE','SORTIE','P&L','%','JOURS','DATE'].forEach(function(c){ h+='<th style="padding:7px 8px;text-align:left;color:var(--txt3);font-size:9px">'+c+'</th>'; });
+  h += '</tr></thead><tbody>';
+  tradeHistory.forEach(function(t) {
+    var col = t.pl>=0?'var(--green)':'var(--red)';
+    var dt = t.closedAt?new Date(t.closedAt).toLocaleDateString('fr-BE'):'--';
+    h += '<tr style="border-bottom:1px solid var(--border)">' +
+      '<td style="padding:7px 8px;font-weight:700">'+t.asset+'</td>' +
+      '<td style="padding:7px 8px">$'+t.entry+'</td>' +
+      '<td style="padding:7px 8px">$'+t.exit+'</td>' +
+      '<td style="padding:7px 8px;color:'+col+';font-weight:700">'+(t.pl>=0?'+':'')+'EUR'+t.pl+'</td>' +
+      '<td style="padding:7px 8px;color:'+col+'">'+(t.plPct>=0?'+':'')+t.plPct+'%</td>' +
+      '<td style="padding:7px 8px;color:var(--txt3)">'+(t.days||'?')+'</td>' +
+      '<td style="padding:7px 8px;color:var(--txt3)">'+dt+'</td>' +
+    '</tr>';
+  });
+  h += '</tbody></table></div>';
+  el.innerHTML = h;
 }
 
-function updateFreeRoamUI(){
-  var btn=document.getElementById('free-roam-toggle');
-  var st=document.getElementById('free-roam-status');
-  if(btn){btn.style.background=freeRoamMode?'var(--amber)':'var(--bg3)';btn.style.color=freeRoamMode?'#000':'var(--txt2)';btn.style.border=freeRoamMode?'none':'1px solid var(--border)';btn.textContent=freeRoamMode?'ACTIF':'ACTIVER';}
-  if(st){st.textContent=freeRoamMode?'Actif - IA libre sur tout le marche':'Desactive';st.style.color=freeRoamMode?'var(--amber)':'var(--txt3)';}
+function renderJournalStats() {
+  var el = document.getElementById('journal-stats');
+  if (!el || !tradeHistory.length) return;
+  var wins = tradeHistory.filter(function(t){return t.pl>0;});
+  var total = tradeHistory.reduce(function(s,t){return s+t.pl;},0);
+  var wr = (wins.length/tradeHistory.length*100).toFixed(0);
+  var col = total>=0?'var(--green)':'var(--red)';
+  el.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px">' +
+    '<div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:10px">STATISTIQUES</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">' +
+    [['WIN RATE',wr+'%',parseInt(wr)>=50?'var(--green)':'var(--red)'],
+     ['P&L TOTAL',(total>=0?'+':'')+'EUR'+total.toFixed(2),col],
+     ['TRADES',tradeHistory.length,'var(--blue)']
+    ].map(function(m){return '<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">' +
+      '<div style="font-family:var(--mono);font-size:8px;color:var(--txt3);margin-bottom:4px">'+m[0]+'</div>' +
+      '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+m[2]+'">'+m[1]+'</div></div>';}).join('') +
+    '</div></div>';
 }
 
-// ══ TRAILING STOP & ADAPTIVE ══
-function toggleTrailingStop(i,enabled){
-  if(!positions[i])return;
-  positions[i].trailingStop=enabled;save();renderPositions();
-  showToast(enabled?'Trailing stop: '+positions[i].asset:'Trailing stop desactive',enabled?'gain':'loss');
-}
+function clearTradeHistory(){ if(!confirm('Effacer?'))return; tradeHistory=[]; saveHistory(); renderJournal(); showToast('Historique efface','loss'); }
 
-function editStop(i){
-  var p=positions[i];
-  var val=prompt('Nouveau stop-loss pour '+p.asset,p.stop||'');
-  if(val!==null&&!isNaN(parseFloat(val))){positions[i].stop=parseFloat(val);save();renderPositions();showToast('Stop: $'+val,'gain');}
-}
-
-function editTarget(i){
-  var p=positions[i];
-  var val=prompt('Nouveau target pour '+p.asset,p.target||'');
-  if(val!==null&&!isNaN(parseFloat(val))){positions[i].target=parseFloat(val);save();renderPositions();showToast('Target: $'+val,'gain');}
-}
-
-function adaptStopsAI(i){
-  var p=positions[i];
-  var key=localStorage.getItem('anthropic_key')||'';
-  if(!key){showToast('Cle Anthropic requise','loss');return;}
-  showToast('IA adapte les niveaux...','gain');
-  var livePx=liveprices[p.asset]?liveprices[p.asset].price:p.current;
-  var prompt='Position: '+p.asset+' entry:$'+p.entry+' now:$'+livePx+' stop:'+(p.stop||'?')+' target:'+(p.target||'?')+'. Give optimal stop and target. JSON only: {"stop":123,"target":145,"reason":"why"}';
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
+function aiSingleAdvice(i) {
+  var p = positions[i]; var key = localStorage.getItem('anthropic_key')||'';
+  var box = document.getElementById('jad-'+i);
+  if (!box) return;
+  if (!key) { box.style.display='block'; box.textContent='Cle Anthropic requise.'; return; }
+  box.style.display='block'; box.innerHTML='<span style="color:var(--txt3)">Analyse...</span>';
+  var plP = ((p.current-p.entry)/p.entry*100).toFixed(1);
+  var days = p.openedAt?Math.floor((Date.now()-new Date(p.openedAt))/86400000):'?';
+  var prompt = p.asset+' entry:$'+p.entry+' now:$'+p.current+' stop:$'+(p.stop||'?')+' target:$'+(p.target||'?')+' PL:'+plP+'% days:'+days+'. HOLD/ADD/EXIT? 3 sentences max.';
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:200,messages:[{role:'user',content:prompt}]})
-  }).then(function(res){return res.json();}).then(function(data){
-    var text=data.content&&data.content[0]?data.content[0].text:'';
-    var m=text.match(/\{[^{}]+\}/);
-    if(m){
-      var r=JSON.parse(m[0]);
-      if(r.stop)positions[i].stop=r.stop;
-      if(r.target)positions[i].target=r.target;
-      save();renderPositions();
-      showToast('Stop $'+r.stop+' Target $'+r.target,'gain');
-    }
-  }).catch(function(){showToast('Erreur adaptation','loss');});
+  }).then(function(r){return r.json();}).then(function(d){
+    var t = d.content&&d.content[0]?d.content[0].text:'Erreur.';
+    box.innerHTML = t.split('\n').join('<br>');
+  }).catch(function(){box.textContent='Erreur.';});
 }
 
-// ══ NOTIFICATIONS ══
-function notifyUser(title,body){
-  if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body:body});
-  showToast(title+': '+body,title.includes('STOP')?'loss':'gain');
-}
-function requestNotifPermission(){if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();}
-
-// ══ PROACTIVE SCANNER ══
-function proactiveScan(){
-  var key=localStorage.getItem('anthropic_key')||'';
-  if(!key)return;
-  var now=Date.now();
-  if(now-lastScanTime<15*60*1000)return;
-  lastScanTime=now;
-  var watchlist=getWatchlist();
-  var livePricesStr=Object.keys(liveprices).map(function(k){return k+':$'+liveprices[k].price.toFixed(2);}).join(', ');
-  var openPosStr=positions.map(function(p){return p.asset+'@$'+p.current;}).join(', ')||'none';
-  var promptText='LIVE: '+livePricesStr+' POSITIONS: '+openPosStr+' WATCHLIST: '+watchlist.join(',')+' Any urgent opportunity or risk right now? If yes: {"alert":true,"urgency":"high","asset":"TICKER","action":"BUY","message":"reason"}. If nothing: {"alert":false}';
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
+function aiReviewAllPositions() {
+  var key = localStorage.getItem('anthropic_key')||'';
+  var box = document.getElementById('ai-all-advice');
+  if (!box) return;
+  if (!key){box.style.display='block';box.textContent='Cle Anthropic requise.';return;}
+  if (!positions.length){box.style.display='block';box.textContent='Aucune position.';return;}
+  box.style.display='block'; box.innerHTML='<div style="color:var(--txt3)">Analyse...</div>';
+  var ps = positions.map(function(p){return p.asset+' entry:$'+p.entry+' now:$'+p.current+' PL:'+((p.current-p.entry)/p.entry*100).toFixed(1)+'%';}).join(' | ');
+  var prompt = 'Positions: '+ps+'. Pour chaque: HOLD/ADD/EXIT + raison courte. Format: ASSET: ACTION - raison.';
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:150,messages:[{role:'user',content:promptText}]})
-  }).then(function(res){return res.json();}).then(function(data){
-    var text=data.content&&data.content[0]?data.content[0].text:'';
-    var m=text.match(/\{[^{}]+\}/);
-    if(m){
-      var r=JSON.parse(m[0]);
-      if(r.alert){
-        var icon=r.action==='BUY'?'BUY':r.action==='SELL'?'SELL':'ALERT';
-        showToast(icon+' '+r.asset+': '+r.message,r.urgency==='high'?'loss':'gain');
-        notifyUser(icon+' '+r.asset,r.message);
-        addMsg('ai','<strong>Scanner Alert:</strong> '+icon+' <strong>'+r.asset+'</strong> - '+r.message);
-      }
-    }
-  }).catch(function(){});
-}
-
-function startProactiveScanner(){
-  requestNotifPermission();
-  if(scanInterval)clearInterval(scanInterval);
-  scanInterval=setInterval(proactiveScan,5*60*1000);
-}
-function stopProactiveScanner(){if(scanInterval){clearInterval(scanInterval);scanInterval=null;}}
-
-function toggleScanner(){
-  var btn=document.getElementById('scanner-toggle-btn');
-  var st=document.getElementById('scanner-status');
-  if(scanInterval){
-    stopProactiveScanner();
-    if(btn){btn.textContent='START';btn.style.background='var(--bg3)';btn.style.color='var(--txt2)';}
-    if(st){st.textContent='Inactif';st.style.color='var(--txt3)';}
-    showToast('Scanner arrete','loss');
-  }else{
-    startProactiveScanner();
-    if(btn){btn.textContent='STOP';btn.style.background='var(--green)';btn.style.color='#000';}
-    if(st){st.textContent='Actif - scan toutes les 5 min';st.style.color='var(--green)';}
-    showToast('Scanner demarre!','gain');
-  }
-}
-
-
-// ══ TRAILING STOP ADVISOR ══
-var _tsAlerted = {};
-
-function getAdvisedStop(price, entry, origStop) {
-  var dist = Math.abs(entry - origStop);
-  if (dist <= 0 || dist > entry * 0.5) dist = entry * 0.07;
-  return parseFloat((price - dist).toFixed(2));
-}
-
-function runTrailAdvisor() {
-  var alerts = [];
-  var now = Date.now();
-  for (var i = 0; i < positions.length; i++) {
-    var p = positions[i];
-    if (!p.entry || !p.stop || !p.current) continue;
-    if (p.stop <= 0 || p.entry <= 0 || p.current <= 0) continue;
-    if (p.stop >= p.current) continue;
-    var pnlPct = (p.current - p.entry) / p.entry * 100;
-    if (pnlPct < 3) continue;
-    var advised = getAdvisedStop(p.current, p.entry, p.stop);
-    if (advised <= p.stop + 0.25) continue;
-    var key = p.asset + '_' + Math.round(advised);
-    if (_tsAlerted[key] && (now - _tsAlerted[key]) < 3600000) continue;
-    _tsAlerted[key] = now;
-    alerts.push({
-      asset: p.asset,
-      price: p.current,
-      oldStop: p.stop,
-      newStop: advised,
-      move: (advised - p.stop).toFixed(2),
-      pnlPct: pnlPct.toFixed(1),
-      gain: ((p.current - p.entry) / p.entry * p.size).toFixed(2)
-    });
-  }
-  if (alerts.length > 0) {
-    buildTrailAdviceUI(alerts);
-    showToast('Stop a ajuster: ' + alerts.map(function(a){return a.asset;}).join(', '), 'info');
-    if ('Notification' in window && Notification.permission === 'granted') {
-      alerts.forEach(function(a) {
-        new Notification('Ajuste stop ' + a.asset, { body: '$' + a.oldStop + ' vers $' + a.newStop });
-      });
-    }
-  }
-}
-
-function buildTrailAdviceUI(alerts) {
-  var box = document.getElementById('trail-advice-box');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = 'trail-advice-box';
-    var ref = document.getElementById('positions-list');
-    if (ref) ref.parentNode.insertBefore(box, ref.nextSibling);
-    else document.body.appendChild(box);
-  }
-  box.style.display = 'block';
-  box.style.cssText = 'border:2px solid var(--gold);border-radius:12px;background:rgba(201,168,76,.08);padding:14px;margin:10px 0';
-
-  // Clear
-  while (box.firstChild) box.removeChild(box.firstChild);
-
-  // Header
-  var hdr = document.createElement('div');
-  hdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px';
-  var title = document.createElement('div');
-  title.style.cssText = 'font-family:var(--mono);font-size:11px;font-weight:700;color:var(--gold)';
-  title.textContent = 'STOP A AJUSTER SUR IBKR';
-  var closeBtn = document.createElement('button');
-  closeBtn.textContent = 'x';
-  closeBtn.style.cssText = 'background:none;border:none;color:var(--txt3);cursor:pointer;font-size:16px;padding:0 4px';
-  closeBtn.onclick = function() { box.style.display = 'none'; };
-  hdr.appendChild(title);
-  hdr.appendChild(closeBtn);
-  box.appendChild(hdr);
-
-  alerts.forEach(function(a) {
-    var card = document.createElement('div');
-    card.style.cssText = 'background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:8px';
-
-    var assetLine = document.createElement('div');
-    assetLine.style.cssText = 'font-family:var(--mono);font-size:12px;font-weight:700;margin-bottom:8px';
-    assetLine.innerHTML = a.asset + ' <span style="color:var(--green)">$' + a.price + ' (+' + a.pnlPct + '%, +EUR' + a.gain + ')</span>';
-    card.appendChild(assetLine);
-
-    var grid = document.createElement('div');
-    grid.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
-    grid.innerHTML =
-      '<div style="flex:1;text-align:center;background:rgba(255,71,87,.1);border-radius:6px;padding:8px">' +
-        '<div style="font-family:var(--mono);font-size:8px;color:var(--txt3)">STOP ACTUEL</div>' +
-        '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--red)">$' + a.oldStop + '</div>' +
-      '</div>' +
-      '<div style="flex:1;text-align:center;background:rgba(0,229,160,.1);border-radius:6px;padding:8px">' +
-        '<div style="font-family:var(--mono);font-size:8px;color:var(--txt3)">CONSEILLE</div>' +
-        '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green)">$' + a.newStop + '</div>' +
-      '</div>';
-    card.appendChild(grid);
-
-    var instr = document.createElement('div');
-    instr.style.cssText = 'background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:7px;padding:10px;font-size:11px;line-height:1.9';
-    instr.innerHTML =
-      '<strong style="color:var(--green)">Sur IBKR Mobile :</strong><br>' +
-      '1. Portfolio <b>' + a.asset + '</b> appui long — Modify Order<br>' +
-      '2. Stop Loss : <span style="color:var(--red)">$' + a.oldStop + '</span> → <span style="color:var(--green)">$' + a.newStop + '</span><br>' +
-      '3. Confirme — deplace de <b>+$' + a.move + '</b>';
-    card.appendChild(instr);
-    box.appendChild(card);
-  });
-}
-
-function startTrailMonitor() {
-  requestNotifPermission();
-  setInterval(runTrailAdvisor, 5 * 60 * 1000);
+    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})
+  }).then(function(r){return r.json();}).then(function(d){
+    var t = d.content&&d.content[0]?d.content[0].text:'Erreur.';
+    box.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--gold);margin-bottom:8px">CONSEIL IA</div><div>'+t.split('\n').join('<br>')+'</div>';
+  }).catch(function(){box.innerHTML='Erreur.';});
 }
 
 </script>
