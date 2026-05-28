@@ -1149,7 +1149,18 @@ var lastScanTime = 0;
 
 function getWatchlist(){var s=localStorage.getItem('omnivest_watchlist');return s?JSON.parse(s):DEFAULT_WATCHLIST.slice();}
 function saveWatchlist(l){localStorage.setItem('omnivest_watchlist',JSON.stringify(l));}
-function renderWatchlistChips(){var el=document.getElementById('watchlist-chips');if(!el)return;var list=getWatchlist();el.innerHTML=list.map(function(s){return '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:6px;padding:3px 8px;font-family:var(--mono);font-size:10px;color:var(--purple)">'+s+'<button onclick="removeFromWatchlist(''+s+'')" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:12px">&times;</button></span>';}).join('');}
+function renderWatchlistChips(){
+  var el=document.getElementById('watchlist-chips');
+  if(!el) return;
+  var list=getWatchlist();
+  var html='';
+  for(var i=0;i<list.length;i++){
+    var sym=list[i];
+    html+='<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:6px;padding:3px 8px;font-family:var(--mono);font-size:10px;color:var(--purple)">'+sym+
+    '<button onclick="removeFromWatchlist(this.dataset.sym)" data-sym="'+sym+'" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:12px">&times;</button></span>';
+  }
+  el.innerHTML=html;
+}
 function addToWatchlist(){var inp=document.getElementById('wl-input');if(!inp)return;var syms=inp.value.toUpperCase().replace(/,/g,' ').trim().split(' ').filter(function(s){return s.length>0;});var list=getWatchlist();syms.forEach(function(s){if(!list.includes(s))list.push(s);});saveWatchlist(list);inp.value='';renderWatchlistChips();showToast('+'+syms.join(', ')+' ajouté','gain');}
 function removeFromWatchlist(sym){var list=getWatchlist().filter(function(s){return s!==sym;});saveWatchlist(list);renderWatchlistChips();showToast(sym+' retiré','loss');}
 function toggleFreeRoam(){freeRoamMode=!freeRoamMode;localStorage.setItem('omnivest_free_roam',JSON.stringify(freeRoamMode));updateFreeRoamUI();showToast(freeRoamMode?'🌍 Mode Libre ACTIF':'Mode Libre désactivé',freeRoamMode?'gain':'loss');}
@@ -1159,23 +1170,18 @@ function updateFreeRoamUI(){var btn=document.getElementById('free-roam-toggle');
 function toggleTrailingStop(i,enabled){if(!positions[i])return;positions[i].trailingStop=enabled;save();renderPositions();showToast(enabled?'🔒 Trailing stop: '+positions[i].asset:'Trailing stop désactivé',enabled?'gain':'loss');}
 function editStop(i){var p=positions[i];var val=prompt('Nouveau stop-loss pour '+p.asset,p.stop||'');if(val!==null&&!isNaN(parseFloat(val))){positions[i].stop=parseFloat(val);save();renderPositions();showToast('Stop: $'+val,'gain');}}
 function editTarget(i){var p=positions[i];var val=prompt('Nouveau target pour '+p.asset,p.target||'');if(val!==null&&!isNaN(parseFloat(val))){positions[i].target=parseFloat(val);save();renderPositions();showToast('Target: $'+val,'gain');}}
-async function adaptStops(i){var p=positions[i];var key=localStorage.getItem('anthropic_key')||'';if(!key){showToast('Clé Anthropic requise','loss');return;}showToast('🧠 Adaptation en cours...','gain');var livePx=liveprices[p.asset]?liveprices[p.asset].price:p.current;var pr='Position: '+p.asset+' entrée:$'+p.entry+' actuel:$'+livePx+' stop:$'+(p.stop||'?')+' target:$'+(p.target||'?')+'
-Propose stop-loss et target optimaux. JSON uniquement: {"stop":123,"target":145,"reason":"raison courte"}';try{var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:200,messages:[{role:'user',content:pr}]})});var data=await res.json();var text=data.content&&data.content[0]?data.content[0].text:'';var m=text.match(/\{[^{}]+\}/);if(m){var r=JSON.parse(m[0]);if(r.stop)positions[i].stop=r.stop;if(r.target)positions[i].target=r.target;save();renderPositions();showToast('Stop $'+r.stop+' / Target $'+r.target,'gain');if(r.reason)setTimeout(function(){showToast(r.reason,'gain');},1500);}}catch(e){showToast('Erreur','loss');}}
-
-// ══ NOTIFICATIONS ══
-function notifyUser(title,body){if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body:body});showToast(title+': '+body,title.includes('STOP')?'loss':'gain');}
-function requestNotifPermission(){if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();}
-
-// ══ PROACTIVE SCANNER ══
-async function proactiveScan(){var key=localStorage.getItem('anthropic_key')||'';if(!key)return;var now=Date.now();if(now-lastScanTime<15*60*1000)return;lastScanTime=now;var watchlist=getWatchlist();var livePrices=Object.entries(liveprices).map(function(e){return e[0]+':$'+e[1].price.toFixed(2);}).join(', ');var openPos=positions.map(function(p){return p.asset+'@$'+p.current;}).join(', ')||'none';var pr='LIVE: '+livePrices+'
-POSITIONS: '+openPos+'
-WATCHLIST: '+watchlist.join(',')+'
-Urgent opportunity or risk NOW? If yes: {"alert":true,"urgency":"high|medium","asset":"TICKER","action":"BUY|SELL|EXIT|WATCH","message":"one clear sentence"}
-If nothing urgent: {"alert":false}';try{var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:150,messages:[{role:'user',content:pr}]})});var data=await res.json();var text=data.content&&data.content[0]?data.content[0].text:'';var m=text.match(/\{[^{}]+\}/);if(m){var r=JSON.parse(m[0]);if(r.alert){var icon=r.action==='BUY'?'🟢':r.action==='SELL'?'🔴':'⚠️';showToast(icon+' '+r.asset+': '+r.message,r.urgency==='high'?'loss':'gain');notifyUser(icon+' '+r.asset,r.message);addMessage('ai','🔔 <strong>Alerte proactive:</strong> '+icon+' <strong>'+r.asset+'</strong> — '+r.message);}}}catch(e){}}
-function startProactiveScanner(){requestNotifPermission();if(scanInterval)clearInterval(scanInterval);scanInterval=setInterval(proactiveScan,5*60*1000);}
-function stopProactiveScanner(){if(scanInterval){clearInterval(scanInterval);scanInterval=null;}}
-function toggleScanner(){var btn=document.getElementById('scanner-toggle-btn');var st=document.getElementById('scanner-status');if(scanInterval){stopProactiveScanner();if(btn){btn.textContent='▶ DÉMARRER';btn.style.background='var(--bg3)';btn.style.color='var(--txt2)';btn.style.border='1px solid var(--border)';}if(st){st.textContent='Inactif';st.style.color='var(--txt3)';}showToast('Scanner arrêté','loss');}else{startProactiveScanner();if(btn){btn.textContent='⏸ ARRÊTER';btn.style.background='var(--green)';btn.style.color='#000';btn.style.border='none';}if(st){st.textContent='Actif — scan toutes les 5 min';st.style.color='var(--green)';}showToast('🔔 Scanner démarré!','gain');}}
-
-</script>
-</body>
-</html>
+async function adaptStops(i){
+  var p=positions[i];
+  var key=localStorage.getItem('anthropic_key')||'';
+  if(!key){showToast('Cle Anthropic requise','loss');return;}
+  showToast('IA adapte les niveaux...','gain');
+  var livePx=liveprices[p.asset]?liveprices[p.asset].price:p.current;
+  var prompt='Position: '+p.asset+' entry:$'+p.entry+' current:$'+livePx+' stop:$'+(p.stop||'?')+' target:$'+(p.target||'?')+'. Propose optimal stop-loss and target. JSON only: {"stop":123,"target":145,"reason":"short reason"}';
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:200,messages:[{role:'user',content:prompt}]})});
+    var data=await res.json();
+    var text=data.content&&data.content[0]?data.content[0].text:'';
+    var m=text.match(/\{[^{}]+\}/);
+    if(m){var r=JSON.parse(m[0]);if(r.stop)positions[i].stop=r.stop;if(r.target)positions[i].target=r.target;save();renderPositions();showToast('Stop $'+r.stop+' / Target $'+r.target,'gain');if(r.reason)setTimeout(function(){showToast(r.reason,'gain');},1500);}
+  }catch(e){showToast('Erreur','loss');}
+}
