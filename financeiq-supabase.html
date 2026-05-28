@@ -31,7 +31,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 .bmark{width:32px;height:32px;border:1.5px solid var(--gold);border-radius:8px;display:grid;place-items:center;font-size:16px;color:var(--gold);font-weight:800;flex-shrink:0}
 .bname{font-size:15px;font-weight:800;letter-spacing:-.5px}.bname em{color:var(--gold);font-style:normal}
 .bsub{font-size:9px;color:var(--txt3);font-family:var(--mono);letter-spacing:.8px}
-.tabs{display:flex;gap:0;flex:1;overflow-x:auto;justify-content:flex-start}.tabs::-webkit-scrollbar{display:none}
+.tabs{display:flex;gap:0;flex:1;overflow-x:auto;justify-content:center}.tabs::-webkit-scrollbar{display:none}
 .tab{font-family:var(--mono);font-size:9px;letter-spacing:.8px;padding:8px 10px;border:none;background:transparent;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
 .tab:hover{color:var(--txt2)}.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 .date-chip{font-family:var(--mono);font-size:9px;color:var(--txt3);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0}
@@ -164,138 +164,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 
 .dots::after{content:'.';animation:el 1.2s steps(3,end) infinite}
 @keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
-.sim-badge{display:inline-block;background:rgba(167,139,250,.15);color:var(--purple);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;margin-top:6px}
-@keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
 select.inp{cursor:pointer}
 </style>
-<script>
-// ══ SUPABASE CONFIG ══
-// Clés lues depuis localStorage à chaque appel (jamais dans le code)
-// Utilise fetch natif — pas de SDK Supabase requis
-
-// Unique user ID — stored locally, never changes
-function getUserId() {
-  let uid = localStorage.getItem('financeiq_uid');
-  if (!uid) {
-    uid = 'user_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    localStorage.setItem('financeiq_uid', uid);
-  }
-  return uid;
-}
-const USER_ID = getUserId();
-
-// ══ SUPABASE SYNC ══
-let syncStatus = 'idle'; // idle | syncing | ok | error
-let syncTimeout = null;
-
-function setSyncUI(status, msg) {
-  syncStatus = status;
-  const el = document.getElementById('sync-indicator');
-  if (!el) return;
-  const states = {
-    idle:    { txt: '☁️ Cloud', col: '#4a5260' },
-    syncing: { txt: '🔄 Sync...', col: '#ffa502' },
-    ok:      { txt: '✅ Sync', col: '#00e5a0' },
-    error:   { txt: '⚠️ Hors ligne', col: '#ff4757' }
-  };
-  const s = states[status] || states.idle;
-  el.textContent = s.txt;
-  el.style.color = s.col;
-  if (msg) console.log('[FinanceIQ Sync]', msg);
-}
-
-async function syncToCloud() {
-  const url = localStorage.getItem('financeiq_supa_url');
-  const key = localStorage.getItem('financeiq_supa_key');
-  if (!url || !key) { setSyncUI('idle'); return; }
-  setSyncUI('syncing');
-  try {
-    const payload = {
-      user_id: USER_ID,
-      revenues: JSON.parse(JSON.stringify(revenues)),
-      expenses: JSON.parse(JSON.stringify(expenses)),
-      ibkr: JSON.parse(JSON.stringify(ibkrBalance)),
-      debts: { huissier: debtHuissier, onem: debtOnem, invested: investedThisMonth, capital: realCapital, month: currentMonth, manual: manualPlanMonth },
-      settings: { anthropicKey: localStorage.getItem('anthropic_key') || '' },
-      updated_at: new Date().toISOString()
-    };
-    const res = await fetch(url + '/rest/v1/financeiq_state', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': key,
-        'Authorization': 'Bearer ' + key,
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
-    }
-    setSyncUI('ok', 'Saved to cloud');
-    localStorage.setItem('financeiq_last_sync', new Date().toISOString());
-  } catch(e) {
-    setSyncUI('error', e.message);
-    console.warn('[FinanceIQ Sync] syncToCloud error:', e.message);
-  }
-}
-
-async function syncFromCloud() {
-  const url = localStorage.getItem('financeiq_supa_url');
-  const key = localStorage.getItem('financeiq_supa_key');
-  if (!url || !key) { setSyncUI('idle'); return false; }
-  setSyncUI('syncing');
-  try {
-    const res = await fetch(
-      url + '/rest/v1/financeiq_state?user_id=eq.' + encodeURIComponent(USER_ID) + '&limit=1',
-      {
-        method: 'GET',
-        headers: {
-          'apikey': key,
-          'Authorization': 'Bearer ' + key,
-          'Accept': 'application/json'
-        }
-      }
-    );
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const rows = await res.json();
-    if (!rows || rows.length === 0) { setSyncUI('ok', 'Aucune donnée cloud'); return false; }
-    const data = rows[0];
-    // Check if cloud is newer than local
-    const cloudTime = new Date(data.updated_at).getTime();
-    const localTime = new Date(localStorage.getItem('financeiq_last_sync') || 0).getTime();
-    if (cloudTime <= localTime) { setSyncUI('ok', 'Données locales à jour'); return false; }
-    // Apply cloud data
-    if (data.revenues) revenues = data.revenues;
-    if (data.expenses) expenses = data.expenses;
-    if (data.ibkr) ibkrBalance = data.ibkr;
-    if (data.debts) {
-      debtHuissier      = data.debts.huissier  ?? debtHuissier;
-      debtOnem          = data.debts.onem       ?? debtOnem;
-      investedThisMonth = data.debts.invested   ?? investedThisMonth;
-      realCapital       = data.debts.capital    ?? realCapital;
-      currentMonth      = data.debts.month      ?? currentMonth;
-      manualPlanMonth   = data.debts.manual     ?? manualPlanMonth;
-    }
-    save();
-    setSyncUI('ok', 'Chargé depuis le cloud');
-    localStorage.setItem('financeiq_last_sync', data.updated_at);
-    return true;
-  } catch(e) {
-    setSyncUI('error', e.message);
-    console.warn('[FinanceIQ Sync] syncFromCloud error:', e.message);
-    return false;
-  }
-}
-
-// Debounced auto-save: waits 2s after last change before syncing
-function scheduleSave() {
-  save(); // always save locally first
-  if (syncTimeout) clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(syncToCloud, 2000);
-}
-</script>
 </head>
 <body>
 <div class="toast" id="toast"></div>
@@ -312,10 +182,10 @@ function scheduleSave() {
     <button class="tab" onclick="go('fiscal',this)">🇧🇪 FISCAL</button>
     <button class="tab" onclick="go('projection',this)">📈 PROJECTION</button>
     <button class="tab" onclick="go('advisor',this)">🧠 CONSEILLER</button>
-    <button class="tab" onclick="go('parametres',this)">⚙️ PARAMÈTRES</button>
+    <button class="tab" onclick="go('parametres',this)">⚙️ PARAMS</button>
   </div>
   <div class="date-chip" id="date-chip"></div>
-  <div id="sync-indicator" style="font-family:var(--mono);font-size:9px;color:#4a5260;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0;cursor:pointer" onclick="syncToCloud()" title="Cliquer pour forcer la synchronisation">☁️ Cloud</div>
+  <div id="sync-indicator" onclick="if(typeof syncToCloud==='function')syncToCloud()" style="font-family:var(--mono);font-size:9px;color:#4a5260;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0;cursor:pointer">☁️ Cloud</div>
 </div>
 
 <!-- ══ DASHBOARD ══ -->
@@ -620,94 +490,53 @@ function scheduleSave() {
 <!-- ══ PROJECTION ══ -->
 <div class="panel" id="p-projection">
   <div class="scroll">
-
-    <!-- KPI AVANCEMENT -->
     <div class="metrics" id="proj-metrics"></div>
-
-    <!-- ALERTE AVANCEMENT -->
     <div id="proj-alert" style="display:none;border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono)"></div>
-
-    <!-- GRAPHIQUE PRINCIPAL -->
     <div class="card gold-border">
-      <div class="card-title">📈 COURBE RÉELLE VS PLAN — 60 MOIS</div>
-      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;font-size:10px;font-family:var(--mono);color:var(--txt3)">
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:var(--gold);border-radius:2px;display:inline-block"></span>Plan prévu</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:var(--green);border-radius:2px;display:inline-block"></span>Capital réel</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:var(--blue);opacity:.6;border-radius:2px;display:inline-block"></span>Apports cumulés</span>
+      <div class="card-title">COURBE REELLE VS PLAN — 60 MOIS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:10px;font-family:var(--mono);color:var(--txt3)">
+        <span><span style="display:inline-block;width:14px;height:3px;background:var(--gold);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Plan prévu</span>
+        <span><span style="display:inline-block;width:14px;height:3px;background:var(--green);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Capital réel</span>
+        <span><span style="display:inline-block;width:14px;height:3px;background:var(--blue);opacity:.6;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Apports cumulés</span>
       </div>
-      <div style="position:relative;height:280px">
-        <canvas id="proj-chart"></canvas>
-      </div>
+      <div style="position:relative;height:260px"><canvas id="proj-chart"></canvas></div>
     </div>
-
-    <!-- MISE A JOUR + SIMULATEUR -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-
       <div class="card">
-        <div class="card-title">🔄 MISE À JOUR RÉELLE</div>
-        <div style="margin-bottom:8px">
-          <label class="inp-lbl">CAPITAL IBKR ACTUEL (€)</label>
-          <input class="inp" id="proj-capital" type="number" placeholder="20">
-        </div>
-        <div style="margin-bottom:8px">
-          <label class="inp-lbl">MOIS EN COURS (0-60)</label>
-          <input class="inp" id="proj-month" type="number" placeholder="0" min="0" max="60">
-        </div>
-        <button class="btn btn-gold" onclick="updateProjection()" style="width:100%">↻ RECALCULER</button>
+        <div class="card-title">MISE A JOUR REELLE</div>
+        <label class="inp-lbl">CAPITAL IBKR (€)</label>
+        <input class="inp" id="proj-capital" type="number" placeholder="20" style="margin-bottom:8px">
+        <label class="inp-lbl">MOIS EN COURS (0-60)</label>
+        <input class="inp" id="proj-month" type="number" placeholder="0" min="0" max="60" style="margin-bottom:8px">
+        <button class="btn btn-gold" onclick="updateProjection()" style="width:100%">RECALCULER</button>
       </div>
-
       <div class="card" style="border-color:rgba(167,139,250,.3)">
-        <div class="card-title">🔮 SIMULATEUR "ET SI ?"</div>
-        <div style="margin-bottom:8px">
-          <label class="inp-lbl">ET SI J'INVESTIS (€/MOIS)</label>
-          <input class="inp" id="sim-apport" type="number" placeholder="1000" value="1000" oninput="runSimulator()">
-        </div>
-        <div style="margin-bottom:8px">
-          <label class="inp-lbl">RENDEMENT MENSUEL (%)</label>
-          <input class="inp" id="sim-rate" type="number" placeholder="10" value="10" step="0.5" oninput="runSimulator()">
-        </div>
-        <div id="sim-result" style="font-family:var(--mono);font-size:10px;color:var(--purple);background:rgba(167,139,250,.08);border-radius:6px;padding:8px;line-height:1.6"></div>
+        <div class="card-title">SIMULATEUR ET SI ?</div>
+        <label class="inp-lbl">APPORT MENSUEL (€)</label>
+        <input class="inp" id="sim-apport" type="number" placeholder="1000" value="1000" oninput="runSimulator()" style="margin-bottom:8px">
+        <label class="inp-lbl">RENDEMENT (%/MOIS)</label>
+        <input class="inp" id="sim-rate" type="number" placeholder="10" value="10" step="0.5" oninput="runSimulator()" style="margin-bottom:8px">
+        <div id="sim-result" style="font-family:var(--mono);font-size:10px;color:var(--purple);background:rgba(167,139,250,.08);border-radius:6px;padding:8px;line-height:1.7">Modifie les valeurs pour simuler...</div>
       </div>
-
     </div>
-
-    <!-- SIMULATEUR ACHAT RAPIDE -->
     <div class="card" style="border-color:rgba(74,158,255,.3);margin-bottom:12px">
-      <div class="card-title">💭 ET SI JE RETIRE / DÉPENSE ?</div>
+      <div class="card-title">ET SI JE RETIRE / DEPENSE ?</div>
       <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
-        <div>
-          <label class="inp-lbl">MONTANT (€)</label>
-          <input class="inp" id="sim-retrait" type="number" placeholder="500">
-        </div>
-        <div>
-          <label class="inp-lbl">AU MOIS</label>
-          <input class="inp" id="sim-retrait-month" type="number" placeholder="6" min="0" max="60">
-        </div>
-        <button class="btn btn-blue" onclick="simRetrait()" style="white-space:nowrap">SIMULER</button>
+        <div><label class="inp-lbl">MONTANT (€)</label><input class="inp" id="sim-retrait" type="number" placeholder="5000"></div>
+        <div><label class="inp-lbl">AU MOIS</label><input class="inp" id="sim-retrait-month" type="number" placeholder="6" min="0" max="60"></div>
+        <button class="btn btn-blue" onclick="simRetrait()">SIMULER</button>
       </div>
       <div id="sim-retrait-result" style="font-family:var(--mono);font-size:10px;margin-top:10px;color:var(--txt2);display:none;line-height:1.7"></div>
     </div>
-
-    <!-- TABLEAU DÉTAILLÉ -->
     <div class="card">
-      <div class="card-title">📋 TABLEAU DÉTAILLÉ — 60 MOIS</div>
+      <div class="card-title">TABLEAU PROJECTION — 60 MOIS</div>
       <div style="overflow-x:auto">
-        <table class="proj-table" id="proj-table">
-          <thead>
-            <tr>
-              <th>MOIS</th>
-              <th>PRÉVU</th>
-              <th>RÉEL</th>
-              <th>ÉCART</th>
-              <th>STATUT</th>
-              <th>ÉVÉNEMENT</th>
-            </tr>
-          </thead>
+        <table class="proj-table">
+          <thead><tr><th>MOIS</th><th>PREVU</th><th>REEL</th><th>ECART</th><th>STATUT</th><th>EVENEMENT</th></tr></thead>
           <tbody id="proj-tbody"></tbody>
         </table>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -742,68 +571,38 @@ function scheduleSave() {
 </div>
 
 
-<!-- PARAMÈTRES -->
+<!-- PARAMETRES -->
 <div class="panel" id="p-parametres">
   <div class="scroll">
-
     <div class="card" style="margin-bottom:12px;border-color:rgba(74,158,255,.3)">
-      <div class="card-title">☁️ SYNCHRONISATION SUPABASE</div>
-      <p style="font-size:12px;color:var(--txt2);margin-bottom:14px;line-height:1.7">
-        Entrez vos clés Supabase pour synchroniser automatiquement entre <strong>PC et téléphone</strong>.<br>
-        Les clés sont stockées <strong>uniquement sur cet appareil</strong> — jamais dans le code.
-      </p>
-      <div style="margin-bottom:10px">
-        <label style="font-family:var(--mono);font-size:9px;color:var(--txt3);display:block;margin-bottom:4px;letter-spacing:1px">PROJECT URL</label>
-        <input id="supa-url-input" type="text" placeholder="https://xxxxx.supabase.co"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--txt);font-family:var(--mono);font-size:11px;outline:none;transition:border-color .2s"
-          onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
-      </div>
-      <div style="margin-bottom:12px">
-        <label style="font-family:var(--mono);font-size:9px;color:var(--txt3);display:block;margin-bottom:4px;letter-spacing:1px">ANON PUBLIC KEY</label>
-        <input id="supa-key-input" type="password" placeholder="eyJhbGci..."
-          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--txt);font-family:var(--mono);font-size:11px;outline:none;transition:border-color .2s"
-          onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
-      </div>
+      <div class="card-title">SYNCHRONISATION SUPABASE</div>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.7">Clés stockées uniquement sur cet appareil — jamais dans le code.</p>
+      <label class="inp-lbl">PROJECT URL</label>
+      <input id="supa-url-input" type="text" placeholder="https://xxxxx.supabase.co" class="inp" style="margin-bottom:8px">
+      <label class="inp-lbl">ANON PUBLIC KEY</label>
+      <input id="supa-key-input" type="password" placeholder="eyJhbGci..." class="inp" style="margin-bottom:12px">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button onclick="saveSupaKeys()" style="flex:1;min-width:120px;background:var(--green);color:#000;border:none;border-radius:7px;padding:10px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px">💾 SAUVEGARDER</button>
-        <button onclick="testSupaConnection()" style="background:var(--bdim);color:var(--blue);border:1px solid rgba(74,158,255,.3);border-radius:7px;padding:10px 14px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">🔗 TESTER</button>
-        <button onclick="clearSupaKeys()" style="background:var(--rdim);color:var(--red);border:1px solid rgba(255,71,87,.3);border-radius:7px;padding:10px 14px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">✕ EFFACER</button>
+        <button onclick="saveSupaKeys()" class="btn btn-green" style="flex:1">SAUVEGARDER</button>
+        <button onclick="testSupaConnection()" class="btn btn-blue">TESTER</button>
+        <button onclick="clearSupaKeys()" class="btn btn-red">EFFACER</button>
       </div>
-      <div id="supa-status" style="font-family:var(--mono);font-size:10px;margin-top:10px;color:var(--txt3);line-height:1.5"></div>
-      <div style="margin-top:12px;background:var(--bg3);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--txt3);line-height:1.7">
-        <strong style="color:var(--blue)">Comment trouver vos clés :</strong><br>
-        1. Va sur <strong>supabase.com</strong> → ton projet FinanceIQ<br>
-        2. <strong>Settings → API</strong><br>
-        3. Copie <strong>Project URL</strong> et <strong>anon public key</strong>
-      </div>
+      <div id="supa-status" style="font-family:var(--mono);font-size:10px;margin-top:8px;color:var(--txt3)"></div>
     </div>
-
     <div class="card" style="margin-bottom:12px;border-color:rgba(201,168,76,.3)">
-      <div class="card-title">🤖 CLÉ API ANTHROPIC — CONSEILLER IA</div>
-      <p style="font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.65">
-        Crée un compte gratuit sur <strong>console.anthropic.com</strong> → API Keys → Create Key<br>
-        Copie ta clé <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:10px">sk-ant-...</code>
-      </p>
+      <div class="card-title">CLE ANTHROPIC — CONSEILLER IA</div>
       <div style="display:flex;gap:8px">
-        <input id="anthropic-key-input" type="password" placeholder="sk-ant-api03-..."
-          style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--txt);font-family:var(--mono);font-size:11px;outline:none">
-        <button onclick="saveAnthropicKey()" style="background:var(--gold);color:#000;border:none;border-radius:7px;padding:9px 16px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">SAUVER</button>
+        <input id="anthropic-key-input" type="password" placeholder="sk-ant-..." class="inp" style="flex:1">
+        <button onclick="saveAnthropicKey()" class="btn btn-gold">SAUVER</button>
       </div>
-      <div id="anthropic-status" style="font-family:var(--mono);font-size:10px;margin-top:8px;color:var(--txt3)"></div>
+      <div id="anthropic-status" style="font-family:var(--mono);font-size:10px;margin-top:6px;color:var(--txt3)"></div>
     </div>
-
-    <div class="card" style="border-color:rgba(255,71,87,.2)">
-      <div class="card-title">💾 DONNÉES LOCALES</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button onclick="exportData()" style="background:var(--bdim);color:var(--blue);border:1px solid rgba(74,158,255,.3);border-radius:7px;padding:9px 14px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">📥 EXPORTER</button>
-        <button onclick="clearLocalData()" style="background:var(--rdim);color:var(--red);border:1px solid rgba(255,71,87,.3);border-radius:7px;padding:9px 14px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">🗑️ EFFACER TOUT</button>
+    <div class="card">
+      <div class="card-title">DONNEES LOCALES</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="exportData()" class="btn btn-blue">EXPORTER</button>
+        <button onclick="clearLocalData()" class="btn btn-red">EFFACER TOUT</button>
       </div>
-      <p style="font-size:11px;color:var(--txt3);margin-top:10px;line-height:1.6">
-        Données stockées localement + Supabase si configuré.<br>
-        Aucune donnée personnelle envoyée sans votre accord.
-      </p>
     </div>
-
   </div>
 </div>
 
@@ -978,7 +777,7 @@ function saveRevenues() {
   revenues.location = parseFloat(document.getElementById('rev-location').value) || 365;
   revenues.autres = parseFloat(document.getElementById('rev-autres').value) || 0;
   revenues.excep = parseFloat(document.getElementById('rev-excep').value) || 0;
-  scheduleSave();
+  save();
   document.getElementById('rev-saved-msg').textContent = '✓ Revenus sauvegardés — ' + new Date().toLocaleDateString('fr-BE');
   document.getElementById('rev-saved-msg').style.color = 'var(--green)';
   toast('Revenus sauvegardés: €' + getTotalRevenues().toLocaleString('fr-BE'));
@@ -1014,7 +813,7 @@ function addExpense() {
   expenses.push({ name, amt, cat, date: new Date().toISOString() });
   document.getElementById('exp-name').value = '';
   document.getElementById('exp-amt').value = '';
-  scheduleSave(); renderExpenses(); renderBilan(); renderDashboard();
+  save(); renderExpenses(); renderBilan(); renderDashboard();
   toast('Dépense ajoutée: ' + name + ' €' + amt);
 }
 
@@ -1063,16 +862,14 @@ function updateIBKR() {
     ibkrBalance.pnl = v - ibkrBalance.total;
     ibkrBalance.total = v;
     realCapital = v;
-    scheduleSave(); renderDashboard(); toast('Solde IBKR mis à jour: €' + v);
+    save(); renderDashboard(); toast('Solde IBKR mis à jour: €' + v);
   }
   document.getElementById('ibkr-input').value = '';
 }
 
 // ══ PROJECTION ══
-let projChart = null;
-
 function calcProjection(apportOverride, rateOverride) {
-  const rate = (rateOverride !== undefined ? rateOverride : 10) / 100;
+  var rate = rateOverride !== undefined ? rateOverride / 100 : 0.10;
   const data = [];
   let cap = 1000;
   let totalC = 1000;
@@ -1082,14 +879,13 @@ function calcProjection(apportOverride, rateOverride) {
   for (let m = 0; m <= 60; m++) {
     if (m > 0) {
       cap *= (1 + rate);
-      const baseApport = apportOverride !== undefined ? apportOverride : (m === 13 ? 3200 : m > 9 ? 1150 : 1000);
-      const apport = apportOverride !== undefined && m === 13 ? apportOverride + 2200 : baseApport;
+      var apport = apportOverride !== undefined ? (m === 13 ? apportOverride + 2200 : apportOverride) : (m === 13 ? 3200 : m > 9 ? 1150 : 1000);
       cap += apport;
       totalC += apport;
       if (dH > 0) dH = Math.max(0, dH - 150);
       if (cap >= 100000 && !huissierPaid && dH > 0) { cap -= dH; dH = 0; huissierPaid = true; }
     }
-    data.push({ m, prevu: Math.round(cap), dette: Math.round(dH), contrib: Math.round(totalC) });
+    data.push({ m: m, prevu: Math.round(cap), dette: Math.round(dH), contrib: Math.round(totalC) });
   }
   return data;
 }
@@ -1112,6 +908,49 @@ function renderProjection() {
   document.getElementById('proj-metrics').innerHTML = pm.map(m =>
     '<div class="metric ' + m.cls + '"><div class="m-lbl">' + m.lbl + '</div><div class="m-val" style="font-size:15px">' + m.val + '</div><div class="m-sub">' + m.sub + '</div></div>'
   ).join('');
+
+  // Alert banner
+  var alertEl = document.getElementById('proj-alert');
+  if (alertEl) {
+    alertEl.style.display = 'block';
+    if (ecart >= 0) {
+      alertEl.style.cssText = 'display:block;border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--green)';
+      alertEl.textContent = 'En avance de €'+Math.abs(ecart).toLocaleString('fr-BE')+' sur le plan au M'+cm+'/60. Continue !';
+    } else {
+      alertEl.style.cssText = 'display:block;border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono);background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.3);color:var(--red)';
+      alertEl.textContent = 'En retard de €'+Math.abs(ecart).toLocaleString('fr-BE')+' sur le plan. Augmente les apports ou le rendement.';
+    }
+  }
+
+  // Chart
+  var ctx = document.getElementById('proj-chart');
+  if (ctx && typeof Chart !== 'undefined') {
+    if (window._projChart) { window._projChart.destroy(); window._projChart = null; }
+    var labels = projData.map(function(d) { return d.m === 0 ? 'Start' : 'M'+d.m; });
+    window._projChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Plan', data: projData.map(function(d){return d.prevu;}), borderColor: '#c9a84c', backgroundColor: 'rgba(201,168,76,0.05)', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4, borderDash: [4,3] },
+          { label: 'Reel', data: projData.map(function(d,i){return i <= cm ? (i===cm?real:null) : null;}), borderColor: ecart >= 0 ? '#00e5a0' : '#ff4757', backgroundColor: 'transparent', borderWidth: 3, pointRadius: projData.map(function(d,i){return i===cm?8:0;}), fill: false, tension: 0.4, spanGaps: false },
+          { label: 'Apports', data: projData.map(function(d){return d.contrib;}), borderColor: 'rgba(74,158,255,0.4)', backgroundColor: 'transparent', borderWidth: 1, pointRadius: 0, fill: false, tension: 0.3, borderDash: [2,4] }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#13161c', borderColor: 'rgba(255,255,255,.1)', borderWidth: 1, callbacks: { label: function(ctx) { var v=ctx.parsed.y; if(v===null)return null; return ctx.dataset.label+': €'+Math.round(v).toLocaleString('fr-BE'); } } } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#4a5260', maxTicksLimit: 13, autoSkip: true, font: { size: 9 } } },
+          y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#4a5260', font: { size: 9 }, callback: function(v) { return v>=1000000 ? '€'+(v/1000000).toFixed(1)+'M' : v>=1000 ? '€'+Math.round(v/1000)+'K' : '€'+v; } } }
+        }
+      }
+    });
+  }
+
+  // Simulator
+  if (typeof runSimulator === 'function') runSimulator();
 
   // Table
   const milestones = { 0:'🚀 Départ mai 2026', 9:'✓ ONEM soldé', 13:'🎉 13ème mois', 22:'🏆 €100K + huissier soldé', 36:'Phase 3', 60:'🎯 Fin' };
@@ -1142,7 +981,7 @@ function updateProjection() {
     // Si tu modifies le mois à la main, l'app respecte ton choix.
     manualPlanMonth = true;
   }
-  scheduleSave(); renderProjection(); renderDashboard();
+  save(); renderProjection(); renderDashboard();
   toast('Projection mise à jour — Mois ' + currentMonth + ', Capital €' + realCapital);
 }
 
@@ -1226,137 +1065,67 @@ function saveKeyQuick() {
   if (k) { localStorage.setItem('anthropic_key', k); toast('Clé sauvegardée !'); }
 }
 
-function saveAnthropicKey() {
-  const k = document.getElementById('anthropic-key-input')?.value?.trim();
-  if (!k || !k.startsWith('sk-ant')) { toast('Clé Anthropic invalide'); return; }
-  localStorage.setItem('anthropic_key', k);
-  const inp = document.getElementById('anthropic-key-input');
-  const st = document.getElementById('anthropic-status');
-  if (inp) { inp.value = ''; inp.placeholder = '✓ •••••••••••••••••••• (configurée)'; inp.style.color = 'var(--green)'; }
-  if (st) { st.textContent = '✓ Clé Anthropic sauvegardée — Conseiller IA actif'; st.style.color = 'var(--green)'; }
-  toast('✅ Clé Anthropic sauvegardée !');
+// ══ SUPABASE SYNC ══
+function getUserId(){var uid=localStorage.getItem('financeiq_uid');if(!uid){uid='user_'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('financeiq_uid',uid);}return uid;}
+var USER_ID=getUserId();
+var syncTimeout=null;
+function setSyncUI(status){var el=document.getElementById('sync-indicator');if(!el)return;var s={idle:{txt:'☁️ Cloud',col:'#4a5260'},syncing:{txt:'🔄 Sync...',col:'#ffa502'},ok:{txt:'✅ Sync',col:'#00e5a0'},error:{txt:'⚠️ Hors ligne',col:'#ff4757'}}[status]||{txt:'☁️',col:'#4a5260'};el.textContent=s.txt;el.style.color=s.col;}
+async function syncToCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return;}setSyncUI('syncing');try{var payload={user_id:USER_ID,revenues:JSON.parse(JSON.stringify(revenues)),expenses:JSON.parse(JSON.stringify(expenses)),ibkr:JSON.parse(JSON.stringify(ibkrBalance)),debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},updated_at:new Date().toISOString()};var res=await fetch(url+'/rest/v1/financeiq_state',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');localStorage.setItem('financeiq_last_sync',new Date().toISOString());}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);}}
+async function syncFromCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return false;}setSyncUI('syncing');try{var res=await fetch(url+'/rest/v1/financeiq_state?user_id=eq.'+encodeURIComponent(USER_ID)+'&limit=1',{method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);var rows=await res.json();if(!rows||rows.length===0){setSyncUI('ok');return false;}var data=rows[0];var cloudTime=new Date(data.updated_at).getTime();var localTime=new Date(localStorage.getItem('financeiq_last_sync')||0).getTime();if(cloudTime<=localTime){setSyncUI('ok');return false;}if(data.revenues)revenues=data.revenues;if(data.expenses)expenses=data.expenses;if(data.ibkr)ibkrBalance=data.ibkr;if(data.debts){debtHuissier=data.debts.huissier??debtHuissier;debtOnem=data.debts.onem??debtOnem;investedThisMonth=data.debts.invested??investedThisMonth;realCapital=data.debts.capital??realCapital;currentMonth=data.debts.month??currentMonth;manualPlanMonth=data.debts.manual??manualPlanMonth;}save();setSyncUI('ok');localStorage.setItem('financeiq_last_sync',data.updated_at);return true;}catch(e){setSyncUI('error');return false;}}
+function scheduleSave(){save();if(syncTimeout)clearTimeout(syncTimeout);syncTimeout=setTimeout(syncToCloud,2000);}
+
+// ══ SIMULATEUR ══
+function runSimulator(){
+  var apportEl=document.getElementById('sim-apport');
+  var rateEl=document.getElementById('sim-rate');
+  var apport=apportEl?(parseFloat(apportEl.value)||1000):1000;
+  var rate=rateEl?(parseFloat(rateEl.value)||10):10;
+  var simData=calcProjection(apport,rate);
+  var baseData=calcProjection();
+  var m100k=-1,m1m=-1;
+  for(var i=0;i<=60;i++){if(m100k<0&&simData[i].prevu>=100000)m100k=i;if(m1m<0&&simData[i].prevu>=1000000)m1m=i;}
+  var finalCap=simData[60].prevu;
+  var diff=finalCap-baseData[60].prevu;
+  var col=diff>=0?'var(--green)':'var(--red)';
+  var el=document.getElementById('sim-result');
+  if(!el)return;
+  el.innerHTML='€100K → '+(m100k>0?'M'+m100k:'&gt;60')+'<br>'+'€1M → '+(m1m>0?'M'+m1m:'&gt;60')+'<br>'+'Capital M60 : €'+finalCap.toLocaleString('fr-BE')+'<br>'+'<span style="color:'+col+'">'+(diff>=0?'+':'')+'€'+diff.toLocaleString('fr-BE')+' vs plan base</span>';
 }
 
-function exportData() {
-  const data = JSON.stringify({
-    expenses, ibkrBalance, investedThisMonth, debtHuissier, debtOnem,
-    currentMonth, manualPlanMonth, realCapital, revenues,
-    exportedAt: new Date().toISOString()
-  }, null, 2);
-  const a = document.createElement('a');
-  a.href = 'data:application/json,' + encodeURIComponent(data);
-  a.download = 'financeiq-backup-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  toast('✅ Données exportées');
+function simRetrait(){
+  var el=document.getElementById('sim-retrait-result');
+  var montantEl=document.getElementById('sim-retrait');
+  var moisEl=document.getElementById('sim-retrait-month');
+  var montant=montantEl?parseFloat(montantEl.value):0;
+  if(!montant||isNaN(montant)){if(el)el.style.display='none';return;}
+  var m=(moisEl&&!isNaN(parseInt(moisEl.value)))?parseInt(moisEl.value):currentMonth;
+  var projBase=calcProjection();
+  var capAvant=(m<=60&&projBase[m])?projBase[m].prevu:0;
+  var capApres=Math.max(0,capAvant-montant);
+  var cap=capApres;
+  for(var i=m+1;i<=60;i++){cap=cap*1.10;cap+=(i===13?3200:i>9?1150:1000);}
+  var perteFinale=Math.max(0,projBase[60].prevu-Math.round(cap));
+  if(el){el.style.display='block';el.innerHTML='Retrait €'+montant.toLocaleString('fr-BE')+' au M'+m+'<br>'+'Capital après : €'+capApres.toLocaleString('fr-BE')+'<br>'+'Capital M60 estimé : €'+Math.round(cap).toLocaleString('fr-BE')+'<br>'+'<span style="color:var(--red)">Perte composée : -€'+perteFinale.toLocaleString('fr-BE')+'</span>';}
 }
 
-function clearLocalData() {
-  if (!confirm('Effacer toutes les données locales ? Cette action est irréversible.')) return;
-  localStorage.removeItem(SK);
-  toast('Données locales effacées');
-  location.reload();
-}
-
-// ══ SUPABASE KEY MANAGEMENT ══
-function saveSupaKeys() {
-  const url = document.getElementById('supa-url-input')?.value?.trim();
-  const key = document.getElementById('supa-key-input')?.value?.trim();
-  if (!url || !key) { toast('Remplis les deux champs Supabase'); return; }
-  if (!url.includes('supabase.co')) { toast('URL Supabase invalide'); return; }
-  if (!key.startsWith('eyJ')) { toast('Clé Supabase invalide'); return; }
-  localStorage.setItem('financeiq_supa_url', url);
-  localStorage.setItem('financeiq_supa_key', key);
-  // Masquer immédiatement les clés à l'écran
-  const ui = document.getElementById('supa-url-input');
-  const ki = document.getElementById('supa-key-input');
-  if (ui) { ui.value = ''; ui.placeholder = '✓ ' + url.replace('https://','').slice(0,20) + '... (sauvegardé)'; ui.style.color = 'var(--green)'; }
-  if (ki) { ki.value = ''; ki.placeholder = '✓ ••••••••••••••••••••• (sauvegardé)'; ki.style.color = 'var(--green)'; }
-  const st = document.getElementById('supa-status');
-  if (st) { st.textContent = '✓ Clés sauvegardées et masquées — sync activée'; st.style.color = 'var(--green)'; }
-  toast('✅ Clés Supabase sauvegardées !');
-  syncToCloud();
-}
-
-function clearSupaKeys() {
-  localStorage.removeItem('financeiq_supa_url');
-  localStorage.removeItem('financeiq_supa_key');
-  localStorage.removeItem('financeiq_last_sync');
-  const ui = document.getElementById('supa-url-input');
-  const ki = document.getElementById('supa-key-input');
-  if (ui) { ui.value = ''; ui.placeholder = 'https://xxxxx.supabase.co'; ui.style.color = ''; }
-  if (ki) { ki.value = ''; ki.placeholder = 'eyJhbGci...'; ki.style.color = ''; }
-  const st = document.getElementById('supa-status');
-  if (st) { st.textContent = 'Clés supprimées — sync désactivée'; st.style.color = 'var(--txt3)'; }
-  setSyncUI('idle');
-  toast('Clés Supabase supprimées');
-}
-
-async function testSupaConnection() {
-  const url = localStorage.getItem('financeiq_supa_url');
-  const key = localStorage.getItem('financeiq_supa_key');
-  if (!url || !key) { toast('Entre tes clés Supabase dabord'); return; }
-  setSyncUI('syncing');
-  const st = document.getElementById('supa-status');
-  try {
-    const res = await fetch(url + '/rest/v1/financeiq_state?limit=1', {
-      method: 'GET',
-      headers: {
-        'apikey': key,
-        'Authorization': 'Bearer ' + key,
-        'Accept': 'application/json'
-      }
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' — vérifie tes clés');
-    setSyncUI('ok');
-    if (st) { st.textContent = '✅ Connexion Supabase réussie !'; st.style.color = 'var(--green)'; }
-    toast('✅ Connexion Supabase OK !');
-  } catch(e) {
-    setSyncUI('error', e.message);
-    if (st) { st.textContent = '⚠️ Erreur: ' + e.message; st.style.color = 'var(--red)'; }
-    toast('⚠️ Erreur connexion: ' + e.message);
-  }
-}
-
-function restoreSupaUI() {
-  const url = localStorage.getItem('financeiq_supa_url');
-  const key = localStorage.getItem('financeiq_supa_key');
-  const st = document.getElementById('supa-status');
-  const ui = document.getElementById('supa-url-input');
-  const ki = document.getElementById('supa-key-input');
-  if (url && key) {
-    // Ne jamais afficher les vraies valeurs — seulement placeholder masqué
-    if (ui) { ui.value = ''; ui.placeholder = '✓ ' + url.replace('https://','').slice(0,22) + '... (configuré)'; ui.style.color = 'var(--green)'; }
-    if (ki) { ki.value = ''; ki.placeholder = '✓ ••••••••••••••••••••• (configuré)'; ki.style.color = 'var(--green)'; }
-    if (st) { st.textContent = '✓ Sync active — clés configurées sur cet appareil'; st.style.color = 'var(--green)'; }
-  } else {
-    if (ui) { ui.placeholder = 'https://xxxxx.supabase.co'; ui.style.color = ''; }
-    if (ki) { ki.placeholder = 'eyJhbGci...'; ki.style.color = ''; }
-    if (st) { st.textContent = 'Non configuré — entrez vos clés pour activer la sync'; st.style.color = 'var(--txt3)'; }
-  }
-  // Restore Anthropic key status
-  const ak = localStorage.getItem('anthropic_key');
-  const akInp = document.getElementById('anthropic-key-input');
-  const akSt = document.getElementById('anthropic-status');
-  if (ak && akInp) { akInp.placeholder = '✓ •••••••••••••••••••• (configurée)'; akInp.style.color = 'var(--green)'; }
-  if (ak && akSt) { akSt.textContent = '✓ Clé Anthropic active — Conseiller IA prêt'; akSt.style.color = 'var(--green)'; }
-}
+// ══ PARAMS ══
+function saveSupaKeys(){var url=document.getElementById('supa-url-input')?document.getElementById('supa-url-input').value.trim():'';var key=document.getElementById('supa-key-input')?document.getElementById('supa-key-input').value.trim():'';if(!url||!key){toast('Remplis les deux champs','err');return;}localStorage.setItem('financeiq_supa_url',url);localStorage.setItem('financeiq_supa_key',key);var ui=document.getElementById('supa-url-input');var ki=document.getElementById('supa-key-input');if(ui){ui.value='';ui.placeholder='Configuré ✓';}if(ki){ki.value='';ki.placeholder='•••••••••••• ✓';}var st=document.getElementById('supa-status');if(st){st.textContent='✓ Clés sauvegardées — sync activée';st.style.color='var(--green)';}toast('✅ Clés Supabase sauvegardées !');syncToCloud();}
+function clearSupaKeys(){localStorage.removeItem('financeiq_supa_url');localStorage.removeItem('financeiq_supa_key');localStorage.removeItem('financeiq_last_sync');setSyncUI('idle');var st=document.getElementById('supa-status');if(st){st.textContent='Clés supprimées';st.style.color='var(--txt3)';}toast('Clés supprimées');}
+async function testSupaConnection(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){toast('Entre tes clés dabord','err');return;}setSyncUI('syncing');var st=document.getElementById('supa-status');try{var res=await fetch(url+'/rest/v1/financeiq_state?limit=1',{method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);setSyncUI('ok');if(st){st.textContent='✅ Connexion réussie !';st.style.color='var(--green)';}toast('✅ Connexion OK !');}catch(e){setSyncUI('error');if(st){st.textContent='⚠️ '+e.message;st.style.color='var(--red)';}toast('⚠️ '+e.message,'err');}}
+function saveAnthropicKey(){var k=document.getElementById('anthropic-key-input')?document.getElementById('anthropic-key-input').value.trim():'';if(!k||!k.startsWith('sk-ant')){toast('Clé invalide','err');return;}localStorage.setItem('anthropic_key',k);var inp=document.getElementById('anthropic-key-input');var st=document.getElementById('anthropic-status');if(inp){inp.value='';inp.placeholder='•••••••••••• (configurée)';}if(st){st.textContent='✓ Clé active';st.style.color='var(--green)';}toast('✅ Clé Anthropic sauvegardée !');}
+function exportData(){var data=JSON.stringify({expenses:expenses,ibkrBalance:ibkrBalance,investedThisMonth:investedThisMonth,debtHuissier:debtHuissier,debtOnem:debtOnem,currentMonth:currentMonth,manualPlanMonth:manualPlanMonth,realCapital:realCapital,revenues:revenues,exportedAt:new Date().toISOString()},null,2);var a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(data);a.download='financeiq-'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('✅ Exporté');}
+function clearLocalData(){if(!confirm('Effacer toutes les données ?'))return;localStorage.removeItem(SK);location.reload();}
+function restoreSupaUI(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');var ui=document.getElementById('supa-url-input');var ki=document.getElementById('supa-key-input');var st=document.getElementById('supa-status');if(url&&key){if(ui)ui.placeholder='Configuré ✓';if(ki)ki.placeholder='•••••••••••• ✓';if(st){st.textContent='✓ Sync active';st.style.color='var(--green)';}}var ak=localStorage.getItem('anthropic_key');var akI=document.getElementById('anthropic-key-input');var akS=document.getElementById('anthropic-status');if(ak&&akI)akI.placeholder='•••••••••••• (configurée)';if(ak&&akS){akS.textContent='✓ Clé active';akS.style.color='var(--green)';}}
 
 // ══ INIT ══
-async function initApp() {
+async function initApp(){
   restoreRevenues();
   restoreSupaUI();
   renderExpenses();
   renderBilan();
   renderDashboard();
-  // Try to load from cloud — if newer data found, re-render
-  const updated = await syncFromCloud();
-  if (updated) {
-    restoreRevenues();
-    renderExpenses();
-    renderBilan();
-    renderDashboard();
-    toast('✅ Données synchronisées depuis le cloud !');
-  }
+  var updated = await syncFromCloud();
+  if(updated){restoreRevenues();renderExpenses();renderBilan();renderDashboard();toast('✅ Données synchronisées !');}
 }
 initApp();
 </script>
