@@ -369,7 +369,10 @@ body{color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-d
 <!-- PORTFOLIO -->
 <div class="panel" id="p-portfolio">
   <div class="scroll">
-    <div class="stitle">Mon <span>Portfolio</span></div>
+    <div class="stitle" style="display:flex;justify-content:space-between;align-items:center">
+  <span>Mon <span style="color:var(--gold)">Portfolio</span></span>
+  <button onclick="checkAllTrailingStops();showToast('Vérification stops...','info')" style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--gold);background:var(--gdim);color:var(--gold);font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">🔔 VÉRIFIER STOPS</button>
+</div>
 
     <!-- IBKR Live Balance -->
     <div class="ibkr-balance">
@@ -939,11 +942,13 @@ function updatePositionPrice(i) {
   if (liveP) {
     positions[i].current = liveP.price;
     renderPositions(); save();
-    showToast('Prix mis à jour: ' + positions[i].asset + ' $' + liveP.price.toFixed(2), 'info');
+    showToast('Prix mis a jour: ' + positions[i].asset + ' $' + liveP.price.toFixed(2), 'info');
   } else {
     const newPrice = parseFloat(prompt('Prix actuel pour ' + positions[i].asset + ':'));
     if (!isNaN(newPrice)) { positions[i].current = newPrice; renderPositions(); save(); }
   }
+  // Check if trailing stop needs adjustment
+  setTimeout(checkAllTrailingStops, 500);
 }
 
 function renderPositions() {
@@ -1136,6 +1141,8 @@ if ('serviceWorker' in navigator) {
 // ══ INIT ══
 renderPositions();
 renderIBKRBalance();
+startTrailMonitor();
+requestNotifPermission();
 if (finnhubKey) { fetchAllPrices(); startLiveFeed(); }
 else { document.getElementById('live-lbl').textContent = 'NO KEY'; document.getElementById('live-pulse').style.background='var(--amber)'; }
 
@@ -1291,6 +1298,173 @@ function toggleScanner(){
     if(st){st.textContent='Actif - scan toutes les 5 min';st.style.color='var(--green)';}
     showToast('Scanner demarre!','gain');
   }
+}
+
+
+// ══ SMART TRAILING STOP ENGINE ══
+// Monitors all positions and generates IBKR instructions when stop should move
+
+var trailAlerts = {}; // stores last alert per position to avoid spam
+
+function calcSmartStop(p, method) {
+  // method: 'atr' | 'pct' | 'turtle'
+  var price = p.current;
+  var entry = p.entry;
+  var origStop = p.stop || (entry * 0.93);
+  var origDist = entry - origStop;
+  
+  if (method === 'pct') {
+    // Fixed % below current price (same % as original risk)
+    var pct = origDist / entry;
+    return parseFloat((price * (1 - pct)).toFixed(2));
+  }
+  
+  if (method === 'turtle') {
+    // Turtle S1: stop at 10-day low equivalent
+    // Approximate: trail at 2x original distance below current price
+    return parseFloat((price - origDist * 1.5).toFixed(2));
+  }
+  
+  // Default: trail at same dollar distance as original
+  return parseFloat((price - origDist).toFixed(2));
+}
+
+function checkAllTrailingStops() {
+  var updates = [];
+  
+  for (var i = 0; i < positions.length; i++) {
+    var p = positions[i];
+    if (!p.stop || !p.entry || !p.current) continue;
+    
+    var pnlPct = (p.current - p.entry) / p.entry * 100;
+    
+    // Only trail if position is profitable (price above entry)
+    if (p.current <= p.entry) continue;
+    
+    // Calculate new optimal stop
+    var newStop = calcSmartStop(p, 'pct');
+    var currentStop = p.stop;
+    
+    // Only suggest moving stop UP (never down)
+    if (newStop <= currentStop) continue;
+    
+    // Minimum movement: at least 0.5% of price to avoid noise
+    var minMove = p.current * 0.005;
+    if (newStop - currentStop < minMove) continue;
+    
+    // Avoid spamming same alert
+    var alertKey = p.asset + '_' + Math.round(newStop * 10);
+    if (trailAlerts[alertKey]) continue;
+    trailAlerts[alertKey] = true;
+    
+    updates.push({
+      idx: i,
+      asset: p.asset,
+      oldStop: currentStop,
+      newStop: newStop,
+      price: p.current,
+      pnlPct: pnlPct.toFixed(1),
+      gain: ((p.current - p.entry) / p.entry * p.size).toFixed(2)
+    });
+    
+    // Update in memory
+    positions[i].stop = newStop;
+  }
+  
+  if (updates.length > 0) {
+    save();
+    renderPositions();
+    showTrailInstructions(updates);
+  }
+}
+
+function showTrailInstructions(updates) {
+  // Create instruction banner
+  var el = document.getElementById('trail-instructions');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'trail-instructions';
+    el.style.cssText = 'position:fixed;top:80px;right:14px;left:14px;z-index:998;max-width:500px;margin:0 auto;';
+    document.body.appendChild(el);
+  }
+  
+  var html = updates.map(function(u) {
+    return '<div style="background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.05));border:1.5px solid var(--gold);border-radius:12px;padding:14px 16px;margin-bottom:8px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--gold)">🔔 ACTION REQUISE — ' + u.asset + '</div>' +
+        '<button onclick="dismissTrailAlert(this.parentElement.parentElement)" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:16px">✕</button>' +
+      '</div>' +
+      '<div style="font-size:13px;margin-bottom:10px;color:var(--txt)">Ton stop-loss doit être déplacé vers le haut.</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
+        '<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">' +
+          '<div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:4px">STOP ACTUEL</div>' +
+          '<div style="font-family:var(--mono);font-size:18px;color:var(--red);font-weight:700">$' + u.oldStop + '</div>' +
+        '</div>' +
+        '<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">' +
+          '<div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:4px">NOUVEAU STOP</div>' +
+          '<div style="font-family:var(--mono);font-size:18px;color:var(--green);font-weight:700">$' + u.newStop + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="background:var(--bg3);border-radius:8px;padding:10px;font-family:var(--mono);font-size:10px;color:var(--txt2);line-height:1.8;margin-bottom:10px">' +
+        '<div>Prix actuel : <span style="color:var(--txt)">$' + u.price + '</span></div>' +
+        '<div>Gain protégé : <span style="color:var(--green)">+$' + u.gain + ' (' + u.pnlPct + '%)</span></div>' +
+        '<div style="margin-top:4px;color:var(--gold)">Déplacement : +$' + (u.newStop - u.oldStop).toFixed(2) + ' vers le haut</div>' +
+      '</div>' +
+      '<div style="background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);border-radius:8px;padding:10px;font-size:11px;line-height:1.8">' +
+        '<div style="font-weight:700;color:var(--green);margin-bottom:4px">📱 Sur IBKR :</div>' +
+        '<div>1. Ouvre <strong>IBKR Mobile</strong> ou <strong>Trader Workstation</strong></div>' +
+        '<div>2. Va dans <strong>Portfolio → ' + u.asset + '</strong></div>' +
+        '<div>3. Clique sur ton ordre Stop Loss existant</div>' +
+        '<div>4. Modifie le prix de <strong style="color:var(--red)">$' + u.oldStop + '</strong> à <strong style="color:var(--green)">$' + u.newStop + '</strong></div>' +
+        '<div>5. Confirme → ordre mis à jour</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  
+  el.innerHTML = html;
+  
+  // Notify
+  showToast('🔔 ' + updates.length + ' stop(s) à déplacer sur IBKR !', 'info');
+  if ('Notification' in window && Notification.permission === 'granted') {
+    updates.forEach(function(u) {
+      new Notification('Stop à déplacer — ' + u.asset, {
+        body: 'Déplace stop de $' + u.oldStop + ' vers $' + u.newStop
+      });
+    });
+  }
+}
+
+function dismissTrailAlert(el) {
+  if (el && el.parentElement) {
+    el.remove();
+  }
+}
+
+// Check trailing stops every 30 seconds when prices update
+var trailCheckInterval = null;
+function startTrailMonitor() {
+  if (trailCheckInterval) clearInterval(trailCheckInterval);
+  trailCheckInterval = setInterval(function() {
+    // Update current prices from liveprices first
+    var updated = false;
+    for (var i = 0; i < positions.length; i++) {
+      var sym = positions[i].asset;
+      if (liveprices[sym]) {
+        positions[i].current = liveprices[sym].price;
+        updated = true;
+      }
+    }
+    if (updated) {
+      save();
+      checkAllTrailingStops();
+    }
+  }, 30000); // every 30 seconds
+}
+
+// Also trigger check after manual price update
+var origUpdatePositionPrice = null;
+if (typeof updatePositionPrice === 'function') {
+  origUpdatePositionPrice = updatePositionPrice;
 }
 
 </script>
