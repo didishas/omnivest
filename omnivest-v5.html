@@ -947,39 +947,58 @@ function updatePositionPrice(i) {
 }
 
 function renderPositions() {
-  const el = document.getElementById('positions-list');
+  var el = document.getElementById('positions-list');
   if (!positions.length) {
-    el.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">Aucune position. Va dans Signals → clique BUY.</div>';
+    el.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">Aucune position. Va dans Signals et clique BUY.</div>';
     setTotal(capital); return;
   }
-  let totalPL = 0;
-  el.innerHTML = positions.map((p, i) => {
-    const pl = ((p.current - p.entry) / p.entry) * p.size;
-    const plPct = (p.current - p.entry) / p.entry * 100;
+  var totalPL = 0;
+  var html = '';
+  for (var i = 0; i < positions.length; i++) {
+    var p = positions[i];
+    // Trailing stop — follow price up
+    if (p.trailingStop && p.current > p.entry && p.stop) {
+      var dist = p.entry - p.stop;
+      var ns = parseFloat((p.current - dist).toFixed(2));
+      if (ns > p.stop) { positions[i].stop = ns; save(); }
+    }
+    var pl = ((p.current - p.entry) / p.entry) * p.size;
+    var plPct = (p.current - p.entry) / p.entry * 100;
     totalPL += pl;
-    const col = pl>=0 ? 'var(--green)' : 'var(--red)';
-    let alertHtml = '';
-    if (p.stop && p.current <= p.stop) alertHtml = '<div class="pos-alert stop">⚠️ STOP-LOSS ATTEINT — Ferme cette position sur IBKR maintenant !</div>';
-    if (p.target && p.current >= p.target) alertHtml = '<div class="pos-alert target">🎯 TARGET ATTEINT — Prends tes profits sur IBKR maintenant !</div>';
-    return '<div class="pos-card">' +
-      '<div class="pos-top"><span class="pos-ticker">' + p.asset + ' <span style="font-size:11px;font-weight:400;color:var(--txt2)">' + (p.name||'') + '</span></span>' +
+    var col = pl >= 0 ? 'var(--green)' : 'var(--red)';
+    var rr = (p.stop && p.target && p.entry > p.stop) ? ((p.target - p.entry) / (p.entry - p.stop)).toFixed(1) : null;
+    var alertHtml = '';
+    if (p.stop && p.current <= p.stop) alertHtml = '<div class="pos-alert stop">STOP ATTEINT — Ferme sur IBKR!</div>';
+    if (p.target && p.current >= p.target) alertHtml = '<div class="pos-alert target">TARGET ATTEINT — Prends tes profits!</div>';
+    var trailBadge = p.trailingStop ? '<span style="background:rgba(167,139,250,.2);color:var(--purple);border-radius:4px;padding:1px 6px;font-size:9px;font-family:var(--mono);margin-left:4px">TRAIL</span>' : '';
+    html += '<div class="pos-card">' +
+      '<div class="pos-top"><span class="pos-ticker">' + p.asset + trailBadge + '</span>' +
       '<span class="pos-pnl" style="color:' + col + '">' + (pl>=0?'+':'') + '€' + pl.toFixed(2) + ' (' + (plPct>=0?'+':'') + plPct.toFixed(1) + '%)</span></div>' +
       '<div class="pos-bar-wrap"><div class="pos-bar" style="width:' + Math.min(Math.abs(plPct)*3,100) + '%;background:' + col + '"></div></div>' +
       '<div class="pos-details">' +
         '<div class="pos-detail"><div class="pos-d-lbl">TAILLE</div><div class="pos-d-val">€' + p.size + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">ENTRÉE</div><div class="pos-d-val">€' + p.entry + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">ACTUEL</div><div class="pos-d-val" style="color:' + col + '">€' + p.current + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">STOP-LOSS</div><div class="pos-d-val" style="color:var(--red)">€' + (p.stop||'—') + '</div></div>' +
-      '</div>' + alertHtml +
+        '<div class="pos-detail"><div class="pos-d-lbl">ENTREE</div><div class="pos-d-val">$' + p.entry + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">ACTUEL</div><div class="pos-d-val" style="color:' + col + '">$' + p.current + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">STOP</div><div class="pos-d-val" style="color:var(--red)">$' + (p.stop||'—') + ' <button onclick="editStop(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--txt3)">✏️</button></div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">TARGET</div><div class="pos-d-val" style="color:var(--green)">$' + (p.target||'—') + ' <button onclick="editTarget(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--txt3)">✏️</button></div></div>' +
+        (rr ? '<div class="pos-detail"><div class="pos-d-lbl">R:R</div><div class="pos-d-val" style="color:var(--amber)">' + rr + 'x</div></div>' : '') +
+      '</div>' +
+      '<div style="padding:6px 0;display:flex;justify-content:flex-end">' +
+        '<label style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--txt3);cursor:pointer">' +
+          '<input type="checkbox" ' + (p.trailingStop?'checked':'') + ' onchange="toggleTrailingStop(' + i + ',this.checked)"> Trailing Stop' +
+        '</label>' +
+      '</div>' +
+      alertHtml +
       '<div class="pos-actions">' +
-        '<button class="pos-btn ai-review" onclick="askPosAI(' + i + ')" data-asset="' + p.asset + '">🧠 AI</button>' +
+        '<button class="pos-btn ai-review" onclick="askPosAI(' + i + ')">🧠 AI</button>' +
         '<button class="pos-btn update-price" onclick="updatePositionPrice(' + i + ')">↻ PRIX</button>' +
+        '<button class="pos-btn" onclick="adaptStopsAI(' + i + ')" style="background:rgba(255,165,2,.15);color:var(--amber);border:1px solid rgba(255,165,2,.3)">🎯 ADAPTER</button>' +
         '<button class="pos-btn close-pos" onclick="closePosition(' + i + ')">✕ FERMER</button>' +
       '</div></div>';
-  }).join('');
+  }
+  el.innerHTML = html;
   setTotal(capital + totalPL);
 }
-
 function setTotal(total) {
   document.getElementById('ptotal').textContent = total.toFixed(2);
   if (document.getElementById('phase-total')) document.getElementById('phase-total').textContent = '€' + total.toFixed(0);
