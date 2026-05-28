@@ -155,7 +155,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 .toast.err{border-color:rgba(255,71,87,.4);color:var(--red)}
 
 /* BNAV */
-.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(6,1fr)}
+.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(7,1fr)}
 .bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px 0;font-family:var(--mono);font-size:8px;letter-spacing:.4px;transition:color .2s}
 .bnav-btn.active{color:var(--gold)}
 .bnav-icon{font-size:18px}
@@ -182,6 +182,7 @@ select.inp{cursor:pointer}
     <button class="tab" onclick="go('fiscal',this)">🇧🇪 FISCAL</button>
     <button class="tab" onclick="go('projection',this)">📈 PROJECTION</button>
     <button class="tab" onclick="go('advisor',this)">🧠 CONSEILLER</button>
+    <button class="tab" onclick="go('adaptatif',this)">🎯 PLAN ADAPTATIF</button>
     <button class="tab" onclick="go('parametres',this)">⚙️ PARAMS</button>
   </div>
   <div class="date-chip" id="date-chip"></div>
@@ -571,6 +572,51 @@ select.inp{cursor:pointer}
 </div>
 
 
+
+<!-- PLAN ADAPTATIF -->
+<div class="panel" id="p-adaptatif">
+  <div class="scroll">
+    <div class="card gold-border">
+      <div class="card-title">PLAN ADAPTATIF — RESULTATS REELS + MARCHE</div>
+      <p style="font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:12px">Lit ton Journal OmniVest. Se recalcule selon ton vrai rendement et le contexte de marche.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="refreshAdaptivePlan()" class="btn btn-gold" style="flex:1">RECALCULER</button>
+        <button onclick="aiAdaptiveAdvice()" class="btn btn-blue">CONSEIL IA</button>
+      </div>
+    </div>
+    <div class="metrics" id="adapt-phase-metrics"></div>
+    <div class="card green-border" id="adapt-perf-card" style="display:none">
+      <div class="card-title">PERFORMANCE REELLE (JOURNAL OMNIVEST)</div>
+      <div id="adapt-perf-content"></div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">CONTEXTE MARCHE</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:var(--bg3);border-radius:7px;padding:10px">
+          <div class="m-lbl">VIX</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--amber)">28.4</div>
+          <div style="font-size:10px;color:var(--amber)">Eleve — prudence</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:10px">
+          <div class="m-lbl">BRENT</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--red)">$118</div>
+          <div style="font-size:10px;color:var(--red)">Crise Hormuz</div>
+        </div>
+      </div>
+      <div style="background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.2);border-radius:7px;padding:10px;font-family:var(--mono);font-size:10px;color:var(--blue);line-height:1.7">VIX 28.4 = volatile. Reduis la taille a 50% max. Vise R:R superieur a 3x. Garde 30% cash.</div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">PROJECTION ADAPTEE</div>
+      <div id="adapt-plan-content"><div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:20px">Clique RECALCULER pour voir ta projection.</div></div>
+    </div>
+    <div class="card blue-border" style="margin-bottom:12px">
+      <div class="card-title">TA PHASE D APPRENTISSAGE</div>
+      <div id="adapt-learning-content"></div>
+    </div>
+    <div id="adapt-ai-advice" style="display:none;margin-bottom:12px"></div>
+  </div>
+</div>
+
 <!-- PARAMETRES -->
 <div class="panel" id="p-parametres">
   <div class="scroll">
@@ -613,6 +659,7 @@ select.inp{cursor:pointer}
   <button class="bnav-btn" onclick="go('fiscal',this)"><span class="bnav-icon">🇧🇪</span>FISCAL</button>
   <button class="bnav-btn" onclick="go('projection',this)"><span class="bnav-icon">📈</span>PROJ.</button>
   <button class="bnav-btn" onclick="go('advisor',this)"><span class="bnav-icon">🧠</span>CONSEIL</button>
+  <button class="bnav-btn" onclick="go('adaptatif',this)"><span class="bnav-icon">🎯</span>PLAN</button>
   <button class="bnav-btn" onclick="go('parametres',this)"><span class="bnav-icon">⚙️</span>PARAMS</button>
 </div>
 
@@ -688,6 +735,7 @@ document.getElementById('date-chip').textContent = now.toLocaleDateString('fr-BE
 
 // ══ TABS ══
 function go(id, el) {
+  if(id==='adaptatif' && typeof refreshAdaptivePlan==='function') refreshAdaptivePlan();
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab, .bnav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('p-' + id).classList.add('active');
@@ -1128,6 +1176,146 @@ async function initApp(){
   if(updated){restoreRevenues();renderExpenses();renderBilan();renderDashboard();toast('✅ Données synchronisées !');}
 }
 initApp();
+// == PLAN ADAPTATIF ==
+function getJournalData(){var r=localStorage.getItem('omnivest_journal_sync');if(!r)return null;try{return JSON.parse(r);}catch(e){return null;}}
+
+function calcRealPerf(h){
+  if(!h||!h.length)return null;
+  var w=h.filter(function(t){return t.pl>0;});
+  var l=h.filter(function(t){return t.pl<=0;});
+  var tot=h.reduce(function(s,t){return s+t.pl;},0);
+  var wr=w.length/h.length;
+  var aw=w.length?w.reduce(function(s,t){return s+t.pl;},0)/w.length:0;
+  var al=l.length?Math.abs(l.reduce(function(s,t){return s+t.pl;},0)/l.length):0;
+  var ex=aw*wr-al*(1-wr);
+  var as=h.reduce(function(s,t){return s+(t.size||20);},0)/h.length;
+  var mr=Math.min(Math.max(h.length?(tot/h.length/as*100)*4:0,-20),50);
+  return{trades:h.length,wins:w.length,losses:l.length,winRate:(wr*100).toFixed(0),
+    totalPL:tot.toFixed(2),avgWin:aw.toFixed(2),avgLoss:al.toFixed(2),
+    expectancy:ex.toFixed(2),monthlyEst:mr.toFixed(1)};
+}
+
+function getLearningPhase(cap,trades,wr){
+  if(cap<500||trades<5)return{phase:1,name:'Debutant',color:'var(--blue)',
+    focus:'Maitrise les bases: entree, stop-loss, position sizing. Max 2 positions.',
+    maxPos:2,maxSizePct:5,milestone:'10 trades et 50% win rate',
+    skills:['Signaux OmniVest','Stop-loss','Calculer R:R','Bracket order IBKR']};
+  if(cap<2000||trades<20)return{phase:2,name:'Intermediaire',color:'var(--amber)',
+    focus:'Affine la strategie. Analyse tes patterns. Apprends le trailing stop.',
+    maxPos:3,maxSizePct:10,milestone:'EUR2000 avec win rate > 55%',
+    skills:['Trailing stop','Analyser patterns','Pyramider','Gerer emotions']};
+  if(cap<10000)return{phase:3,name:'Avance',color:'var(--green)',
+    focus:'Scale up les positions gagnantes. Diversifie. Regles Turtle S1/S2.',
+    maxPos:5,maxSizePct:15,milestone:'EUR10000 — objectif Phase 1',
+    skills:['Turtle S1/S2','Diversification','Kelly sizing','Macro context']};
+  return{phase:4,name:'Expert',color:'var(--gold)',
+    focus:'Optimise. Diversifie vers immobilier et business Afrique.',
+    maxPos:10,maxSizePct:20,milestone:'EUR50000 — diversification',
+    skills:['Portfolio opt.','Business Afrique','Revenus passifs','Immobilier']};
+}
+
+function calcMonthDate(m){var d=new Date(2026,4,1);d.setMonth(d.getMonth()+m);return d.toLocaleDateString('fr-BE',{month:'short',year:'numeric'});}
+
+function refreshAdaptivePlan(){
+  var jd=getJournalData();
+  var h=jd?(jd.history||[]):[];
+  var p=calcRealPerf(h);
+  var cap=jd?(jd.capital||realCapital):realCapital;
+  var wr=p?parseFloat(p.winRate):0;
+  var ph=getLearningPhase(cap,h.length,wr);
+  
+  var pm=[
+    {lbl:'PHASE',val:ph.phase+'/4',cls:'m-blue',sub:ph.name},
+    {lbl:'CAPITAL',val:'EUR'+cap.toLocaleString('fr-BE'),cls:'m-gold',sub:'IBKR actuel'},
+    {lbl:'TRADES',val:h.length,cls:'m-purple',sub:'Dans le journal'},
+    {lbl:'WIN RATE',val:(p?p.winRate:'?')+'%',cls:p&&parseInt(p.winRate)>=50?'m-green':'m-red',sub:'Tous tes trades'},
+    {lbl:'MAX POS',val:ph.maxSizePct+'%',cls:'m-amber',sub:'Du capital/trade'},
+    {lbl:'MAX OPEN',val:ph.maxPos,cls:'m-blue',sub:'Positions simult.'}
+  ];
+  document.getElementById('adapt-phase-metrics').innerHTML=pm.map(function(m){
+    return '<div class="metric '+m.cls+'"><div class="m-lbl">'+m.lbl+'</div><div class="m-val">'+m.val+'</div><div class="m-sub">'+m.sub+'</div></div>';
+  }).join('');
+
+  var pc=document.getElementById('adapt-perf-card');
+  var pco=document.getElementById('adapt-perf-content');
+  if(pc)pc.style.display='block';
+  if(pco){
+    if(p&&h.length>0){
+      var col=parseFloat(p.totalPL)>=0?'var(--green)':'var(--red)';
+      pco.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:10px">'+
+        [['WIN RATE',p.winRate+'%',parseInt(p.winRate)>=50?'var(--green)':'var(--red)'],
+         ['P&L TOTAL',(parseFloat(p.totalPL)>=0?'+':'')+'EUR'+p.totalPL,col],
+         ['MOY GAIN','+EUR'+p.avgWin,'var(--green)'],
+         ['MOY PERTE','-EUR'+p.avgLoss,'var(--red)'],
+         ['ESPERANCE',(parseFloat(p.expectancy)>=0?'+':'')+'EUR'+p.expectancy,parseFloat(p.expectancy)>=0?'var(--green)':'var(--red)'],
+         ['REND EST',(parseFloat(p.monthlyEst)>=0?'+':'')+p.monthlyEst+'%/mois',parseFloat(p.monthlyEst)>=5?'var(--green)':'var(--amber)']
+        ].map(function(m){return '<div style="background:var(--bg3);border-radius:8px;padding:9px;text-align:center"><div style="font-family:var(--mono);font-size:8px;color:var(--txt3);margin-bottom:3px">'+m[0]+'</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;color:'+m[2]+'">'+m[1]+'</div></div>';}).join('')+
+        '</div>'+
+        (parseInt(p.winRate)<40?
+          '<div style="background:var(--rdim);border:1px solid rgba(255,71,87,.2);border-radius:7px;padding:10px;font-size:11px;color:var(--red);line-height:1.7">Win rate faible. Revois tes criteres dentree avant daugmenter la taille.</div>':
+         parseInt(p.winRate)>=60?
+          '<div style="background:var(--gdim2);border:1px solid rgba(0,229,160,.2);border-radius:7px;padding:10px;font-size:11px;color:var(--green);line-height:1.7">Excellent win rate! Tu peux augmenter progressivement la taille.</div>':
+          '<div style="background:rgba(255,165,2,.08);border:1px solid rgba(255,165,2,.2);border-radius:7px;padding:10px;font-size:11px;color:var(--amber);line-height:1.7">Win rate correct. Continue avant daugmenter la taille.</div>');
+    } else {
+      pco.innerHTML='<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:16px">Pas encore de trades fermes dans OmniVest Journal.<br>Ferme des positions pour alimenter ce plan.</div>';
+    }
+  }
+
+  var rate=p&&h.length>=5?Math.max(0,parseFloat(p.monthlyEst)):10;
+  var adjRate=rate*(28.4>25?0.5:1);
+  var cur=Math.max(realCapital,20);
+  var m100k=-1;
+  for(var i=1;i<=60;i++){cur=cur*(1+adjRate/100);cur+=(i===13?3200:i>9?1150:1000);if(m100k<0&&cur>=100000)m100k=i;}
+  var pl2=document.getElementById('adapt-plan-content');
+  if(pl2){pl2.innerHTML=
+    '<div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:10px;font-family:var(--mono);font-size:10px;line-height:1.9">'+
+      '<div>Rendement : <span style="color:var(--gold)">'+adjRate.toFixed(1)+'%/mois</span>'+(h.length>=5?' (tes vrais trades)':' (defaut 10%)')+' </div>'+
+      '<div>Ajust. VIX 28.4 : <span style="color:var(--amber)">x0.5</span></div>'+
+      '<div>Capital : <span style="color:var(--green)">EUR'+realCapital.toLocaleString('fr-BE')+'</span></div>'+
+      '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">EUR100K : <span style="color:var(--gold);font-size:15px;font-weight:700">'+(m100k>0?'M'+m100k+' ('+calcMonthDate(m100k)+')':'Ameliore le rendement')+'</span></div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--txt2);line-height:1.8">'+
+      (rate<10?'Ameliore le win rate avant daugmenter<br>':'Continue avec cette performance<br>')+
+      'Ajoute EUR'+(currentMonth<=9?'1,000':'1,150')+' ce mois<br>'+
+      'Stop-loss sur chaque trade — sans exception'+
+    '</div>';}
+
+  var le=document.getElementById('adapt-learning-content');
+  if(le){le.innerHTML=
+    '<div style="border-left:3px solid '+ph.color+';padding-left:12px;margin-bottom:12px">'+
+      '<div style="font-size:13px;font-weight:700;color:'+ph.color+';margin-bottom:6px">Phase '+ph.phase+' — '+ph.name+'</div>'+
+      '<div style="font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:8px">'+ph.focus+'</div>'+
+      '<div style="font-family:var(--mono);font-size:10px;color:var(--txt3)">Objectif : <span style="color:var(--txt)">'+ph.milestone+'</span></div>'+
+    '</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+    ph.skills.map(function(s){return '<span style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:9px;color:var(--txt2)">'+s+'</span>';}).join('')+
+    '</div>';}
+  toast('Plan adaptatif recalcule !');
+}
+
+async function aiAdaptiveAdvice(){
+  var key=localStorage.getItem('anthropic_key')||'';
+  var box=document.getElementById('adapt-ai-advice');
+  if(!box)return;
+  if(!key){box.style.cssText='display:block;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px';box.textContent='Cle Anthropic requise.';return;}
+  box.style.cssText='display:block;background:var(--bg2);border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:12px';
+  box.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--gold);margin-bottom:8px">CONSEIL IA ADAPTE — M'+currentMonth+'</div><div style="color:var(--txt3)">Analyse...</div>';
+  var jd=getJournalData();
+  var h=jd?(jd.history||[]):[];
+  var p=calcRealPerf(h);
+  var ph=getLearningPhase(realCapital,h.length,p?parseFloat(p.winRate):0);
+  var prompt='Didier Ukanda, investisseur belge debutant, Phase '+ph.phase+'/4. Capital IBKR: EUR'+realCapital+'. Trades: '+h.length+'.'+(p?' Win rate: '+p.winRate+'%. PL: EUR'+p.totalPL+'. Esperance: EUR'+p.expectancy+'/trade.':' Pas de trades.')+'VIX: 28.4. Mois M'+currentMonth+'/60. Objectif EUR20 vers EUR100K. Donne 5 conseils concrets pour ce mois.';
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:600,messages:[{role:'user',content:prompt}]})
+    });
+    var d=await res.json();
+    var t=d.content&&d.content[0]?d.content[0].text:'Erreur.';
+    box.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--gold);margin-bottom:10px">CONSEIL IA — M'+currentMonth+'</div><div style="font-size:12px;line-height:1.8;color:var(--txt)">'+t.split('\n').join('<br>')+'</div>';
+  }catch(e){box.innerHTML='Erreur connexion.';}
+}
+
 </script>
 </body>
 </html>
