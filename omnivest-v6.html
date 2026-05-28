@@ -584,6 +584,14 @@ const SK = 'omnivest_v5';
 function load() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
 function save() {
   localStorage.setItem(SK, JSON.stringify({ positions, capital, tradingHours, chatHistory: chatHistory.slice(-30), finnhubKey, ibkrBalance }));
+  // Also sync journal to shared storage key for FinanceIQ to read
+  localStorage.setItem('omnivest_journal_sync', JSON.stringify({
+    history: tradeHistory,
+    positions: positions,
+    capital: capital,
+    ibkr: ibkrBalance,
+    updatedAt: new Date().toISOString()
+  }));
 }
 
 let st = load();
