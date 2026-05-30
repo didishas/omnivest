@@ -655,6 +655,20 @@ function playClick(){if(!soundOn())return;try{if(!_actx)_actx=new (window.AudioC
 function toggleSound(){var on=!soundOn();localStorage.setItem('omnivest_sound',on?'1':'0');var b=document.getElementById('sound-toggle');if(b)b.textContent='🔊 Click sound: '+(on?'On':'Off');if(on)playClick();}
 document.addEventListener('pointerdown',function(e){var t=e.target;if(t&&t.closest&&t.closest('button,.tab,.sc,.filter-chip,.bnav-btn'))playClick();},true);
 (function(){var b=document.getElementById('sound-toggle');if(b)b.textContent='🔊 Click sound: '+(soundOn()?'On':'Off');})();
+function parseSignals(text){
+  if(!text) return null;
+  var start=text.indexOf('[');
+  if(start<0) return null;
+  var body=text.slice(start);
+  try{ var a=JSON.parse(body); if(Array.isArray(a)) return a; }catch(e){}
+  var lastObj=body.lastIndexOf('}');
+  while(lastObj>0){
+    var candidate=body.slice(0,lastObj+1)+']';
+    try{ var arr=JSON.parse(candidate); if(Array.isArray(arr)&&arr.length) return arr; }catch(e){}
+    lastObj=body.lastIndexOf('}',lastObj-1);
+  }
+  return null;
+}
 async function refreshSignals() {
   const anthropicKey = localStorage.getItem('anthropic_key') || '';
   if (!anthropicKey) { showToast('⚠️ Enter your Anthropic key in Settings', 'loss'); return; }
@@ -669,24 +683,25 @@ async function refreshSignals() {
   if (!priceCtx) priceCtx = 'XOM ~$155, CVX ~$191, STNG ~$80, MOS ~$22, BTC ~$93K';
   const STYLE_INSTR = {mix:'Mix styles: blend day trades, swing trades (2+ weeks) and longer-term positions as the market context warrants.',day:'Focus on DAY / very short-term trades (intraday to a few days): tight stops, quick realistic targets, high liquidity names.',swing:'Focus on SWING trades held about 2 weeks to a couple of months: lean on the daily chart, trend, and support/resistance.',long:'Focus on LONG-TERM positions held months or longer (Buffett/Lynch value + Turtle trend following): wider stops, larger targets.'};
   const styleInstr = STYLE_INSTR[tradingStyle] || STYLE_INSTR.mix;
-  const prompt = 'LIVE PRICES NOW: ' + priceCtx + '\n\nGenerate between 8 and 12 trading signals (at least 8 distinct opportunities) based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "exchange": "primary listing exchange e.g. NYSE, NASDAQ, PAXOS",\n    "currency": "USD",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. ' + styleInstr + ' Always include 1 crypto signal. For the chart field, describe the visual setup on the DAILY candlestick chart so the user can confirm it visually. For exchange and currency, give the PRIMARY US listing (e.g. The Mosaic Company = MOS on NYSE in USD) so it is unambiguous in IBKR. Apply 120+ years of trading wisdom (Buffett, Soros, Lynch, Livermore, Turtle).';
+  const prompt = 'LIVE PRICES NOW: ' + priceCtx + '\n\nGenerate 8 to 10 trading signals (at least 8) based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "exchange": "primary listing exchange e.g. NYSE, NASDAQ, PAXOS",\n    "currency": "USD",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. ' + styleInstr + ' Always include 1 crypto signal. For the chart field, describe the visual setup on the DAILY candlestick chart so the user can confirm it visually. For exchange and currency, give the PRIMARY US listing (e.g. The Mosaic Company = MOS on NYSE in USD) so it is unambiguous in IBKR. Keep why, hidden and tax to ONE short sentence each to stay compact. Output ONLY the JSON array (start with [ and end with ]) — no preamble, no markdown, no trailing text. Apply 120+ years of trading wisdom (Buffett, Soros, Lynch, Livermore, Turtle).';
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await res.json();
-    const text = data.content?.[0]?.text || '';
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      const signals = JSON.parse(jsonMatch[0]);
+    const text = (data && data.content && data.content[0] && data.content[0].text) || '';
+    const signals = parseSignals(text);
+    if (signals && signals.length) {
       renderSignals(signals);
       const now = new Date().toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('signals-updated').textContent = 'Signals generated at ' + now + ' · Based on live prices';
+      document.getElementById('signals-updated').textContent = 'Signals generated at ' + now + ' · ' + signals.length + ' ideas';
       showToast('✓ ' + signals.length + ' new signals generated', 'gain');
+    } else if (data && data.error) {
+      showToast('⚠️ ' + (data.error.message || 'API error'), 'loss');
     } else {
-      showToast('⚠️ Signal parsing error — try again', 'loss');
+      showToast('⚠️ Could not read signals — tap Refresh again', 'loss');
     }
   } catch(e) {
     showToast('⚠️ Connection error — try again', 'loss');
