@@ -232,7 +232,7 @@ body[data-theme="dark"] .app-shell{background:
 .app-shell.sidebar-collapsed .logo-gallery-sidebar,
 .app-shell.sidebar-collapsed .sidebar-footer,
 .app-shell.sidebar-collapsed .tab span:not(.nav-ico){display:none!important;}
-.app-shell.sidebar-collapsed .tabs{width:100%;}
+.app-shell.sidebar-collapsed .tabs{width:100%;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}.app-shell.sidebar-collapsed .tabs::-webkit-scrollbar{width:4px}.app-shell.sidebar-collapsed .tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:4px}.app-shell.sidebar-collapsed .tab{flex:0 0 auto;}
 .app-shell.sidebar-collapsed .tab{justify-content:center;padding:12px 8px;}
 .app-shell.sidebar-collapsed .tab .nav-ico{width:42px;height:42px;border-radius:15px;font-size:20px;}
 .app-shell.sidebar-collapsed .side-close-btn{width:42px;height:42px;}
@@ -327,6 +327,7 @@ body[data-theme="dark"] .quick-card:hover{
 
 .chart-search{display:flex;gap:10px;margin-bottom:12px}.chart-search .api-input{flex:1}.chart-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.chart-frame{height:62vh;min-height:420px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--surface);box-shadow:var(--shadow2)}.chart-frame #tvchart{width:100%;height:100%}.chart-guide ul{margin:10px 0 0 18px;display:grid;gap:7px}.chart-guide li{color:var(--txt2);line-height:1.5}@media(max-width:560px){.chart-search{flex-direction:column}.chart-frame{height:56vh}}
 .sig-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.style-select{border:1px solid var(--border2);background:var(--surface);color:var(--txt);border-radius:15px;min-height:44px;padding:0 14px;font-weight:800;box-shadow:var(--shadow2);font-family:var(--sans);cursor:pointer}@media(max-width:560px){.sig-controls{width:100%}.style-select{flex:1}}
+.chart-ai-wrap{margin-top:16px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow2);padding:16px}.chart-ai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}.chart-ai-head strong{font-size:15px;color:var(--txt)}.chart-ai-body{color:var(--txt2);line-height:1.6}.chart-ai-body h4{color:var(--txt);margin:12px 0 4px;font-size:14px}.chart-ai-body b{color:var(--txt)}.chart-ai-body p{margin:0 0 8px}
 </style>
 </head>
 <body data-theme="light">
@@ -411,7 +412,7 @@ body[data-theme="dark"] .quick-card:hover{
     <section class="panel" id="p-signals">
       <div class="scroll">
         <div class="page-head"><div><div class="eyebrow">Live market signals</div><h1 class="page-title">Signals</h1><p class="page-sub" id="signals-updated">Tap Refresh to generate new signals.</p></div><div class="sig-controls"><select class="style-select" id="style-select" onchange="setTradingStyle(this.value)" title="Trading style"><option value="mix">🎛 Mix styles</option><option value="day">⚡ Day trading</option><option value="swing">📅 Swing (2w+)</option><option value="long">🏛 Long-term</option></select><button class="refresh-signals-btn" id="refresh-btn" onclick="refreshSignals()"><span id="refresh-icon">↻</span> Refresh signals</button></div></div>
-        <div class="filters"><button class="filter-chip active">All</button><button class="filter-chip">BUY</button><button class="filter-chip">SELL</button><button class="filter-chip">WATCH</button><button class="filter-chip">HOLD</button></div>
+        <div class="filters"><button class="filter-chip active" data-filter="ALL" onclick="setSignalFilter('ALL',this)">All</button><button class="filter-chip" data-filter="BUY" onclick="setSignalFilter('BUY',this)">BUY</button><button class="filter-chip" data-filter="SELL" onclick="setSignalFilter('SELL',this)">SELL</button><button class="filter-chip" data-filter="WATCH" onclick="setSignalFilter('WATCH',this)">WATCH</button><button class="filter-chip" data-filter="HOLD" onclick="setSignalFilter('HOLD',this)">HOLD</button></div>
         <div class="gauge-grid" id="gauges"></div>
         <div class="signals-layout" id="signal-cards"><div class="empty-state"><strong>Ready to generate signals.</strong><span>Cards will show entry, target, stop-loss and AI explanation.</span></div></div>
       </div>
@@ -441,7 +442,7 @@ body[data-theme="dark"] .quick-card:hover{
     </section>
     <section class="panel" id="p-chat"><div class="chat-wrap"><div class="chat-msgs" id="chat-msgs"><div class="msg ai"><div class="av ai">OV</div><div class="bub">Hello Didier. I can analyze your positions, explain a signal, build a trading plan, or help you avoid a bad trade.</div></div></div><div class="shortcuts"><button class="sc" onclick="askAbout('What is the best trade right now with €20 on IBKR? Give precise entry, target and stop-loss')">Best trade</button><button class="sc" onclick="askAbout('Review all my positions — hold, add or exit?')">Review portfolio</button><button class="sc" onclick="askAbout('What should I avoid today?')">Avoid today</button><button class="sc" onclick="askAbout('Create my trading plan for tonight')">Tonight&#39;s plan</button><button class="sc" onclick="askAbout('Explain the best signal like to a beginner')">Explain signal</button></div><div class="chat-in-row"><input class="cin" id="cin" placeholder="Ask OmniVest AI..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"><button class="go" id="go-btn" onclick="sendMsg()">➤</button></div></div></section>
     <section class="panel" id="p-journal"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Trade discipline</div><h1 class="page-title">Journal</h1><p class="page-sub">Historique, analyse IA, stops et progression.</p></div><div class="button-row"><button class="secondary-btn" onclick="aiReviewAllPositions()">🧠 Analyse IA</button><button class="secondary-btn" onclick="runTrailAdvisor()">🔔 Check stops</button></div></div><div id="ai-all-advice" class="card" style="display:none;margin-bottom:14px"></div><div id="trail-advice-box"></div><div class="grid grid-2"><div class="card"><div class="eyebrow">Positions ouvertes</div><div id="journal-open" style="margin-top:12px"></div></div><div><div id="journal-stats"></div><div class="card" style="margin-top:14px"><div class="eyebrow">Historique</div><button onclick="clearTradeHistory()" class="secondary-btn compact" style="margin:10px 0">Effacer</button><div id="journal-history"></div></div></div></div></div></section>
-    <section class="panel" id="p-chart"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Technical analysis</div><h1 class="page-title">Charts</h1><p class="page-sub">Candlestick charts for any stock — built for swing trading (holding 2+ weeks), not day trading.</p></div></div><div class="chart-search"><input class="api-input" id="chart-input" placeholder="Type a ticker (e.g. STNG, XOM, AAPL)..." onkeydown="if(event.key==='Enter'){loadChartFromInput()}"><button class="primary-btn" onclick="loadChartFromInput()">Load chart</button></div><div class="chart-chips" id="chart-chips"></div><div class="chart-frame"><div id="tvchart"></div></div><div class="soft-note chart-guide"><strong style="color:var(--txt);font-size:15px">How to read this chart (swing trading)</strong><ul><li><b>Candles</b> — each candle is one day. Green = closed up, red = closed down. The thick body is open→close; the thin wicks are the high/low.</li><li><b>Trend</b> — higher highs and higher lows = uptrend (look for buys); the opposite = downtrend (be careful).</li><li><b>Moving averages</b> — the smooth lines. Price above a rising MA is a healthy uptrend; a cross below can signal weakness.</li><li><b>Support &amp; resistance</b> — levels where price bounced (support) or stalled (resistance) before. Good spots to plan entries, targets and stops.</li><li><b>RSI</b> — the lower gauge. Above 70 = possibly overbought, below 30 = possibly oversold. Confirmation, not a trigger by itself.</li></ul><p style="margin-top:10px">Your edge is patience: OmniVest sizes you into swing trades of two weeks or more — read the daily chart and ignore the intraday noise.</p></div></div></section>
+    <section class="panel" id="p-chart"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Technical analysis</div><h1 class="page-title">Charts</h1><p class="page-sub">Candlestick charts for any stock — built for swing trading (holding 2+ weeks), not day trading.</p></div></div><div class="chart-search"><input class="api-input" id="chart-input" placeholder="Type a ticker (e.g. STNG, XOM, AAPL)..." onkeydown="if(event.key==='Enter'){loadChartFromInput()}"><button class="primary-btn" onclick="loadChartFromInput()">Load chart</button></div><div class="chart-chips" id="chart-chips"></div><div class="chart-frame"><div id="tvchart"></div></div><div class="chart-ai-wrap"><div class="chart-ai-head"><strong>🧠 AI analysis — <span id="chart-ai-symbol">STNG</span></strong><button class="secondary-btn compact" onclick="analyzeChartAI(true)">↻ Refresh</button></div><div id="chart-ai-body" class="chart-ai-body"><p class="page-sub">Open or load a chart to get a full AI analysis: technical read of the daily candles + live market context (geopolitical, macro-economic, financial, sector &amp; social), powered by 120+ years of trading wisdom.</p></div></div></div></section>
     <section class="panel" id="p-schedule"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Trading window</div><h1 class="page-title">Planning</h1><p class="page-sub">Turn your 20:00–00:00 window into an action plan.</p></div></div><div class="card"><h2>My trading window</h2><div class="button-row" style="margin-top:14px"><div><label class="mi-label">From</label><input class="time-input" id="t-from" type="time" value="20:00"></div><div><label class="mi-label">To</label><input class="time-input" id="t-to" type="time" value="00:00"></div><button class="primary-btn" onclick="saveScheduleAndPlan()">Create my plan</button></div><p class="page-sub" id="schedule-result" style="margin-top:14px">Tap "Create my plan" for a personalised hour-by-hour plan.</p></div><div class="market-hours" style="margin-top:18px"><div class="mh-card"><div class="mh-name">NYSE / NASDAQ</div><div class="mh-desc">15:30–22:00 CET · Your main window</div><span class="mini-tag BUY">Open</span></div><div class="mh-card"><div class="mh-name">US After-Hours</div><div class="mh-desc">22:00–02:00 CET · Earnings &amp; news reactions</div><span class="mini-tag WATCH">Watch</span></div><div class="mh-card"><div class="mh-name">Crypto</div><div class="mh-desc">24/7 · BTC, ETH &amp; macro signals</div><span class="mini-tag HOLD">Always</span></div></div></div></section>
     <section class="panel" id="p-tax"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Belgian investor</div><h1 class="page-title">Belgian Tax</h1><p class="page-sub">Mobile-friendly, no overwhelming table.</p></div></div><div class="alert red">⚠️ Always verify with an official source or an accountant. This page is just a memo.</div><div class="tax-grid"><div class="tax-card"><span class="tax-rate">0.12–1.32%</span><h3>TOB / Beurstaks</h3><p>Transaction tax. With IBKR you may need to self-declare it.</p></div><div class="tax-card"><span class="tax-rate">10%</span><h3>Capital gains</h3><p>Depends on applicable rules and your investor profile.</p></div><div class="tax-card"><span class="tax-rate">30%</span><h3>Dividends</h3><p>Withholding tax usually applied on dividends.</p></div><div class="tax-card"><span class="tax-rate">Risk</span><h3>Very active trading / CFD</h3><p>May be treated differently depending on your behaviour and status.</p></div></div></div></section>
     <section class="panel" id="p-settings"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Security & sync</div><h1 class="page-title">Settings</h1><p class="page-sub">API keys, PWA, export/import and starting capital.</p></div></div><div class="settings-grid"><div class="api-setup"><h3>🤖 Anthropic API Key</h3><p class="page-sub">Stored only on this device.</p><div class="api-row"><input class="api-input" id="anthropic-key-input" type="password" placeholder="sk-ant-api03-..."><button class="api-save" onclick="saveAnthropicKey()">Save</button></div><div id="anthropic-status" class="page-sub" style="margin-top:8px"></div></div><div class="api-setup"><h3>🔑 Finnhub Live Market Data</h3><p class="page-sub">Free live prices.</p><div class="api-row"><input class="api-input" id="fh-key" placeholder="d1abc123xyz..."><button class="api-save" onclick="saveFinnhubKey()">Save</button></div><div id="fh-status" class="page-sub" style="margin-top:8px"></div></div><div class="api-setup"><h3>🏛 IBKR Connection</h3><p class="page-sub">Bracket orders open IBKR with the symbol pre-filled.</p></div><div class="api-setup"><h3>📱 Install PWA</h3><p class="page-sub">Android: Chrome → ⋮ → Add to Home Screen. iPhone: Safari → Share → Add to Home Screen.</p></div><div class="api-setup"><h3>🔄 Sync</h3><p class="page-sub">Automatic cloud sync across your devices.</p><div id="cloud-status" class="page-sub" style="margin-top:6px;color:var(--green)">☁ Cloud sync on</div><div class="button-row" style="margin-top:10px"><button class="secondary-btn" onclick="cloudLoad()">☁ Sync now</button></div><div class="button-row" style="margin-top:12px"><button class="secondary-btn" onclick="exportData()">⬇ Export</button><button class="secondary-btn" onclick="document.getElementById('import-input2').click()">⬆ Import</button></div><input type="file" id="import-input2" accept=".json" style="display:none" onchange="importData(event)"></div><div class="api-setup"><h3>💰 Starting capital</h3><div class="api-row"><input class="api-input" id="capital-input" type="number" placeholder="1000"><button class="api-save" onclick="saveCapital()">Save</button></div></div></div></div></section>
@@ -653,12 +654,12 @@ async function refreshSignals() {
   if (!priceCtx) priceCtx = 'XOM ~$155, CVX ~$191, STNG ~$80, MOS ~$22, BTC ~$93K';
   const STYLE_INSTR = {mix:'Mix styles: blend day trades, swing trades (2+ weeks) and longer-term positions as the market context warrants.',day:'Focus on DAY / very short-term trades (intraday to a few days): tight stops, quick realistic targets, high liquidity names.',swing:'Focus on SWING trades held about 2 weeks to a couple of months: lean on the daily chart, trend, and support/resistance.',long:'Focus on LONG-TERM positions held months or longer (Buffett/Lynch value + Turtle trend following): wider stops, larger targets.'};
   const styleInstr = STYLE_INSTR[tradingStyle] || STYLE_INSTR.mix;
-  const prompt = 'LIVE PRICES NOW: ' + priceCtx + '\n\nGenerate exactly 4 trading signals based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. ' + styleInstr + ' Always include 1 crypto signal. For the chart field, describe the visual setup on the DAILY candlestick chart so the user can confirm it visually. Apply 120+ years of trading wisdom (Buffett, Soros, Lynch, Livermore, Turtle).';
+  const prompt = 'LIVE PRICES NOW: ' + priceCtx + '\n\nGenerate between 8 and 12 trading signals (at least 8 distinct opportunities) based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. ' + styleInstr + ' Always include 1 crypto signal. For the chart field, describe the visual setup on the DAILY candlestick chart so the user can confirm it visually. Apply 120+ years of trading wisdom (Buffett, Soros, Lynch, Livermore, Turtle).';
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await res.json();
     const text = data.content?.[0]?.text || '';
@@ -667,8 +668,8 @@ async function refreshSignals() {
       const signals = JSON.parse(jsonMatch[0]);
       renderSignals(signals);
       const now = new Date().toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('signals-updated').textContent = 'Signaux générés à ' + now + ' · Basés sur prix live';
-      showToast('✓ ' + signals.length + ' nouveaux signaux générés', 'gain');
+      document.getElementById('signals-updated').textContent = 'Signals generated at ' + now + ' · Based on live prices';
+      showToast('✓ ' + signals.length + ' new signals generated', 'gain');
     } else {
       showToast('⚠️ Signal parsing error — try again', 'loss');
     }
@@ -679,8 +680,10 @@ async function refreshSignals() {
   icon.className = '';
   icon.textContent = '↻';
 }
-function renderSignals(signals) {
-  lastSignals = signals || [];
+var currentSignalFilter='ALL';
+function setSignalFilter(f,el){ currentSignalFilter=f; var chips=document.querySelectorAll('.filters .filter-chip'); for(var c=0;c<chips.length;c++) chips[c].classList.remove('active'); if(el) el.classList.add('active'); renderSignalCards(); }
+function renderSignals(signals){ lastSignals = signals || []; renderSignalCards(); if (typeof syncHome === 'function') syncHome(); }
+function renderSignalCards() {
   const container = document.getElementById('signal-cards');
   if (!container) return;
   container.innerHTML = '';
@@ -688,7 +691,11 @@ function renderSignals(signals) {
     container.innerHTML = '<div class="empty-state"><strong>No signals yet.</strong><span>Tap Refresh signals to generate a selection based on live prices.</span></div>';
     return;
   }
+  var shown=0;
   lastSignals.forEach((s, i) => {
+    const __act=(s.action||'WATCH').toUpperCase();
+    if(currentSignalFilter!=='ALL' && __act!==currentSignalFilter) return;
+    shown++;
     const action = (s.action || 'WATCH').toUpperCase();
     const conf = Number(s.confidence || 0);
     const confColor = conf >= 8 ? 'var(--green)' : conf >= 6 ? 'var(--amber)' : 'var(--red)';
@@ -716,7 +723,7 @@ function renderSignals(signals) {
       '</div>';
     container.appendChild(card);
   });
-  if (typeof syncHome === 'function') syncHome();
+  if(!shown){ container.innerHTML='<div class="empty-state"><strong>No '+currentSignalFilter+' signals.</strong><span>Tap All to see every opportunity.</span></div>'; }
 }
 // ══ BRACKET ORDER ══
 function openBracketIdx(i) {
@@ -1203,41 +1210,47 @@ function runTrailAdvisor() {
 var currentChartSymbol="STNG";
 var CHART_WATCH=["STNG","XOM","CVX","MOS","BTC"];
 function renderChartChips(){var host=document.getElementById("chart-chips");if(!host)return;var syms=CHART_WATCH.slice();(positions||[]).forEach(function(p){if(p.asset&&syms.indexOf(p.asset)<0)syms.push(p.asset);});host.innerHTML=syms.map(function(x){return '<button class="filter-chip'+(x===currentChartSymbol?" active":"")+'" onclick="openChart(\''+x+'\')">'+x+'</button>';}).join("");}
-function renderTVChart(symbol){var host=document.getElementById("tvchart");if(!host)return;host.innerHTML="";if(!window.TradingView){host.innerHTML='<div class="empty-state"><strong>Chart unavailable offline.</strong><span>Reconnect to the internet and reopen this chart.</span></div>';return;}var dark=document.body.getAttribute("data-theme")==="dark";new TradingView.widget({container_id:"tvchart",autosize:true,symbol:symbol,interval:"D",timezone:"Europe/Brussels",theme:dark?"dark":"light",style:"1",locale:"en",allow_symbol_change:true,withdateranges:true,hide_side_toolbar:false,studies:["MASimple@tv-basicstudies","RSI@tv-basicstudies"]});}
+function renderTVChart(symbol){var host=document.getElementById("tvchart");if(!host)return;host.innerHTML="";if(!window.TradingView){host.innerHTML='<div class="empty-state"><strong>Chart unavailable offline.</strong><span>Reconnect to the internet and reopen this chart.</span></div>';return;}var dark=document.body.getAttribute("data-theme")==="dark";new TradingView.widget({container_id:"tvchart",autosize:true,symbol:symbol,interval:"D",timezone:"Europe/Brussels",theme:dark?"dark":"light",style:"1",locale:"en",allow_symbol_change:true,withdateranges:true,hide_side_toolbar:false,studies:["MASimple@tv-basicstudies","RSI@tv-basicstudies"]});var sl=document.getElementById("chart-ai-symbol");if(sl)sl.textContent=symbol;analyzeChartAI(false);}
 function openChart(symbol){if(symbol)currentChartSymbol=String(symbol).toUpperCase();go("chart");}
+function fmtAI(t){var e=escapeHtml(t);e=e.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');e=e.replace(/^#+\s*(.+)$/gm,'<h4>$1</h4>');e=e.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');return '<p>'+e+'</p>';}
+var chartAICache={};
+function analyzeChartAI(force){var sym=currentChartSymbol||'STNG';var body=document.getElementById('chart-ai-body');if(!body)return;var key=localStorage.getItem('anthropic_key')||'';if(!key){body.innerHTML='<p class="page-sub">Add your Anthropic API key in <b>Settings</b> to enable live AI chart analysis.</p>';return;}if(!force&&chartAICache[sym]){body.innerHTML=chartAICache[sym];return;}body.innerHTML='<p class="page-sub">Analyzing '+escapeHtml(sym)+'<span class="dots"></span></p>';var styleTxt=(typeof tradingStyle!=='undefined')?tradingStyle:'mix';var prompt='Give a COMPLETE, current analysis of '+sym+' for a trader whose style is "'+styleTxt+'".\n\n'+'1) TECHNICAL READ of the daily candlestick chart: trend, key support & resistance levels, moving averages, RSI, momentum, and the setup right now.\n'+'2) MARKET CONTEXT affecting '+sym+' today: geopolitical, macro-economic, financial/rates, sector and social factors. Be concrete and current.\n'+'3) ACTIONABLE TAKEAWAY: directional bias, what to watch, key levels for entry/target/stop, and the main risk.\n\n'+'Apply 120+ years of trading wisdom (Buffett, Soros, Lynch, Livermore, Simons, Dalio, Turtle). Use short clear sections with **bold** headers. Be specific. End with a one-line risk reminder. This is analysis, not financial advice.';fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1400,system:(typeof SYS!=='undefined'?SYS:''),messages:[{role:'user',content:prompt}]})}).then(function(r){return r.json();}).then(function(d){var t=(d.content&&d.content[0]&&d.content[0].text)||'No analysis returned.';var html=fmtAI(t);chartAICache[sym]=html;body.innerHTML=html;}).catch(function(){body.innerHTML='<p class="page-sub">⚠️ Analysis failed — check your network or API key, then tap ↻ Refresh.</p>';});}
 function loadChartFromInput(){var v=(document.getElementById("chart-input").value||"").trim().toUpperCase();if(v)openChart(v);}
 // ══ LUXURY NAVIGATION ══
 function appShell(){ return document.querySelector('.app-shell'); }
+function setSidebarState(state){
+  const shell = appShell(); if(!shell) return;
+  shell.classList.remove('sidebar-collapsed','sidebar-hidden');
+  if(state==='collapsed') shell.classList.add('sidebar-collapsed');
+  else if(state==='hidden') shell.classList.add('sidebar-hidden');
+  localStorage.setItem('omnivest_sidebar', state);
+}
+function sidebarState(){
+  const shell = appShell(); if(!shell) return 'open';
+  if(shell.classList.contains('sidebar-hidden')) return 'hidden';
+  if(shell.classList.contains('sidebar-collapsed')) return 'collapsed';
+  return 'open';
+}
+// The collapse button steps: open -> collapsed (icon rail) -> hidden
 function hideSidebar(){
-  const shell = appShell();
-  if (!shell) return;
-  shell.classList.remove('sidebar-collapsed');
-  shell.classList.add('sidebar-hidden');
-  localStorage.setItem('omnivest_sidebar','hidden');
+  const st = sidebarState();
+  if(st==='open') setSidebarState('collapsed');
+  else if(st==='collapsed') setSidebarState('hidden');
 }
-function showSidebar(){
-  const shell = appShell();
-  if (!shell) return;
-  shell.classList.remove('sidebar-hidden');
-  localStorage.setItem('omnivest_sidebar','open');
-}
+// Reveal button always reopens fully
+function showSidebar(){ setSidebarState('open'); }
+// Topbar button cycles full -> collapsed -> hidden -> full
 function toggleSidebarCompact(){
-  const shell = appShell();
-  if (!shell) return;
-  shell.classList.remove('sidebar-collapsed');
-  if (shell.classList.contains('sidebar-hidden')) {
-    shell.classList.remove('sidebar-hidden');
-    localStorage.setItem('omnivest_sidebar','open');
-  } else {
-    shell.classList.add('sidebar-hidden');
-    localStorage.setItem('omnivest_sidebar','hidden');
-  }
+  const st = sidebarState();
+  if(st==='open') setSidebarState('collapsed');
+  else if(st==='collapsed') setSidebarState('hidden');
+  else setSidebarState('open');
 }
 (function initLuxurySidebar(){
-  const shell = appShell();
-  if (!shell) return;
+  const shell = appShell(); if (!shell) return;
   const saved = localStorage.getItem('omnivest_sidebar');
   if (saved === 'hidden') shell.classList.add('sidebar-hidden');
+  else if (saved === 'collapsed') shell.classList.add('sidebar-collapsed');
 })();
 // ══ PWA ══
 try{ cloudLoad(); }catch(e){}
