@@ -326,6 +326,7 @@ body[data-theme="dark"] .quick-card:hover{
 .mc-ico{width:30px;height:30px;object-fit:contain;vertical-align:-8px;margin-right:6px;display:inline-block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
 
 .chart-search{display:flex;gap:10px;margin-bottom:12px}.chart-search .api-input{flex:1}.chart-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.chart-frame{height:62vh;min-height:420px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--surface);box-shadow:var(--shadow2)}.chart-frame #tvchart{width:100%;height:100%}.chart-guide ul{margin:10px 0 0 18px;display:grid;gap:7px}.chart-guide li{color:var(--txt2);line-height:1.5}@media(max-width:560px){.chart-search{flex-direction:column}.chart-frame{height:56vh}}
+.sig-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.style-select{border:1px solid var(--border2);background:var(--surface);color:var(--txt);border-radius:15px;min-height:44px;padding:0 14px;font-weight:800;box-shadow:var(--shadow2);font-family:var(--sans);cursor:pointer}@media(max-width:560px){.sig-controls{width:100%}.style-select{flex:1}}
 </style>
 </head>
 <body data-theme="light">
@@ -409,10 +410,10 @@ body[data-theme="dark"] .quick-card:hover{
     </section>
     <section class="panel" id="p-signals">
       <div class="scroll">
-        <div class="page-head"><div><div class="eyebrow">Live market signals</div><h1 class="page-title">Signals</h1><p class="page-sub" id="signals-updated">Tap Refresh to generate new signals.</p></div><button class="refresh-signals-btn" id="refresh-btn" onclick="refreshSignals()"><span id="refresh-icon">↻</span> Refresh signals</button></div>
-        <div class="filters"><button class="filter-chip active">Tous</button><button class="filter-chip">BUY</button><button class="filter-chip">SELL</button><button class="filter-chip">WATCH</button><button class="filter-chip">HOLD</button></div>
+        <div class="page-head"><div><div class="eyebrow">Live market signals</div><h1 class="page-title">Signals</h1><p class="page-sub" id="signals-updated">Tap Refresh to generate new signals.</p></div><div class="sig-controls"><select class="style-select" id="style-select" onchange="setTradingStyle(this.value)" title="Trading style"><option value="mix">🎛 Mix styles</option><option value="day">⚡ Day trading</option><option value="swing">📅 Swing (2w+)</option><option value="long">🏛 Long-term</option></select><button class="refresh-signals-btn" id="refresh-btn" onclick="refreshSignals()"><span id="refresh-icon">↻</span> Refresh signals</button></div></div>
+        <div class="filters"><button class="filter-chip active">All</button><button class="filter-chip">BUY</button><button class="filter-chip">SELL</button><button class="filter-chip">WATCH</button><button class="filter-chip">HOLD</button></div>
         <div class="gauge-grid" id="gauges"></div>
-        <div class="signals-layout" id="signal-cards"><div class="empty-state"><strong>Prêt à générer les signaux.</strong><span>Les cartes afficheront entrée, target, stop-loss et explication IA.</span></div></div>
+        <div class="signals-layout" id="signal-cards"><div class="empty-state"><strong>Ready to generate signals.</strong><span>Cards will show entry, target, stop-loss and AI explanation.</span></div></div>
       </div>
     </section>
     <section class="panel" id="p-portfolio">
@@ -624,6 +625,9 @@ async function fetchAllPrices() {
 }
 function startLiveFeed() { if (finnhubKey) setInterval(fetchAllPrices, 60000); }
 // ══ DYNAMIC SIGNALS — AI GENERATED ══
+var tradingStyle = localStorage.getItem("omnivest_style") || "mix";
+function setTradingStyle(v){ tradingStyle=v; localStorage.setItem("omnivest_style",v); var su=document.getElementById("signals-updated"); if(su) su.textContent="Style set: "+v+" — tap Refresh signals."; }
+(function(){ var sel=document.getElementById("style-select"); if(sel) sel.value=tradingStyle; })();
 async function refreshSignals() {
   const anthropicKey = localStorage.getItem('anthropic_key') || '';
   if (!anthropicKey) { showToast('⚠️ Entre ta clé Anthropic dans Settings', 'loss'); return; }
@@ -634,7 +638,9 @@ async function refreshSignals() {
   icon.textContent = '↻';
   let priceCtx = Object.entries(liveprices).map(([k,v]) => k + ': $' + v.price.toFixed(2) + ' (' + (v.chgPct>=0?'+':'') + v.chgPct.toFixed(2) + '%)').join(', ');
   if (!priceCtx) priceCtx = 'XOM ~$155, CVX ~$191, STNG ~$80, MOS ~$22, BTC ~$93K';
-  const prompt = 'LIVE PRICES NOW: ' + priceCtx + '\n\nGenerate exactly 4 trading signals based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. Mix day trades and swing trades. Always include 1 crypto signal.';
+  const STYLE_INSTR = {mix:'Mix styles: blend day trades, swing trades (2+ weeks) and longer-term positions as the market context warrants.',day:'Focus on DAY / very short-term trades (intraday to a few days): tight stops, quick realistic targets, high liquidity names.',swing:'Focus on SWING trades held about 2 weeks to a couple of months: lean on the daily chart, trend, and support/resistance.',long:'Focus on LONG-TERM positions held months or longer (Buffett/Lynch value + Turtle trend following): wider stops, larger targets.'};
+  const styleInstr = STYLE_INSTR[tradingStyle] || STYLE_INSTR.mix;
+  const prompt = 'LIVE PRICES NOW: ' + priceCtx + '\n\nGenerate exactly 4 trading signals based on these LIVE prices and current global context (Hormuz crisis, Fed hold, marine insurance +340%, VIX 28.4).\n\nFor each signal output EXACTLY this JSON format (no other text):\n[\n  {\n    "action": "BUY|SELL|WATCH|HOLD",\n    "asset": "TICKER",\n    "name": "Full Company Name",\n    "price": "current price with $",\n    "confidence": 8,\n    "timeframe": "Day/Swing X weeks",\n    "why": "2-3 sentence explanation for beginner",\n    "hidden": "hidden insight most traders miss",\n    "entry": "price number only",\n    "target": "price number only",\n    "stop": "price number only",\n    "tax": "Belgian tax impact one sentence"\n  }\n]\n\nMake signals DYNAMIC based on actual live prices. If a stock moved significantly today, adjust signals accordingly. ' + styleInstr + ' Always include 1 crypto signal. For the chart field, describe the visual setup on the DAILY candlestick chart so the user can confirm it visually. Apply 120+ years of trading wisdom (Buffett, Soros, Lynch, Livermore, Turtle).';
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -884,7 +890,7 @@ function importData(evt) {
 }
 // ══ CHAT ══
 let msgN = 0;
-const SYS = 'You are OmniVest AI — elite trading analyst for a Belgian investor named Didier. Capital: real on IBKR. Goal: €20→€1K→€10K→€50K→diversify (long-term + Africa business + passive income). Platform: Interactive Brokers (IBKR), Bracket Orders available. Trading hours: 20:00–00:00 CET weekdays.\n\nBelgian taxes: TOB per transaction (self-declare quarterly), 10% capital gains (first €10K/yr exempt), 30% dividend withholding tax.\n\nYour DNA: Buffett (value, moats, patience) + Soros (reflexivity, macro regime bets) + Peter Lynch (10-baggers, growth) + Jesse Livermore (tape reading, timing) + Jim Simons (quant patterns) + Graham (margin of safety) + Templeton (contrarian) + Paul Tudor Jones (macro, cut losses fast) + Ray Dalio (all-weather) + Druckenmiller (concentrated bets) + Thorp (Kelly sizing) + Dennis (Turtle: S1=20-day breakout, S2=55-day breakout, ATR stop, pyramid winners). 120+ years market history.\n\nFormat:\n🎯 SIGNAL: [BUY/SELL/HOLD/WATCH] [ASSET]\n📊 Confiance: X/10 | Durée: [jour/swing/long terme]\n💡 Pourquoi: 2-3 phrases claires pour débutant\n📈 Entrée: $X | Target: $X (+Y%) | Stop-loss: $X\n🎯 Bracket Order: entre ces 3 valeurs sur IBKR\n🐢 Turtle Signal: S1/S2 breakout status\n🔍 Insight caché que 95% des traders manquent\n🇧🇪 Taxe belge: impact spécifique\n⚠️ Risque principal\n\nSois spécifique, direct. Didier exécute sur IBKR avec Bracket Orders — donne toujours les 3 prix précis.';
+const SYS = 'You are OmniVest AI — elite trading analyst for a Belgian investor named Didier. Capital: real on IBKR. Goal: €20→€1K→€10K→€50K→diversify (long-term + Africa business + passive income). Platform: Interactive Brokers (IBKR), Bracket Orders available. Trading hours: 20:00–00:00 CET weekdays.\n\nBelgian taxes: TOB per transaction (self-declare quarterly), 10% capital gains (first €10K/yr exempt), 30% dividend withholding tax.\n\nYour DNA: Buffett (value, moats, patience) + Soros (reflexivity, macro regime bets) + Peter Lynch (10-baggers, growth) + Jesse Livermore (tape reading, timing) + Jim Simons (quant patterns) + Graham (margin of safety) + Templeton (contrarian) + Paul Tudor Jones (macro, cut losses fast) + Ray Dalio (all-weather) + Druckenmiller (concentrated bets) + Thorp (Kelly sizing) + Dennis (Turtle: S1=20-day breakout, S2=55-day breakout, ATR stop, pyramid winners). 120+ years market history.\n\nFormat:\n🎯 SIGNAL: [BUY/SELL/HOLD/WATCH] [ASSET]\n📊 Confidence: X/10 | Hold: [day/swing/long-term]\n💡 Why: 2-3 clear sentences for a beginner\n📈 Entry: $X | Target: $X (+Y%) | Stop-loss: $X\n🎯 Bracket Order: enter these 3 values on IBKR\n🐢 Turtle Signal: S1/S2 breakout status\n📊 Chart read: trend, key support/resistance, MA & RSI on the daily candlestick chart\n🔍 Hidden insight 95% of traders miss\n🇧🇪 Belgian tax: specific impact\n⚠️ Main risk\n\nRespect the selected trading style (day/swing/long-term/mix). Be specific and direct. Didier executes on IBKR with Bracket Orders — always give the 3 precise prices. Reply in English.';
 function addMsg(role, html) {
   const id = 'm' + (++msgN);
   const d = document.createElement('div'); d.className = 'msg ' + role; d.id = id;
@@ -920,7 +926,7 @@ async function sendMsg(override) {
   document.getElementById('go-btn').disabled = true;
   addMsg('user', text.replace(/</g,'&lt;'));
   const liveCtx = Object.entries(liveprices).map(([k,v]) => k + ': $' + v.price.toFixed(2)).join(', ');
-  chatHistory.push({ role:'user', content: text + '\n[Portfolio: ' + getPosCtx() + '] [Live prices: ' + (liveCtx||'unavailable') + '] [Hours: ' + tradingHours.from + '-' + tradingHours.to + '] [IBKR balance: €' + ibkrBalance.total + ']' });
+  chatHistory.push({ role:'user', content: text + '\n[Portfolio: ' + getPosCtx() + '] [Live prices: ' + (liveCtx||'unavailable') + '] [Hours: ' + tradingHours.from + '-' + tradingHours.to + '] [IBKR balance: €' + ibkrBalance.total + '] [Trading style: ' + tradingStyle + ']' });
   const tid = addMsg('ai','<span class="dots">Analyse des signaux globaux</span>');
   const anthropicKey = localStorage.getItem('anthropic_key') || '';
   if (!anthropicKey) { updMsg(tid, '⚠️ Clé Anthropic manquante — va dans Settings ⚙️ et entre ta clé API.'); document.getElementById('go-btn').disabled = false; return; }
@@ -1148,17 +1154,17 @@ function openSignalDetail(idx) {
   body.innerHTML =
     '<div class="drawer-headline"><span class="mini-tag ' + action + '">' + escapeHtml(action) + '</span><h2>' + escapeHtml(s.asset || '') + '</h2><p>' + escapeHtml(s.name || '') + '</p></div>' +
     '<div class="detail-grid">' +
-      '<div><span>Prix</span><strong>' + escapeHtml(s.price || '-') + '</strong></div>' +
-      '<div><span>Confiance</span><strong style="color:' + confColor + '">' + escapeHtml(conf || '?') + '/10</strong></div>' +
+      '<div><span>Price</span><strong>' + escapeHtml(s.price || '-') + '</strong></div>' +
+      '<div><span>Confidence</span><strong style="color:' + confColor + '">' + escapeHtml(conf || '?') + '/10</strong></div>' +
       '<div><span>Entry</span><strong>$' + escapeHtml(s.entry || '-') + '</strong></div>' +
       '<div><span>Target</span><strong class="pos">$' + escapeHtml(s.target || '-') + '</strong></div>' +
       '<div><span>Stop-loss</span><strong class="neg">$' + escapeHtml(s.stop || '-') + '</strong></div>' +
-      '<div><span>Durée</span><strong>' + escapeHtml(s.timeframe || '-') + '</strong></div>' +
+      '<div><span>Hold</span><strong>' + escapeHtml(s.timeframe || '-') + '</strong></div>' +
     '</div>' +
-    '<section class="insight-card"><h3>Pourquoi ce signal ?</h3><p>' + escapeHtml(s.why || '') + '</p></section>' +
-    '<section class="insight-card"><h3>Insight caché</h3><p>' + escapeHtml(s.hidden || '') + '</p></section>' +
-    '<section class="insight-card"><h3>Impact fiscal belge</h3><p>' + escapeHtml(s.tax || 'TOB et plus-value selon ton régime.') + '</p></section>' +
-    '<button class="primary-btn full" onclick="openBracketIdx(' + idx + ')">Prepare a bracket order</button>';
+    '<section class="insight-card"><h3>Why this signal?</h3><p>' + escapeHtml(s.why || '') + '</p></section>' +
+    '<section class="insight-card"><h3>Hidden insight</h3><p>' + escapeHtml(s.hidden || '') + '</p></section>' +
+    '<section class="insight-card"><h3>Belgian tax impact</h3><p>' + escapeHtml(s.tax || 'TOB and capital gains depending on your regime.') + '</p></section>' +
+    '<section class="insight-card"><h3>📊 Chart read</h3><p>' + escapeHtml(s.chart || 'Open the chart to confirm the setup.') + '</p></section>' +'<button class="secondary-btn full" onclick="openChart(\'' + (s.asset||'') + '\')">📊 Open ' + escapeHtml(s.asset||'') + ' chart</button>' +'<button class="primary-btn full" style="margin-top:10px" onclick="openBracketIdx(' + idx + ')">Prepare a bracket order</button>';
   drawer.classList.add('open');
 }
 function closeSignalDetail() { const d = document.getElementById('signal-detail-drawer'); if (d) d.classList.remove('open'); }
