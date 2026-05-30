@@ -324,6 +324,8 @@ body[data-theme="dark"] .quick-card:hover{
 .bnav-icon .bnav-img{width:27px;height:27px}
 .bnav-icon:has(.bnav-img){font-size:0}
 .mc-ico{width:30px;height:30px;object-fit:contain;vertical-align:-8px;margin-right:6px;display:inline-block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+
+.chart-search{display:flex;gap:10px;margin-bottom:12px}.chart-search .api-input{flex:1}.chart-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.chart-frame{height:62vh;min-height:420px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--surface);box-shadow:var(--shadow2)}.chart-frame #tvchart{width:100%;height:100%}.chart-guide ul{margin:10px 0 0 18px;display:grid;gap:7px}.chart-guide li{color:var(--txt2);line-height:1.5}@media(max-width:560px){.chart-search{flex-direction:column}.chart-frame{height:56vh}}
 </style>
 </head>
 <body data-theme="light">
@@ -336,11 +338,12 @@ body[data-theme="dark"] .quick-card:hover{
       <img class="brand-logo-img" src="Omnivest_icon_0.png" alt="OmniVest logo" onerror="this.onerror=null;this.src='omnivest-icon.png'">
       <div><div class="bname">Omni<em>Vest</em></div><div class="bsub">Live Intelligence</div></div>
     </div>
-    <div class="side-card"><strong>Discipline crée la croissance.</strong><span>Valeur · Consistance · Amélioration · Foi</span></div>
+    <div class="side-card"><strong>Discipline creates growth.</strong><span>Value · Consistency · Improvement · Faith</span></div>
     <div class="logo-gallery-sidebar" aria-label="OmniVest logo variants"><img src="Omnivest_icon_0.png" alt="Logo icon" onerror="this.onerror=null;this.src='omnivest-icon.png'"><img src="Omnivest_icon.png" alt="Logo with name" onerror="this.onerror=null;this.src='omnivest-icon.png'"><img src="Omnivest_icon_sun.png" alt="Growth logo" onerror="this.onerror=null;this.src='omnivest-icon.png'"></div>
     <div class="tabs">
       <button class="tab active" data-target="home" onclick="go('home',this)"><span class="nav-ico"><img class="nico-img" src="nav-home.png" alt="" onerror="this.replaceWith(document.createTextNode('🏠'))"></span>Home</button>
       <button class="tab" data-target="signals" onclick="go('signals',this)"><span class="nav-ico"><img class="nico-img" src="nav-signals.png" alt="" onerror="this.replaceWith(document.createTextNode('📈'))"></span>Signals</button>
+      <button class="tab" data-target="chart" onclick="go('chart',this)"><span class="nav-ico" style="background:rgba(255,255,255,.07)">📊</span>Charts</button>
       <button class="tab" data-target="portfolio" onclick="go('portfolio',this)"><span class="nav-ico"><img class="nico-img" src="nav-portfolio.png" alt="" onerror="this.replaceWith(document.createTextNode('💼'))"></span>Portfolio</button>
       <button class="tab" data-target="journal" onclick="go('journal',this)"><span class="nav-ico"><img class="nico-img" src="nav-journal.png" alt="" onerror="this.replaceWith(document.createTextNode('📋'))"></span>Journal</button>
       <button class="tab" data-target="chat" onclick="go('chat',this)"><span class="nav-ico"><img class="nico-img" src="nav-coach.png" alt="" onerror="this.replaceWith(document.createTextNode('🤖'))"></span>AI Coach</button>
@@ -358,7 +361,7 @@ body[data-theme="dark"] .quick-card:hover{
       <button class="desktop-menu-btn" type="button" onclick="toggleSidebarCompact()" title="Masquer / afficher le menu">☰</button>
       <div class="topbar-left">
         <div class="mobile-brand brand"><img class="brand-logo-img mini" src="Omnivest_icon_0.png" alt="OmniVest logo" onerror="this.onerror=null;this.src='omnivest-icon.png'"><div><div class="bname">Omni<em>Vest</em></div></div></div>
-        <div><div class="topbar-title" id="current-section">Home</div><div class="topbar-sub">Que devons-nous faire aujourd'hui avec ton capital ?</div></div>
+        <div><div class="topbar-title" id="current-section">Home</div><div class="topbar-sub">What should we do with your capital today?</div></div>
       </div>
       <div class="topbar-r">
         <button class="theme-toggle" onclick="toggleTheme()">◐ <span id="theme-label">Light</span></button>
@@ -384,8 +387,8 @@ body[data-theme="dark"] .quick-card:hover{
           </div>
           <div class="grid">
             <div class="card"><div class="progress-row"><div><div class="label">Objectif mensuel</div><strong>+10% à +30%</strong></div><strong class="gain">+12.4%</strong></div><div class="progress-track"><div class="progress-fill" id="home-progress-fill" style="width:2%"></div></div><div class="page-sub" id="home-progress-text">0% vers €50K</div></div>
-            <div class="card"><div class="label">Meilleur signal du jour</div><div class="best-signal-mini" id="home-best-signal"><div class="mini-tag WATCH">WAIT</div><div><strong>Aucun signal</strong><span>Génère les signaux pour commencer</span></div><button class="secondary-btn compact" onclick="go('signals',this)">Signals</button></div></div>
-            <div class="card action-note"><div class="note-ico">🎯</div><div><strong>Action recommandée</strong><p class="page-sub">Attendre une confirmation, puis utiliser un bracket order avec stop-loss.</p></div></div>
+            <div class="card"><div class="label">Meilleur signal du jour</div><div class="best-signal-mini" id="home-best-signal"><div class="mini-tag WATCH">WAIT</div><div><strong>No signal</strong><span>Generate signals to start</span></div><button class="secondary-btn compact" onclick="go('signals',this)">Signals</button></div></div>
+            <div class="card action-note"><div class="note-ico">🎯</div><div><strong>Recommended action</strong><p class="page-sub">Wait for confirmation, then use a bracket order with a stop-loss.</p></div></div>
           </div>
         </div>
         <div class="brand-showcase-card card">
@@ -394,19 +397,19 @@ body[data-theme="dark"] .quick-card:hover{
         </div>
         <div class="metric-row" style="margin-top:18px">
           <div class="metric"><div class="label">Cash disponible</div><strong id="home-cash">€20.00</strong></div>
-          <div class="metric"><div class="label">Positions ouvertes</div><strong id="home-open-count">0</strong></div>
+          <div class="metric"><div class="label">Open positions</div><strong id="home-open-count">0</strong></div>
           <div class="metric"><div class="label">Mode</div><strong>Discipline</strong></div>
         </div>
         <div class="quick-actions" style="margin-top:18px">
-          <button class="quick-card" onclick="go('portfolio',this)"><span>↻</span>Mettre à jour IBKR<small>Capital réel et cash</small></button>
-          <button class="quick-card" onclick="go('signals',this)"><span>📈</span>Voir les signaux<small>Entrée · target · stop</small></button>
-          <button class="quick-card" onclick="go('chat',this)"><span>🤖</span>Demander à l'AI Coach<small>Plan clair et actionnable</small></button>
+          <button class="quick-card" onclick="go('portfolio',this)"><span>↻</span>Update IBKR<small>Real capital &amp; cash</small></button>
+          <button class="quick-card" onclick="go('signals',this)"><span>📈</span>View signals<small>Entry · target · stop</small></button>
+          <button class="quick-card" onclick="go('chat',this)"><span>🤖</span>Ask the AI Coach<small>Clear, actionable plan</small></button>
         </div>
       </div>
     </section>
     <section class="panel" id="p-signals">
       <div class="scroll">
-        <div class="page-head"><div><div class="eyebrow">Live market signals</div><h1 class="page-title">Signals</h1><p class="page-sub" id="signals-updated">Clique Refresh pour générer de nouveaux signaux.</p></div><button class="refresh-signals-btn" id="refresh-btn" onclick="refreshSignals()"><span id="refresh-icon">↻</span> Refresh signals</button></div>
+        <div class="page-head"><div><div class="eyebrow">Live market signals</div><h1 class="page-title">Signals</h1><p class="page-sub" id="signals-updated">Tap Refresh to generate new signals.</p></div><button class="refresh-signals-btn" id="refresh-btn" onclick="refreshSignals()"><span id="refresh-icon">↻</span> Refresh signals</button></div>
         <div class="filters"><button class="filter-chip active">Tous</button><button class="filter-chip">BUY</button><button class="filter-chip">SELL</button><button class="filter-chip">WATCH</button><button class="filter-chip">HOLD</button></div>
         <div class="gauge-grid" id="gauges"></div>
         <div class="signals-layout" id="signal-cards"><div class="empty-state"><strong>Prêt à générer les signaux.</strong><span>Les cartes afficheront entrée, target, stop-loss et explication IA.</span></div></div>
@@ -417,13 +420,13 @@ body[data-theme="dark"] .quick-card:hover{
         <div class="page-head"><div><div class="eyebrow">Capital & risk</div><h1 class="page-title">Portfolio</h1><p class="page-sub">Tout ce qui concerne ton compte IBKR, tes positions et tes jalons.</p></div></div>
         <div class="grid grid-2">
           <div class="ibkr-balance">
-            <div class="ib-top"><div class="ib-title">🏛 Solde IBKR</div><a class="ib-link" href="https://www.interactivebrokers.co.uk" target="_blank">Voir IBKR ↗</a></div>
+            <div class="ib-top"><div class="ib-title">🏛 IBKR Balance</div><a class="ib-link" href="https://www.interactivebrokers.co.uk" target="_blank">Voir IBKR ↗</a></div>
             <div class="ib-amounts">
-              <div class="ib-amount"><div class="ib-a-lbl">Solde total</div><div class="ib-a-val" id="ibkr-total">€<span id="ibkr-total-val">20.00</span></div></div>
+              <div class="ib-amount"><div class="ib-a-lbl">Total balance</div><div class="ib-a-val" id="ibkr-total">€<span id="ibkr-total-val">20.00</span></div></div>
               <div class="ib-amount"><div class="ib-a-lbl">Disponible</div><div class="ib-a-val">€<span id="ibkr-avail-val">20.00</span></div></div>
               <div class="ib-amount"><div class="ib-a-lbl">P&L jour</div><div class="ib-a-val" id="ibkr-pnl">€<span id="ibkr-pnl-val">0.00</span></div></div>
             </div>
-            <div class="ib-update"><input class="ib-input" id="ibkr-input-total" type="number" placeholder="Solde IBKR actuel (€)"><button class="ib-save" onclick="updateIBKRBalance()">Update</button></div>
+            <div class="ib-update"><input class="ib-input" id="ibkr-input-total" type="number" placeholder="Current IBKR balance (€)"><button class="ib-save" onclick="updateIBKRBalance()">Update</button></div>
           </div>
           <div class="phase-card">
             <div class="phase-top"><div><div class="phase-name" id="phase-name">Phase 1 — Learning & Trading</div><div class="page-sub">€20 test → €1K → €10K → €50K</div></div><div class="phase-total" id="phase-total">€1,000</div></div>
@@ -435,14 +438,16 @@ body[data-theme="dark"] .quick-card:hover{
         <div class="mini-form" style="margin-top:18px"><h2>Ajouter une position manuelle</h2><p class="page-sub">Utilise ceci quand tu ajoutes un trade depuis IBKR.</p><div class="form-grid" style="margin-top:14px"><div><label class="mi-label">Asset</label><input class="mi" id="f-asset" placeholder="XOM"></div><div><label class="mi-label">Taille (€)</label><input class="mi" id="f-size" type="number" placeholder="20"></div><div><label class="mi-label">Prix entrée</label><input class="mi" id="f-entry" type="number" placeholder="155.00"></div><div><label class="mi-label">Prix actuel</label><input class="mi" id="f-current" type="number" placeholder="158.00"></div><div><label class="mi-label">Stop-loss</label><input class="mi" id="f-stop" type="number" placeholder="112.00"></div><div><label class="mi-label">Target</label><input class="mi" id="f-target" type="number" placeholder="175.00"></div></div><div class="button-row" style="margin-top:14px"><button class="primary-btn" onclick="addPosition()">+ Ajouter position</button><button class="secondary-btn" onclick="exportData()">⬇ Export</button><button class="secondary-btn" onclick="document.getElementById('import-input').click()">⬆ Import</button></div><input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)"></div>
       </div>
     </section>
-    <section class="panel" id="p-chat"><div class="chat-wrap"><div class="chat-msgs" id="chat-msgs"><div class="msg ai"><div class="av ai">OV</div><div class="bub">Bonjour Didier. Je peux analyser tes positions, expliquer un signal, préparer un plan de trading ou t'aider à éviter un mauvais trade.</div></div></div><div class="shortcuts"><button class="sc" onclick="askAbout('Quel est le meilleur trade maintenant avec €20 sur IBKR? Donne entrée target stop-loss précis')">Meilleur trade</button><button class="sc" onclick="askAbout('Analyse toutes mes positions — tenir, ajouter ou sortir?')">Review portfolio</button><button class="sc" onclick="askAbout('Que dois-je éviter aujourd&#39;hui?')">À éviter</button><button class="sc" onclick="askAbout('Crée mon plan de trading pour ce soir')">Plan ce soir</button><button class="sc" onclick="askAbout('Explique le meilleur signal comme à un débutant')">Expliquer signal</button></div><div class="chat-in-row"><input class="cin" id="cin" placeholder="Pose ta question à OmniVest AI..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"><button class="go" id="go-btn" onclick="sendMsg()">➤</button></div></div></section>
-    <section class="panel" id="p-journal"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Trade discipline</div><h1 class="page-title">Journal</h1><p class="page-sub">Historique, analyse IA, stops et progression.</p></div><div class="button-row"><button class="secondary-btn" onclick="aiReviewAllPositions()">🧠 Analyse IA</button><button class="secondary-btn" onclick="runTrailAdvisor()">🔔 Vérifier stops</button></div></div><div id="ai-all-advice" class="card" style="display:none;margin-bottom:14px"></div><div id="trail-advice-box"></div><div class="grid grid-2"><div class="card"><div class="eyebrow">Positions ouvertes</div><div id="journal-open" style="margin-top:12px"></div></div><div><div id="journal-stats"></div><div class="card" style="margin-top:14px"><div class="eyebrow">Historique</div><button onclick="clearTradeHistory()" class="secondary-btn compact" style="margin:10px 0">Effacer</button><div id="journal-history"></div></div></div></div></div></section>
-    <section class="panel" id="p-schedule"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Trading window</div><h1 class="page-title">Planning</h1><p class="page-sub">Transforme ta fenêtre 20h–00h en plan d'action.</p></div></div><div class="card"><h2>Ma fenêtre de trading</h2><div class="button-row" style="margin-top:14px"><div><label class="mi-label">De</label><input class="time-input" id="t-from" type="time" value="20:00"></div><div><label class="mi-label">À</label><input class="time-input" id="t-to" type="time" value="00:00"></div><button class="primary-btn" onclick="saveScheduleAndPlan()">Créer mon plan</button></div><p class="page-sub" id="schedule-result" style="margin-top:14px">Clique "Créer mon plan" pour un plan heure par heure personnalisé.</p></div><div class="market-hours" style="margin-top:18px"><div class="mh-card"><div class="mh-name">NYSE / NASDAQ</div><div class="mh-desc">15:30–22:00 CET · Ta fenêtre principale</div><span class="mini-tag BUY">Ouvert</span></div><div class="mh-card"><div class="mh-name">US After-Hours</div><div class="mh-desc">22:00–02:00 CET · Earnings et réactions news</div><span class="mini-tag WATCH">À surveiller</span></div><div class="mh-card"><div class="mh-name">Crypto</div><div class="mh-desc">24/7 · BTC, ETH et signaux macro</div><span class="mini-tag HOLD">Toujours</span></div></div></div></section>
-    <section class="panel" id="p-tax"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Belgian investor</div><h1 class="page-title">Fiscalité belge</h1><p class="page-sub">Version lisible mobile, sans grand tableau étouffant.</p></div></div><div class="alert red">⚠️ Vérifie toujours avec une source officielle ou un comptable. Cette page est un aide-mémoire.</div><div class="tax-grid"><div class="tax-card"><span class="tax-rate">0.12–1.32%</span><h3>TOB / Beurstaks</h3><p>Taxe sur les transactions. Avec IBKR, tu peux devoir l'auto-déclarer.</p></div><div class="tax-card"><span class="tax-rate">10%</span><h3>Plus-values</h3><p>À suivre selon la réglementation applicable et ton profil d'investisseur.</p></div><div class="tax-card"><span class="tax-rate">30%</span><h3>Dividendes</h3><p>Précompte mobilier généralement appliqué sur les dividendes.</p></div><div class="tax-card"><span class="tax-rate">Risque</span><h3>Trading très actif / CFD</h3><p>Peut être traité différemment selon ton comportement et ton statut.</p></div></div></div></section>
-    <section class="panel" id="p-settings"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Security & sync</div><h1 class="page-title">Settings</h1><p class="page-sub">Clés API, PWA, export/import et capital de départ.</p></div></div><div class="settings-grid"><div class="api-setup"><h3>🤖 Clé API Anthropic</h3><p class="page-sub">Stockée uniquement sur cet appareil.</p><div class="api-row"><input class="api-input" id="anthropic-key-input" type="password" placeholder="sk-ant-api03-..."><button class="api-save" onclick="saveAnthropicKey()">Save</button></div><div id="anthropic-status" class="page-sub" style="margin-top:8px"></div></div><div class="api-setup"><h3>🔑 Finnhub Live Market Data</h3><p class="page-sub">Prix live gratuits.</p><div class="api-row"><input class="api-input" id="fh-key" placeholder="d1abc123xyz..."><button class="api-save" onclick="saveFinnhubKey()">Save</button></div><div id="fh-status" class="page-sub" style="margin-top:8px"></div></div><div class="api-setup"><h3>🏛 Connexion IBKR</h3><p class="page-sub">Les bracket orders ouvrent IBKR avec le symbole pré-rempli.</p></div><div class="api-setup"><h3>📱 Installer PWA</h3><p class="page-sub">Android: Chrome → ⋮ → Add to Home Screen. iPhone: Safari → Share → Add to Home Screen.</p></div><div class="api-setup"><h3>🔄 Sync</h3><div class="button-row" style="margin-top:12px"><button class="secondary-btn" onclick="exportData()">⬇ Export</button><button class="secondary-btn" onclick="document.getElementById('import-input2').click()">⬆ Import</button></div><input type="file" id="import-input2" accept=".json" style="display:none" onchange="importData(event)"></div><div class="api-setup"><h3>💰 Capital de départ</h3><div class="api-row"><input class="api-input" id="capital-input" type="number" placeholder="1000"><button class="api-save" onclick="saveCapital()">Save</button></div></div></div></div></section>
-    <section class="panel" id="p-more"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Menu</div><h1 class="page-title">Plus</h1><p class="page-sub">Tous les écrans secondaires, propres et accessibles.</p></div></div><div class="more-grid"><button class="more-card" onclick="go('journal',this)"><h3><img class="mc-ico" src="nav-journal.png" alt="" onerror="this.replaceWith(document.createTextNode('📋'))"> Journal</h3><p>Historique, win rate, stops et review IA.</p></button><button class="more-card" onclick="go('schedule',this)"><h3><img class="mc-ico" src="nav-planning.png" alt="" onerror="this.replaceWith(document.createTextNode('⏱'))"> Planning</h3><p>Fenêtre de trading et plan du soir.</p></button><button class="more-card" onclick="go('tax',this)"><h3><img class="mc-ico" src="nav-tax.png" alt="" onerror="this.replaceWith(document.createTextNode('🇧🇪'))"> Tax Belgique</h3><p>TOB, dividendes, plus-values, exemples.</p></button><button class="more-card" onclick="go('settings',this)"><h3><img class="mc-ico" src="nav-settings.png" alt="" onerror="this.replaceWith(document.createTextNode('⚙️'))"> Settings / API Keys</h3><p>Anthropic, Finnhub, IBKR, export/import.</p></button></div></div></section>
+    <section class="panel" id="p-chat"><div class="chat-wrap"><div class="chat-msgs" id="chat-msgs"><div class="msg ai"><div class="av ai">OV</div><div class="bub">Hello Didier. I can analyze your positions, explain a signal, build a trading plan, or help you avoid a bad trade.</div></div></div><div class="shortcuts"><button class="sc" onclick="askAbout('What is the best trade right now with €20 on IBKR? Give precise entry, target and stop-loss')">Best trade</button><button class="sc" onclick="askAbout('Review all my positions — hold, add or exit?')">Review portfolio</button><button class="sc" onclick="askAbout('What should I avoid today?')">Avoid today</button><button class="sc" onclick="askAbout('Create my trading plan for tonight')">Tonight&#39;s plan</button><button class="sc" onclick="askAbout('Explain the best signal like to a beginner')">Explain signal</button></div><div class="chat-in-row"><input class="cin" id="cin" placeholder="Ask OmniVest AI..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"><button class="go" id="go-btn" onclick="sendMsg()">➤</button></div></div></section>
+    <section class="panel" id="p-journal"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Trade discipline</div><h1 class="page-title">Journal</h1><p class="page-sub">Historique, analyse IA, stops et progression.</p></div><div class="button-row"><button class="secondary-btn" onclick="aiReviewAllPositions()">🧠 Analyse IA</button><button class="secondary-btn" onclick="runTrailAdvisor()">🔔 Check stops</button></div></div><div id="ai-all-advice" class="card" style="display:none;margin-bottom:14px"></div><div id="trail-advice-box"></div><div class="grid grid-2"><div class="card"><div class="eyebrow">Positions ouvertes</div><div id="journal-open" style="margin-top:12px"></div></div><div><div id="journal-stats"></div><div class="card" style="margin-top:14px"><div class="eyebrow">Historique</div><button onclick="clearTradeHistory()" class="secondary-btn compact" style="margin:10px 0">Effacer</button><div id="journal-history"></div></div></div></div></div></section>
+    <section class="panel" id="p-chart"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Technical analysis</div><h1 class="page-title">Charts</h1><p class="page-sub">Candlestick charts for any stock — built for swing trading (holding 2+ weeks), not day trading.</p></div></div><div class="chart-search"><input class="api-input" id="chart-input" placeholder="Type a ticker (e.g. STNG, XOM, AAPL)..." onkeydown="if(event.key==='Enter'){loadChartFromInput()}"><button class="primary-btn" onclick="loadChartFromInput()">Load chart</button></div><div class="chart-chips" id="chart-chips"></div><div class="chart-frame"><div id="tvchart"></div></div><div class="soft-note chart-guide"><strong style="color:var(--txt);font-size:15px">How to read this chart (swing trading)</strong><ul><li><b>Candles</b> — each candle is one day. Green = closed up, red = closed down. The thick body is open→close; the thin wicks are the high/low.</li><li><b>Trend</b> — higher highs and higher lows = uptrend (look for buys); the opposite = downtrend (be careful).</li><li><b>Moving averages</b> — the smooth lines. Price above a rising MA is a healthy uptrend; a cross below can signal weakness.</li><li><b>Support &amp; resistance</b> — levels where price bounced (support) or stalled (resistance) before. Good spots to plan entries, targets and stops.</li><li><b>RSI</b> — the lower gauge. Above 70 = possibly overbought, below 30 = possibly oversold. Confirmation, not a trigger by itself.</li></ul><p style="margin-top:10px">Your edge is patience: OmniVest sizes you into swing trades of two weeks or more — read the daily chart and ignore the intraday noise.</p></div></div></section>
+    <section class="panel" id="p-schedule"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Trading window</div><h1 class="page-title">Planning</h1><p class="page-sub">Turn your 20:00–00:00 window into an action plan.</p></div></div><div class="card"><h2>My trading window</h2><div class="button-row" style="margin-top:14px"><div><label class="mi-label">From</label><input class="time-input" id="t-from" type="time" value="20:00"></div><div><label class="mi-label">To</label><input class="time-input" id="t-to" type="time" value="00:00"></div><button class="primary-btn" onclick="saveScheduleAndPlan()">Create my plan</button></div><p class="page-sub" id="schedule-result" style="margin-top:14px">Tap "Create my plan" for a personalised hour-by-hour plan.</p></div><div class="market-hours" style="margin-top:18px"><div class="mh-card"><div class="mh-name">NYSE / NASDAQ</div><div class="mh-desc">15:30–22:00 CET · Your main window</div><span class="mini-tag BUY">Open</span></div><div class="mh-card"><div class="mh-name">US After-Hours</div><div class="mh-desc">22:00–02:00 CET · Earnings &amp; news reactions</div><span class="mini-tag WATCH">Watch</span></div><div class="mh-card"><div class="mh-name">Crypto</div><div class="mh-desc">24/7 · BTC, ETH &amp; macro signals</div><span class="mini-tag HOLD">Always</span></div></div></div></section>
+    <section class="panel" id="p-tax"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Belgian investor</div><h1 class="page-title">Belgian Tax</h1><p class="page-sub">Mobile-friendly, no overwhelming table.</p></div></div><div class="alert red">⚠️ Always verify with an official source or an accountant. This page is just a memo.</div><div class="tax-grid"><div class="tax-card"><span class="tax-rate">0.12–1.32%</span><h3>TOB / Beurstaks</h3><p>Transaction tax. With IBKR you may need to self-declare it.</p></div><div class="tax-card"><span class="tax-rate">10%</span><h3>Capital gains</h3><p>Depends on applicable rules and your investor profile.</p></div><div class="tax-card"><span class="tax-rate">30%</span><h3>Dividends</h3><p>Withholding tax usually applied on dividends.</p></div><div class="tax-card"><span class="tax-rate">Risk</span><h3>Very active trading / CFD</h3><p>May be treated differently depending on your behaviour and status.</p></div></div></div></section>
+    <section class="panel" id="p-settings"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Security & sync</div><h1 class="page-title">Settings</h1><p class="page-sub">API keys, PWA, export/import and starting capital.</p></div></div><div class="settings-grid"><div class="api-setup"><h3>🤖 Anthropic API Key</h3><p class="page-sub">Stored only on this device.</p><div class="api-row"><input class="api-input" id="anthropic-key-input" type="password" placeholder="sk-ant-api03-..."><button class="api-save" onclick="saveAnthropicKey()">Save</button></div><div id="anthropic-status" class="page-sub" style="margin-top:8px"></div></div><div class="api-setup"><h3>🔑 Finnhub Live Market Data</h3><p class="page-sub">Free live prices.</p><div class="api-row"><input class="api-input" id="fh-key" placeholder="d1abc123xyz..."><button class="api-save" onclick="saveFinnhubKey()">Save</button></div><div id="fh-status" class="page-sub" style="margin-top:8px"></div></div><div class="api-setup"><h3>🏛 IBKR Connection</h3><p class="page-sub">Bracket orders open IBKR with the symbol pre-filled.</p></div><div class="api-setup"><h3>📱 Install PWA</h3><p class="page-sub">Android: Chrome → ⋮ → Add to Home Screen. iPhone: Safari → Share → Add to Home Screen.</p></div><div class="api-setup"><h3>🔄 Sync</h3><div class="button-row" style="margin-top:12px"><button class="secondary-btn" onclick="exportData()">⬇ Export</button><button class="secondary-btn" onclick="document.getElementById('import-input2').click()">⬆ Import</button></div><input type="file" id="import-input2" accept=".json" style="display:none" onchange="importData(event)"></div><div class="api-setup"><h3>💰 Starting capital</h3><div class="api-row"><input class="api-input" id="capital-input" type="number" placeholder="1000"><button class="api-save" onclick="saveCapital()">Save</button></div></div></div></div></section>
+    <section class="panel" id="p-more"><div class="scroll"><div class="page-head"><div><div class="eyebrow">Menu</div><h1 class="page-title">More</h1><p class="page-sub">All secondary screens, clean and accessible.</p></div></div><div class="more-grid"><button class="more-card" onclick="go('chart',this)"><h3>📊 Charts</h3><p>Candlestick charts and technical analysis per stock.</p></button><button class="more-card" onclick="go('journal',this)"><h3><img class="mc-ico" src="nav-journal.png" alt="" onerror="this.replaceWith(document.createTextNode('📋'))"> Journal</h3><p>History, win rate, stops and AI review.</p></button><button class="more-card" onclick="go('schedule',this)"><h3><img class="mc-ico" src="nav-planning.png" alt="" onerror="this.replaceWith(document.createTextNode('⏱'))"> Planning</h3><p>Trading window and evening plan.</p></button><button class="more-card" onclick="go('tax',this)"><h3><img class="mc-ico" src="nav-tax.png" alt="" onerror="this.replaceWith(document.createTextNode('🇧🇪'))"> Belgian Tax</h3><p>TOB, dividends, capital gains, examples.</p></button><button class="more-card" onclick="go('settings',this)"><h3><img class="mc-ico" src="nav-settings.png" alt="" onerror="this.replaceWith(document.createTextNode('⚙️'))"> Settings / API Keys</h3><p>Anthropic, Finnhub, IBKR, export/import.</p></button></div></div></section>
   </main>
 </div>
+<script src="https://s3.tradingview.com/tv.js"></script>
 <div class="bracket-panel" id="bracket-panel">
   <div class="bp-title">🎯 Bracket Order — <span id="bp-asset-title">XOM</span></div><div class="bp-sub">Achat + Stop-Loss + Take-Profit en 1 clic sur IBKR</div>
   <div class="bp-grid"><div><label class="bp-label">Asset</label><input class="bp-input" id="bp-asset" readonly></div><div><label class="bp-label">Montant (€)</label><input class="bp-input" id="bp-amount" type="number" placeholder="20"></div><div><label class="bp-label">Prix d'entrée ($)</label><input class="bp-input" id="bp-entry" type="number"></div><div><label class="bp-label">Quantité</label><input class="bp-input" id="bp-qty" readonly placeholder="Auto"></div><div><label class="bp-label">Stop-loss ($)</label><input class="bp-input" id="bp-stop" type="number"></div><div><label class="bp-label">Take-profit ($)</label><input class="bp-input" id="bp-target" type="number"></div></div>
@@ -505,11 +510,12 @@ function go(id, el) {
     const target = b.dataset && b.dataset.target;
     if (target === id || target === visibleId) b.classList.add('active');
   });
-  const labels = {home:'Home',signals:'Signals',portfolio:'Portfolio',chat:'AI Coach',more:'Plus',journal:'Journal',schedule:'Planning',tax:'Fiscalité belge',settings:'Settings'};
+  const labels = {home:'Home',signals:'Signals',portfolio:'Portfolio',chat:'AI Coach',more:'More',journal:'Journal',schedule:'Planning',tax:'Belgian Tax',settings:'Settings',chart:'Charts'};
   const title = document.getElementById('current-section');
   if (title) title.textContent = labels[id] || 'OmniVest';
   if (id === 'home' && typeof syncHome === 'function') syncHome();
   if (id === 'portfolio') renderPositions();
+  if (id === 'chart') { renderChartChips(); renderTVChart(currentChartSymbol); }
   window.scrollTo({top:0, behavior:'smooth'});
 }
 // ══ KEYS ══
@@ -517,10 +523,10 @@ function saveAnthropicKey() {
   const k = document.getElementById('anthropic-key-input').value.trim();
   if (!k || k.startsWith('•')) return;
   localStorage.setItem('anthropic_key', k);
-  document.getElementById('anthropic-status').textContent = '✓ Clé sauvegardée — AI Analyst activé !';
+  document.getElementById('anthropic-status').textContent = '✓ Key saved — AI Analyst active!';
   document.getElementById('anthropic-status').style.color = 'var(--green)';
   document.getElementById('anthropic-key-input').value = '••••••••••••••••';
-  showToast('✓ Clé Anthropic sauvegardée', 'gain');
+  showToast('✓ Anthropic key saved', 'gain');
 }
 function saveFinnhubKey() {
   const k = document.getElementById('fh-key').value.trim();
@@ -532,7 +538,7 @@ function saveFinnhubKey() {
   save();
   fetchAllPrices();
   startLiveFeed();
-  showToast('✓ Finnhub connecté — prix live activés', 'gain');
+  showToast('✓ Finnhub connected — live prices on', 'gain');
 }
 // ══ IBKR BALANCE ══
 function renderIBKRBalance() {
@@ -554,7 +560,7 @@ function updateIBKRBalance() {
   save();
   setTotal(v);
   document.getElementById('ibkr-input-total').value = '';
-  showToast('✓ Solde IBKR mis à jour: €' + v.toFixed(2), 'gain');
+  showToast('✓ IBKR balance updated: €' + v.toFixed(2), 'gain');
 }
 // ══ FINNHUB ══
 const SYMBOLS = { XOM:'XOM', CVX:'CVX', MOS:'MOS', STNG:'STNG' };
@@ -645,10 +651,10 @@ async function refreshSignals() {
       document.getElementById('signals-updated').textContent = 'Signaux générés à ' + now + ' · Basés sur prix live';
       showToast('✓ ' + signals.length + ' nouveaux signaux générés', 'gain');
     } else {
-      showToast('⚠️ Erreur parsing signaux — réessaie', 'loss');
+      showToast('⚠️ Signal parsing error — try again', 'loss');
     }
   } catch(e) {
-    showToast('⚠️ Erreur connexion — réessaie', 'loss');
+    showToast('⚠️ Connection error — try again', 'loss');
   }
   btn.disabled = false;
   icon.className = '';
@@ -660,7 +666,7 @@ function renderSignals(signals) {
   if (!container) return;
   container.innerHTML = '';
   if (!lastSignals.length) {
-    container.innerHTML = '<div class="empty-state"><strong>Aucun signal pour le moment.</strong><span>Clique sur Refresh signals pour générer une sélection basée sur les prix live.</span></div>';
+    container.innerHTML = '<div class="empty-state"><strong>No signals yet.</strong><span>Tap Refresh signals to generate a selection based on live prices.</span></div>';
     return;
   }
   lastSignals.forEach((s, i) => {
@@ -676,18 +682,18 @@ function renderSignals(signals) {
       '</div>' +
       '<div class="sa-title-row">' +
         '<div><div class="sa-asset">' + escapeHtml(s.asset || 'ASSET') + '</div><div class="sa-name">' + escapeHtml(s.name || '') + '</div></div>' +
-        '<button class="icon-link" onclick="openSignalDetail(' + i + ')" aria-label="Voir détail">›</button>' +
+        '<button class="icon-link" onclick="openSignalDetail(' + i + ')" aria-label="View detail">›</button>' +
       '</div>' +
       '<div class="sa-price">' + escapeHtml(s.price || '') + ' · ' + escapeHtml(s.timeframe || 'Swing') + '</div>' +
       '<div class="mini-level-grid">' +
-        '<div><span>Entrée</span><strong>$' + escapeHtml(s.entry || '-') + '</strong></div>' +
+        '<div><span>Entry</span><strong>$' + escapeHtml(s.entry || '-') + '</strong></div>' +
         '<div><span>Target</span><strong class="pos">$' + escapeHtml(s.target || '-') + '</strong></div>' +
         '<div><span>Stop</span><strong class="neg">$' + escapeHtml(s.stop || '-') + '</strong></div>' +
       '</div>' +
       '<p class="sa-why">' + escapeHtml(s.why || '') + '</p>' +
       '<div class="sa-actions">' +
-        '<button class="secondary-btn" onclick="openSignalDetail(' + i + ')">Voir détail</button>' +
-        ((action === 'BUY' || action === 'SELL') ? '<button class="primary-btn" onclick="openBracketIdx(' + i + ')">Préparer ordre</button>' : '<button class="primary-btn muted" onclick="openSignalDetail(' + i + ')">Demander IA</button>') +
+        '<button class="secondary-btn" onclick="openChart(\'' + (s.asset||'') + '\')">📊 Chart</button>' +'<button class="secondary-btn" onclick="openSignalDetail(' + i + ')">Details</button>' +
+        ((action === 'BUY' || action === 'SELL') ? '<button class="primary-btn" onclick="openBracketIdx(' + i + ')">Prepare order</button>' : '<button class="primary-btn muted" onclick="openSignalDetail(' + i + ')">Ask AI</button>') +
       '</div>';
     container.appendChild(card);
   });
@@ -764,7 +770,7 @@ function addPosition() {
   if (!asset || isNaN(size) || isNaN(entry)) { showToast('Remplis Asset, Taille et Prix Entrée', 'loss'); return; }
   positions.push({ asset, size, entry, current, stop, target, action: 'BUY', openedAt: new Date().toISOString() });
   ['f-asset','f-size','f-entry','f-current','f-stop','f-target'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  renderPositions(); save(); showToast('Position ajoutée: ' + asset, 'gain');
+  renderPositions(); save(); showToast('Position added: ' + asset, 'gain');
 }
 function closePosition(i) {
   const p = positions[i];
@@ -779,7 +785,7 @@ function updatePositionPrice(i) {
   if (liveP) {
     positions[i].current = liveP.price;
     renderPositions(); save();
-    showToast('Prix mis à jour: ' + positions[i].asset + ' $' + liveP.price.toFixed(2), 'info');
+    showToast('Price updated: ' + positions[i].asset + ' $' + liveP.price.toFixed(2), 'info');
   } else {
     const newPrice = parseFloat(prompt('Prix actuel pour ' + positions[i].asset + ':'));
     if (!isNaN(newPrice)) { positions[i].current = newPrice; renderPositions(); save(); }
@@ -788,7 +794,7 @@ function updatePositionPrice(i) {
 function renderPositions() {
   const el = document.getElementById('positions-list');
   if (!positions.length) {
-    el.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">Aucune position. Va dans Signals → clique BUY.</div>';
+    el.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--txt3);padding:20px">No positions. Go to Signals → tap BUY.</div>';
     setTotal(capital); return;
   }
   let totalPL = 0;
@@ -798,22 +804,22 @@ function renderPositions() {
     totalPL += pl;
     const col = pl>=0 ? 'var(--green)' : 'var(--red)';
     let alertHtml = '';
-    if (p.stop && p.current <= p.stop) alertHtml = '<div class="pos-alert stop">⚠️ STOP-LOSS ATTEINT — Ferme cette position sur IBKR maintenant !</div>';
-    if (p.target && p.current >= p.target) alertHtml = '<div class="pos-alert target">🎯 TARGET ATTEINT — Prends tes profits sur IBKR maintenant !</div>';
+    if (p.stop && p.current <= p.stop) alertHtml = '<div class="pos-alert stop">⚠️ STOP-LOSS HIT — Close this position on IBKR now!</div>';
+    if (p.target && p.current >= p.target) alertHtml = '<div class="pos-alert target">🎯 TARGET HIT — Take your profits on IBKR now!</div>';
     return '<div class="pos-card">' +
       '<div class="pos-top"><span class="pos-ticker">' + p.asset + ' <span style="font-size:11px;font-weight:400;color:var(--txt2)">' + (p.name||'') + '</span></span>' +
       '<span class="pos-pnl" style="color:' + col + '">' + (pl>=0?'+':'') + '€' + pl.toFixed(2) + ' (' + (plPct>=0?'+':'') + plPct.toFixed(1) + '%)</span></div>' +
       '<div class="pos-bar-wrap"><div class="pos-bar" style="width:' + Math.min(Math.abs(plPct)*3,100) + '%;background:' + col + '"></div></div>' +
       '<div class="pos-details">' +
-        '<div class="pos-detail"><div class="pos-d-lbl">TAILLE</div><div class="pos-d-val">€' + p.size + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">ENTRÉE</div><div class="pos-d-val">€' + p.entry + '</div></div>' +
-        '<div class="pos-detail"><div class="pos-d-lbl">ACTUEL</div><div class="pos-d-val" style="color:' + col + '">€' + p.current + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">SIZE</div><div class="pos-d-val">€' + p.size + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">ENTRY</div><div class="pos-d-val">€' + p.entry + '</div></div>' +
+        '<div class="pos-detail"><div class="pos-d-lbl">CURRENT</div><div class="pos-d-val" style="color:' + col + '">€' + p.current + '</div></div>' +
         '<div class="pos-detail"><div class="pos-d-lbl">STOP-LOSS</div><div class="pos-d-val" style="color:var(--red)">€' + (p.stop||'—') + '</div></div>' +
       '</div>' + alertHtml +
       '<div class="pos-actions">' +
-        '<button class="pos-btn ai-review" onclick="askPosAI(' + i + ')" data-asset="' + p.asset + '">🧠 AI</button>' +
-        '<button class="pos-btn update-price" onclick="updatePositionPrice(' + i + ')">↻ PRIX</button>' +
-        '<button class="pos-btn close-pos" onclick="closePosition(' + i + ')">✕ FERMER</button>' +
+        '<button class="pos-btn" onclick="openChart(\'' + p.asset + '\')">📊</button>' +'<button class="pos-btn ai-review" onclick="askPosAI(' + i + ')" data-asset="' + p.asset + '">🧠 AI</button>' +
+        '<button class="pos-btn update-price" onclick="updatePositionPrice(' + i + ')">↻ PRICE</button>' +
+        '<button class="pos-btn close-pos" onclick="closePosition(' + i + ')">✕ CLOSE</button>' +
       '</div></div>';
   }).join('');
   setTotal(capital + totalPL);
@@ -845,12 +851,12 @@ function saveScheduleAndPlan() {
   tradingHours.to = document.getElementById('t-to').value;
   save();
   document.getElementById('schedule-result').textContent = 'Génération de ton plan...';
-  askAbout('Ma fenêtre de trading ce soir est ' + tradingHours.from + ' à ' + tradingHours.to + ' CET. Donne-moi un plan heure par heure précis. Quels marchés sont ouverts? Sur quoi me concentrer? Quels signaux (XOM, STNG, MOS, BTC) sont les plus pertinents pour cette fenêtre?');
+  askAbout('My trading window tonight is ' + tradingHours.from + ' to ' + tradingHours.to + ' CET. Give me a precise hour-by-hour plan. Which markets are open? What should I focus on? Which signals (XOM, STNG, MOS, BTC) are most relevant for this window?');
 }
 // ══ SETTINGS ══
 function saveCapital() {
   const v = parseFloat(document.getElementById('capital-input').value);
-  if (!isNaN(v)) { capital = v; save(); renderPositions(); showToast('Capital mis à jour: €' + v, 'gain'); }
+  if (!isNaN(v)) { capital = v; save(); renderPositions(); showToast('Capital updated: €' + v, 'gain'); }
 }
 // ══ EXPORT/IMPORT ══
 function exportData() {
@@ -930,7 +936,7 @@ async function sendMsg(override) {
     chatHistory.push({ role:'assistant', content:reply });
     if (chatHistory.length > 40) chatHistory = chatHistory.slice(-30);
     save();
-  } catch { updMsg(tid, '⚠️ Erreur connexion. Vérifie ton réseau et réessaie.'); }
+  } catch { updMsg(tid, '⚠️ Connection error. Check your network and try again.'); }
   document.getElementById('go-btn').disabled = false;
 }
 function askAbout(q) {
@@ -944,7 +950,7 @@ function renderJournal(){ renderJournalOpen(); renderJournalHistory(); renderJou
 function renderJournalOpen() {
   var el = document.getElementById('journal-open');
   if (!el) return;
-  if (!positions.length) { el.innerHTML = '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:20px">Aucune position.</div>'; return; }
+  if (!positions.length) { el.innerHTML = '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:20px">No positions.</div>'; return; }
   var html = '';
   for (var i=0; i<positions.length; i++) {
     var p = positions[i];
@@ -994,7 +1000,7 @@ function closeFromJournal(i) {
 function renderJournalHistory() {
   var el = document.getElementById('journal-history');
   if (!el) return;
-  if (!tradeHistory.length) { el.innerHTML='<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:14px">Aucun trade fermé.</div>'; return; }
+  if (!tradeHistory.length) { el.innerHTML='<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:14px">No closed trades.</div>'; return; }
   var h = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px"><thead><tr style="border-bottom:1px solid var(--border2)">';
   ['ASSET','ENTREE','SORTIE','P&L','%','JOURS','DATE'].forEach(function(c){ h+='<th style="padding:7px 8px;text-align:left;color:var(--txt3);font-size:9px">'+c+'</th>'; });
   h += '</tr></thead><tbody>';
@@ -1055,7 +1061,7 @@ function aiReviewAllPositions() {
   var box = document.getElementById('ai-all-advice');
   if (!box) return;
   if (!key){box.style.display='block';box.textContent='Clé Anthropic requise.';return;}
-  if (!positions.length){box.style.display='block';box.textContent='Aucune position.';return;}
+  if (!positions.length){box.style.display='block';box.textContent='No positions.';return;}
   box.style.display='block'; box.innerHTML='<div style="color:var(--txt3)">Analyse...</div>';
   var ps = positions.map(function(p){return p.asset+' entry:$'+p.entry+' now:$'+p.current+' PL:'+((p.current-p.entry)/p.entry*100).toFixed(1)+'%';}).join(' | ');
   var prompt = 'Positions: '+ps+'. Pour chaque: HOLD/ADD/EXIT + raison courte. Format: ASSET: ACTION - raison.';
@@ -1144,7 +1150,7 @@ function openSignalDetail(idx) {
     '<div class="detail-grid">' +
       '<div><span>Prix</span><strong>' + escapeHtml(s.price || '-') + '</strong></div>' +
       '<div><span>Confiance</span><strong style="color:' + confColor + '">' + escapeHtml(conf || '?') + '/10</strong></div>' +
-      '<div><span>Entrée</span><strong>$' + escapeHtml(s.entry || '-') + '</strong></div>' +
+      '<div><span>Entry</span><strong>$' + escapeHtml(s.entry || '-') + '</strong></div>' +
       '<div><span>Target</span><strong class="pos">$' + escapeHtml(s.target || '-') + '</strong></div>' +
       '<div><span>Stop-loss</span><strong class="neg">$' + escapeHtml(s.stop || '-') + '</strong></div>' +
       '<div><span>Durée</span><strong>' + escapeHtml(s.timeframe || '-') + '</strong></div>' +
@@ -1152,28 +1158,35 @@ function openSignalDetail(idx) {
     '<section class="insight-card"><h3>Pourquoi ce signal ?</h3><p>' + escapeHtml(s.why || '') + '</p></section>' +
     '<section class="insight-card"><h3>Insight caché</h3><p>' + escapeHtml(s.hidden || '') + '</p></section>' +
     '<section class="insight-card"><h3>Impact fiscal belge</h3><p>' + escapeHtml(s.tax || 'TOB et plus-value selon ton régime.') + '</p></section>' +
-    '<button class="primary-btn full" onclick="openBracketIdx(' + idx + ')">Préparer un bracket order</button>';
+    '<button class="primary-btn full" onclick="openBracketIdx(' + idx + ')">Prepare a bracket order</button>';
   drawer.classList.add('open');
 }
 function closeSignalDetail() { const d = document.getElementById('signal-detail-drawer'); if (d) d.classList.remove('open'); }
 function editStop(i) {
   if (!positions[i]) return;
   const v = parseFloat(prompt('Nouveau stop-loss pour ' + positions[i].asset + ':', positions[i].stop || ''));
-  if (!isNaN(v)) { positions[i].stop = v; save(); renderPositions(); if (typeof renderJournal === 'function') renderJournal(); showToast('Stop-loss mis à jour', 'info'); }
+  if (!isNaN(v)) { positions[i].stop = v; save(); renderPositions(); if (typeof renderJournal === 'function') renderJournal(); showToast('Stop-loss updated', 'info'); }
 }
 function runTrailAdvisor() {
   const box = document.getElementById('trail-advice-box');
   if (!box) return;
-  if (!positions.length) { box.innerHTML = '<div class="soft-note">Aucune position ouverte à vérifier.</div>'; return; }
+  if (!positions.length) { box.innerHTML = '<div class="soft-note">No open positions to review.</div>'; return; }
   const alerts = positions.map(function(p, i){
     const plPct = ((p.current - p.entry) / p.entry) * 100;
-    if (p.stop && p.current <= p.stop) return '<div class="alert red"><strong>' + p.asset + '</strong> : stop-loss atteint. Vérifie IBKR maintenant.</div>';
-    if (p.target && p.current >= p.target) return '<div class="alert green"><strong>' + p.asset + '</strong> : target atteinte. Pense à sécuriser les gains.</div>';
+    if (p.stop && p.current <= p.stop) return '<div class="alert red"><strong>' + p.asset + '</strong> : stop-loss hit. Check IBKR now.</div>';
+    if (p.target && p.current >= p.target) return '<div class="alert green"><strong>' + p.asset + '</strong> : target hit. Consider locking in gains.</div>';
     if (plPct > 6 && p.stop < p.entry) return '<div class="alert gold"><strong>' + p.asset + '</strong> : +'+plPct.toFixed(1)+'%. Tu peux envisager de remonter le stop proche du break-even.</div>';
     return '<div class="soft-note"><strong>' + p.asset + '</strong> : rien d urgent. Stop et target à surveiller.</div>';
   }).join('');
   box.innerHTML = alerts;
 }
+// ══ CHARTS (TradingView) ══
+var currentChartSymbol="STNG";
+var CHART_WATCH=["STNG","XOM","CVX","MOS","BTC"];
+function renderChartChips(){var host=document.getElementById("chart-chips");if(!host)return;var syms=CHART_WATCH.slice();(positions||[]).forEach(function(p){if(p.asset&&syms.indexOf(p.asset)<0)syms.push(p.asset);});host.innerHTML=syms.map(function(x){return '<button class="filter-chip'+(x===currentChartSymbol?" active":"")+'" onclick="openChart(\''+x+'\')">'+x+'</button>';}).join("");}
+function renderTVChart(symbol){var host=document.getElementById("tvchart");if(!host)return;host.innerHTML="";if(!window.TradingView){host.innerHTML='<div class="empty-state"><strong>Chart unavailable offline.</strong><span>Reconnect to the internet and reopen this chart.</span></div>';return;}var dark=document.body.getAttribute("data-theme")==="dark";new TradingView.widget({container_id:"tvchart",autosize:true,symbol:symbol,interval:"D",timezone:"Europe/Brussels",theme:dark?"dark":"light",style:"1",locale:"en",allow_symbol_change:true,withdateranges:true,hide_side_toolbar:false,studies:["MASimple@tv-basicstudies","RSI@tv-basicstudies"]});}
+function openChart(symbol){if(symbol)currentChartSymbol=String(symbol).toUpperCase();go("chart");}
+function loadChartFromInput(){var v=(document.getElementById("chart-input").value||"").trim().toUpperCase();if(v)openChart(v);}
 // ══ LUXURY NAVIGATION ══
 function appShell(){ return document.querySelector('.app-shell'); }
 function hideSidebar(){
@@ -1209,7 +1222,7 @@ function toggleSidebarCompact(){
 })();
 // ══ PWA ══
 if ('serviceWorker' in navigator) {
-  const sw = 'const C="ov6";self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["/"])))}); self.addEventListener("fetch",e=>{if(e.request.url.includes("api.anthropic")||e.request.url.includes("finnhub")||e.request.url.includes("coingecko")||e.request.url.includes("fonts.googleapis"))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})';
+  const sw = 'const C="ov6";self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["/"])))}); self.addEventListener("fetch",e=>{if(e.request.url.includes("api.anthropic")||e.request.url.includes("finnhub")||e.request.url.includes("coingecko")||e.request.url.includes("fonts.googleapis")||e.request.url.includes("tradingview"))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})';
   const blob = new Blob([sw],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
 }
