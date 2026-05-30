@@ -165,6 +165,28 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 .dots::after{content:'.';animation:el 1.2s steps(3,end) infinite}
 @keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
 select.inp{cursor:pointer}
+/* ══ FinanceIQ — Platinum / Electric identity (distinct from OmniVest) ══ */
+:root{--chrome1:#eef2f8;--chrome2:#aeb8c7;--chrome3:#7c879a;--electric:#4a9eff;--electric2:#8fc6ff;--electric-deep:#1e6fe0;--platina:linear-gradient(145deg,#f4f7fb 0%,#c6cedb 36%,#8c97a8 60%,#eef2f7 100%)}
+.bmark{background:var(--platina);border:1px solid rgba(255,255,255,.55);color:#10141a;box-shadow:0 2px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.8)}
+.bname em{background:linear-gradient(120deg,var(--electric2),var(--electric));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.tab.active{color:var(--electric2);border-bottom-color:var(--electric);text-shadow:0 0 14px rgba(74,158,255,.55)}
+.bnav-btn.active{color:var(--electric2)}
+.btn-gold{background:linear-gradient(135deg,var(--electric2),var(--electric-deep));color:#04101f;box-shadow:0 4px 16px rgba(30,111,224,.42),inset 0 1px 0 rgba(255,255,255,.45)}
+.go{background:linear-gradient(135deg,var(--electric2),var(--electric-deep));color:#04101f;box-shadow:0 4px 16px rgba(30,111,224,.42)}
+.m-gold::after{background:var(--platina)}
+.card.gold-border{border-color:transparent;background:linear-gradient(var(--bg2),var(--bg2)) padding-box,var(--platina) border-box;border:1px solid transparent}
+.scroll>.card,.scroll>.metrics,.scroll>.alert,.scroll>.fiscal-item{animation:fiq-rise .5s cubic-bezier(.2,.7,.2,1) both}
+@keyframes fiq-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.panel.active{animation:fiq-slide .34s ease}
+@keyframes fiq-slide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+.btn,.go{position:relative;overflow:hidden}
+.btn::after,.go::after{content:'';position:absolute;top:0;left:-60%;width:42%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-20deg);transition:left .55s;pointer-events:none}
+.btn:hover::after,.go:hover::after{left:135%}
+.btn:active,.go:active{transform:translateY(1px) scale(.98)}
+.metric{transition:transform .18s ease,border-color .2s}
+.metric:hover{transform:translateY(-2px);border-color:var(--border2)}
+.prog-fill{background-image:linear-gradient(90deg,rgba(255,255,255,.28),transparent)}
+.sync-indicator,#sync-indicator{transition:all .2s}
 </style>
 </head>
 <body>
@@ -642,6 +664,15 @@ select.inp{cursor:pointer}
       </div>
       <div id="anthropic-status" style="font-family:var(--mono);font-size:10px;margin-top:6px;color:var(--txt3)"></div>
     </div>
+    <div class="card" style="margin-bottom:12px;border-color:rgba(74,158,255,.3)">
+      <div class="card-title">🔗 LIEN OMNIVEST</div>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">Les deux apps partagent le même cloud. FinanceIQ lit ton journal de trades OmniVest et lui renvoie ton budget &amp; ton capital.</p>
+      <div id="omni-link-status" style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-blue" onclick="omnivestSharePull().then(function(){toast('Donn\u00e9es OmniVest r\u00e9cup\u00e9r\u00e9es');if(typeof refreshAdaptivePlan==='function')refreshAdaptivePlan();renderOmniLink();})">↔ Sync OmniVest</button>
+        <button class="btn btn-gold" onclick="openOmniVest()">↗ Ouvrir OmniVest</button>
+      </div>
+    </div>
     <div class="card">
       <div class="card-title">DONNEES LOCALES</div>
       <div style="display:flex;gap:8px">
@@ -713,6 +744,8 @@ function save() {
     planStartDate: PLAN_START_DATE,
     lastSavedAt: new Date().toISOString()
   }));
+  if(typeof writeFinanceIQBridge==='function'){ writeFinanceIQBridge(); }
+  if(typeof omnivestSharePush==='function'){ omnivestSharePush(); }
 }
 
 let st = load();
@@ -743,6 +776,7 @@ function go(id, el) {
     if ((b.getAttribute('onclick')||'').includes("'"+id+"'")) b.classList.add('active');
   });
   if (id === 'projection') renderProjection();
+  if (id === 'parametres' && typeof renderOmniLink === 'function') renderOmniLink();
 }
 
 // ══ TOAST ══
@@ -1121,6 +1155,25 @@ function setSyncUI(status){var el=document.getElementById('sync-indicator');if(!
 async function syncToCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return;}setSyncUI('syncing');try{var payload={user_id:USER_ID,revenues:JSON.parse(JSON.stringify(revenues)),expenses:JSON.parse(JSON.stringify(expenses)),ibkr:JSON.parse(JSON.stringify(ibkrBalance)),debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},updated_at:new Date().toISOString()};var res=await fetch(url+'/rest/v1/financeiq_state',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');localStorage.setItem('financeiq_last_sync',new Date().toISOString());}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);}}
 async function syncFromCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return false;}setSyncUI('syncing');try{var res=await fetch(url+'/rest/v1/financeiq_state?user_id=eq.'+encodeURIComponent(USER_ID)+'&limit=1',{method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);var rows=await res.json();if(!rows||rows.length===0){setSyncUI('ok');return false;}var data=rows[0];var cloudTime=new Date(data.updated_at).getTime();var localTime=new Date(localStorage.getItem('financeiq_last_sync')||0).getTime();if(cloudTime<=localTime){setSyncUI('ok');return false;}if(data.revenues)revenues=data.revenues;if(data.expenses)expenses=data.expenses;if(data.ibkr)ibkrBalance=data.ibkr;if(data.debts){debtHuissier=data.debts.huissier??debtHuissier;debtOnem=data.debts.onem??debtOnem;investedThisMonth=data.debts.invested??investedThisMonth;realCapital=data.debts.capital??realCapital;currentMonth=data.debts.month??currentMonth;manualPlanMonth=data.debts.manual??manualPlanMonth;}save();setSyncUI('ok');localStorage.setItem('financeiq_last_sync',data.updated_at);return true;}catch(e){setSyncUI('error');return false;}}
 function scheduleSave(){save();if(syncTimeout)clearTimeout(syncTimeout);syncTimeout=setTimeout(syncToCloud,2000);}
+// ══ OMNIVEST COLLABORATION (shared cloud + bridge) ══
+var SHARED_SB_URL='https://ariagmqrbeliwvmxwnav.supabase.co';
+var SHARED_SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyaWFnbXFyYmVsaXd2bXh3bmF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTc5MzYsImV4cCI6MjA5NTI5MzkzNn0.H6RxIl0d3qTfRdxgh5twnFF7EOIk6iyaFahpN59bR_o';
+function sharedHeaders(extra){var h={apikey:SHARED_SB_KEY,Authorization:'Bearer '+SHARED_SB_KEY,'Content-Type':'application/json'};if(extra){for(var k in extra)h[k]=extra[k];}return h;}
+function buildFinanceIQShare(){
+  var totalRev=(typeof getTotalRevenues==='function')?getTotalRevenues():0;
+  var totalExp=expenses.filter(function(e){return isThisMonth(e.date);}).reduce(function(s,e){return s+e.amt;},0);
+  var reste=totalRev-1220-totalExp-investedThisMonth;
+  var insights=['Plan month M'+currentMonth+'/60','Available this month: \u20ac'+Math.round(reste)];
+  if(debtHuissier>0) insights.push('Huissier debt: \u20ac'+debtHuissier.toLocaleString('fr-BE'));
+  return {source:'financeiq',capital:realCapital,monthlyIncome:totalRev,available:Math.round(reste),invested:investedThisMonth,debts:{huissier:debtHuissier,onem:debtOnem},planMonth:currentMonth,goals:'Objectif \u20ac10K capital (plan 60 mois \u2014 M'+currentMonth+')',notes:'Budget net dispo ~\u20ac'+Math.round(reste)+'/mois \u00b7 TOB 0.12% \u00e0 d\u00e9clarer trimestriellement',insights:insights,updatedAt:new Date().toISOString()};
+}
+function writeFinanceIQBridge(){ try{ localStorage.setItem('financeiq_sync', JSON.stringify(buildFinanceIQShare())); }catch(e){} }
+var _sharePushTimer=null;
+function omnivestSharePush(){ if(_sharePushTimer)clearTimeout(_sharePushTimer); _sharePushTimer=setTimeout(function(){ var d=buildFinanceIQShare(); fetch(SHARED_SB_URL+'/rest/v1/omnivest_data',{method:'POST',headers:sharedHeaders({Prefer:'resolution=merge-duplicates'}),body:JSON.stringify({id:'financeiq',data:d,updated_at:d.updatedAt})}).catch(function(){}); },1500); }
+var omnivestCloudData=null;
+function omnivestSharePull(){ return fetch(SHARED_SB_URL+'/rest/v1/omnivest_data?id=eq.main&select=data,updated_at',{headers:sharedHeaders()}).then(function(r){return r.ok?r.json():[];}).then(function(rows){ if(rows&&rows[0]&&rows[0].data){ var d=rows[0].data; var norm={history:(d.tradeHistory||d.history||[]),positions:(d.positions||[]),capital:(typeof d.capital==='number'?d.capital:realCapital),ibkr:(d.ibkrBalance||d.ibkr||{total:realCapital,pnl:0}),tradingStyle:d.tradingStyle,signals:d.signals,updatedAt:d.updatedAt}; omnivestCloudData=norm; try{ var local=localStorage.getItem('omnivest_journal_sync'); var lts=local?(JSON.parse(local).updatedAt||''):''; if(!lts||(norm.updatedAt&&norm.updatedAt>lts)) localStorage.setItem('omnivest_journal_sync',JSON.stringify(norm)); }catch(e){ try{localStorage.setItem('omnivest_journal_sync',JSON.stringify(norm));}catch(_){} } } }).catch(function(){}); }
+function openOmniVest(){ var url=localStorage.getItem('omnivest_url')||'https://didishas.github.io/omnivest/omnivest-v6.html'; var sep=(url.indexOf('#')>=0)?'&':'#'; try{ if(typeof save==='function') save(); }catch(e){} window.open(url+sep+'from=financeiq&ts='+Date.now(),'_blank'); }
+function renderOmniLink(){ var el=document.getElementById('omni-link-status'); if(!el)return; var jd=(typeof getJournalData==='function')?getJournalData():null; if(jd){ var h=jd.history||[]; el.innerHTML='Dernier capital OmniVest : \u20ac'+((typeof jd.capital==='number')?jd.capital.toLocaleString('fr-BE'):'\u2014')+' \u00b7 '+h.length+' trades partag\u00e9s'+(jd.updatedAt?' \u00b7 '+new Date(jd.updatedAt).toLocaleString('fr-BE'):''); } else { el.textContent='Pas encore de donn\u00e9es OmniVest \u2014 ouvre OmniVest une fois (bouton ci-dessous).'; } }
 
 // ══ SIMULATEUR ══
 function runSimulator(){
@@ -1172,6 +1225,9 @@ async function initApp(){
   renderExpenses();
   renderBilan();
   renderDashboard();
+  if(typeof writeFinanceIQBridge==='function') writeFinanceIQBridge();
+  try{ omnivestSharePull(); }catch(e){}
+  if(location.hash.indexOf('from=omnivest')>=0){ setTimeout(function(){ if(typeof refreshAdaptivePlan==='function') refreshAdaptivePlan(); }, 800); }
   var updated = await syncFromCloud();
   if(updated){restoreRevenues();renderExpenses();renderBilan();renderDashboard();toast('✅ Données synchronisées !');}
 }
