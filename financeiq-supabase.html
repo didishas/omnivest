@@ -847,6 +847,7 @@ function recalcRevenues() {
   document.getElementById('rev-location-disp').textContent = '+€' + l.toLocaleString('fr-BE');
   document.getElementById('rev-autres-disp').textContent = '+€' + a.toLocaleString('fr-BE');
   document.getElementById('rev-excep-disp').textContent = '+€' + e.toLocaleString('fr-BE');
+  revenues.salaire = s; revenues.km = k; revenues.location = l; revenues.autres = a; revenues.excep = e;
   const total = s + k + l + a + e;
   document.getElementById('total-rev').textContent = '+€' + total.toLocaleString('fr-BE');
   renderBilan();
