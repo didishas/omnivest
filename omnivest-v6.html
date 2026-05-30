@@ -233,7 +233,7 @@ body[data-theme="dark"] .app-shell{background:
 .app-shell.sidebar-collapsed .sidebar-footer,
 .app-shell.sidebar-collapsed .tab span:not(.nav-ico){display:none!important;}
 .app-shell.sidebar-collapsed .tabs{width:100%;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}.app-shell.sidebar-collapsed .tabs::-webkit-scrollbar{width:4px}.app-shell.sidebar-collapsed .tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:4px}.app-shell.sidebar-collapsed .tab{flex:0 0 auto;}
-.app-shell.sidebar-collapsed .tab{justify-content:center;padding:12px 8px;}
+.app-shell.sidebar-collapsed .tab{justify-content:center;padding:12px 8px;font-size:0;gap:0;}
 .app-shell.sidebar-collapsed .tab .nav-ico{width:42px;height:42px;border-radius:15px;font-size:20px;}
 .app-shell.sidebar-collapsed .side-close-btn{width:42px;height:42px;}
 .app-shell.sidebar-collapsed .brand-logo-img{width:48px;height:48px;border-radius:17px;}
@@ -329,6 +329,7 @@ body[data-theme="dark"] .quick-card:hover{
 .sig-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.style-select{border:1px solid var(--border2);background:var(--surface);color:var(--txt);border-radius:15px;min-height:44px;padding:0 14px;font-weight:800;box-shadow:var(--shadow2);font-family:var(--sans);cursor:pointer}@media(max-width:560px){.sig-controls{width:100%}.style-select{flex:1}}
 .chart-ai-wrap{margin-top:16px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow2);padding:16px}.chart-ai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}.chart-ai-head strong{font-size:15px;color:var(--txt)}.chart-ai-body{color:var(--txt2);line-height:1.6}.chart-ai-body h4{color:var(--txt);margin:12px 0 4px;font-size:14px}.chart-ai-body b{color:var(--txt)}.chart-ai-body p{margin:0 0 8px}
 .bp-ident{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:12px 14px;margin-bottom:14px}.bp-ident-name{font-weight:900;color:var(--txt);font-size:15px}.bp-ident-meta{font-family:var(--mono);font-size:12px;color:var(--gold);margin-top:3px}.bp-ident-hint{color:var(--txt2);font-size:12px;line-height:1.5;margin-top:6px}.bp-copyrow{display:flex;gap:8px}.bp-copyrow .bp-input{flex:1}.bp-copy{flex:0 0 auto;width:46px;border:1px solid var(--border2);background:var(--surface-2);color:var(--txt);border-radius:15px;font-size:16px;cursor:pointer}.bp-copy:active{transform:scale(.94)}
+.bp-steps{background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:14px;margin:14px 0}.bp-steps-title{font-weight:900;color:var(--txt);font-size:13px;margin-bottom:8px}.bp-steps ol{margin:0;padding-left:20px;display:grid;gap:6px}.bp-steps li{color:var(--txt2);font-size:13px;line-height:1.5}.bp-steps b{color:var(--txt)}.bp-confirm{background:var(--gdim);border:1px solid rgba(212,167,44,.3);border-radius:18px;padding:14px;margin-top:12px}.bp-confirm p{color:var(--txt);font-weight:800;margin-bottom:10px}.bp-confirm .button-row>*{flex:1}
 </style>
 </head>
 <body data-theme="light">
@@ -454,7 +455,7 @@ body[data-theme="dark"] .quick-card:hover{
 <div class="bracket-panel" id="bracket-panel">
   <div class="bp-title">🎯 Order ticket — <span id="bp-asset-title">XOM</span></div><div class="bp-sub">IBKR can't be auto-filled by a link. This is a copy-ready ticket — tap any value to copy, then paste it in IBKR.</div><div class="bp-ident"><div class="bp-ident-name" id="bp-ident-name">—</div><div class="bp-ident-meta" id="bp-ident-meta">—</div><div class="bp-ident-hint" id="bp-ident-hint"></div></div>
   <input type="hidden" id="bp-asset"><div class="bp-grid"><div><label class="bp-label">Amount (€)</label><input class="bp-input" id="bp-amount" type="number" placeholder="20"></div><div><label class="bp-label">Quantity</label><input class="bp-input" id="bp-qty" readonly placeholder="Auto"></div><div><label class="bp-label">Entry ($)</label><div class="bp-copyrow"><input class="bp-input" id="bp-entry" type="number"><button class="bp-copy" title="Copy" onclick="copyField('bp-entry')">📋</button></div></div><div><label class="bp-label">Stop-loss ($)</label><div class="bp-copyrow"><input class="bp-input" id="bp-stop" type="number"><button class="bp-copy" title="Copy" onclick="copyField('bp-stop')">📋</button></div></div><div><label class="bp-label">Take-profit ($)</label><div class="bp-copyrow"><input class="bp-input" id="bp-target" type="number"><button class="bp-copy" title="Copy" onclick="copyField('bp-target')">📋</button></div></div></div>
-  <div class="bp-info" id="bp-info">OmniVest computes quantity, max loss and max gain.</div><button class="bp-submit" id="bp-copyall" onclick="copyOrderTicket()">📋 Copy full order</button><button class="bp-submit" id="bp-submit" style="margin-top:10px" onclick="executeBracket()">Open IBKR &amp; log position ↗</button><button class="bp-cancel" onclick="closeBracket()">Cancel</button>
+  <div class="bp-info" id="bp-info">OmniVest computes quantity, max loss and max gain.</div><div class="bp-steps" id="bp-steps"></div><button class="bp-submit" id="bp-copyall" onclick="copyOrderTicket()">📋 Copy full order</button><button class="bp-submit" id="bp-submit" style="margin-top:10px" onclick="openIBKR()">Open IBKR ↗</button><div class="bp-confirm" id="bp-confirm" style="display:none"><p>Did you actually place this order in IBKR?</p><div class="button-row"><button class="bp-submit" onclick="confirmPosition()">✓ Yes, log it</button><button class="secondary-btn" onclick="closeBracket()">Not yet</button></div></div><button class="bp-cancel" onclick="closeBracket()">Cancel</button>
 </div>
 <div class="detail-drawer" id="signal-detail-drawer"><div class="drawer-top"><strong>Détail du signal</strong><button class="drawer-close" onclick="closeSignalDetail()">×</button></div><div class="drawer-body" id="signal-detail-content"></div></div>
 <nav class="bnav">
@@ -746,6 +747,7 @@ function openBracket(idx, signal) {
   document.getElementById('bp-target').value = signal.target;
   document.getElementById('bp-amount').value = Math.min(ibkrBalance.available, 20).toFixed(0);
   updateBracketCalc();
+  var _cf=document.getElementById('bp-confirm'); if(_cf) _cf.style.display='none';
   document.getElementById('bracket-panel').classList.add('show');
   document.getElementById('bracket-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -763,6 +765,12 @@ function updateBracketCalc() {
     'Max loss if stop hit: <strong style="color:var(--red)">-€' + Math.abs(maxLoss) + '</strong> · ' +
     'Max gain if target hit: <strong style="color:var(--green)">+€' + maxGain + '</strong><br>' +
     '<strong>Bracket Order</strong> = in IBKR, set the stop-loss AND take-profit so it manages the trade 24/7 without you watching.';
+  var _act=(currentBracket&&currentBracket.action||'BUY').toUpperCase();
+  var _tab=(_act==='SELL')?'Sell':'Buy';
+  var _nm=(currentBracket&&currentBracket.name)||document.getElementById('bp-asset').value;
+  var _meta=document.getElementById('bp-ident-meta').textContent;
+  var _steps=document.getElementById('bp-steps');
+  if(_steps){ _steps.innerHTML='<div class="bp-steps-title">📋 Where to put it in IBKR</div><ol>'+    '<li><b>Search</b> the symbol → pick <b>'+_nm+'</b> ('+_meta+')</li>'+    '<li>Open the <b>'+_tab+'</b> tab</li>'+    '<li><b>Quantity</b>: '+qty+' Shares</li>'+    '<li><b>Order Type</b>: Limit · <b>Limit Price</b>: '+(document.getElementById('bp-entry').value||'-')+'</li>'+    '<li><b>Attach Orders</b> → turn on <b>Profit Taker</b> → '+(document.getElementById('bp-target').value||'-')+'</li>'+    '<li><b>Attach Orders</b> → turn on <b>Stop Loss</b> → '+(document.getElementById('bp-stop').value||'-')+'</li>'+    '<li><b>Time-in-Force</b>: Day (or GTC) → then place the order</li>'+    '</ol>'; }
 }
 ['bp-amount','bp-entry','bp-stop','bp-target'].forEach(id => {
   const el = document.getElementById(id);
@@ -772,24 +780,30 @@ function copyText(t){ if(navigator.clipboard&&navigator.clipboard.writeText){nav
 function fallbackCopy(t){ try{var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✓ Copied','gain');}catch(e){showToast('Copy failed','loss');} }
 function copyField(id){ var el=document.getElementById(id); if(el) copyText(String(el.value||'').trim()); }
 function copyOrderTicket(){ var asset=document.getElementById('bp-asset').value; var name=document.getElementById('bp-ident-name').textContent; var meta=document.getElementById('bp-ident-meta').textContent; var act=(currentBracket&&currentBracket.action)||'BUY'; var qty=(document.getElementById('bp-qty').value||'').replace(' shares',''); var entry=document.getElementById('bp-entry').value; var stop=document.getElementById('bp-stop').value; var target=document.getElementById('bp-target').value; var t=act+' '+qty+' '+asset+' — '+name+'\n('+meta+')\nEntry: '+entry+'\nStop-loss: '+stop+'\nTake-profit: '+target; copyText(t); }
-function executeBracket() {
+function openIBKR() {
   if (!currentBracket) return;
-  const asset = document.getElementById('bp-asset').value;
-  const qty = parseFloat(document.getElementById('bp-qty').value);
-  const entry = document.getElementById('bp-entry').value;
-  const stop = document.getElementById('bp-stop').value;
-  const target = document.getElementById('bp-target').value;
-  const amount = document.getElementById('bp-amount').value;
+  var asset = document.getElementById('bp-asset').value;
+  var ibkrUrl = 'https://www.interactivebrokers.co.uk/portal/?action=trade&symbol=' + asset + '&exchange=SMART&currency=USD';
+  window.open(ibkrUrl, '_blank');
+  var c = document.getElementById('bp-confirm'); if (c) c.style.display = 'block';
+  showToast('Place the order in IBKR, then come back and confirm', 'info');
+}
+function confirmPosition() {
+  if (!currentBracket) return;
+  var asset = document.getElementById('bp-asset').value;
+  var qty = parseFloat(document.getElementById('bp-qty').value);
+  var entry = document.getElementById('bp-entry').value;
+  var stop = document.getElementById('bp-stop').value;
+  var target = document.getElementById('bp-target').value;
+  var amount = document.getElementById('bp-amount').value;
   positions.push({
-    asset, name: currentBracket.name,
+    asset: asset, name: currentBracket.name,
     size: parseFloat(amount), entry: parseFloat(entry), current: parseFloat(entry),
     stop: parseFloat(stop), target: parseFloat(target),
     action: currentBracket.action, openedAt: new Date().toISOString()
   });
   renderPositions(); save(); closeBracket();
-  const ibkrUrl = 'https://www.interactivebrokers.co.uk/portal/?action=trade&symbol=' + asset + '&exchange=SMART&currency=USD';
-  window.open(ibkrUrl, '_blank');
-  showToast('✓ Position logged · In IBKR place ' + (currentBracket&&currentBracket.action||'BUY') + ' ' + asset + ' + Stop $' + stop + ' + Target $' + target, 'gain');
+  showToast('✓ Position logged: ' + asset, 'gain');
 }
 function closeBracket() {
   document.getElementById('bracket-panel').classList.remove('show');
