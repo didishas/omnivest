@@ -274,146 +274,71 @@ select.inp{cursor:pointer}
 <div class="panel" id="p-budget">
   <div class="scroll">
 
-    <!-- Revenus éditables -->
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <button class="btn btn-blue" onclick="changeMonth(-1)">‹ Préc.</button>
+      <div style="text-align:center"><div class="card-title" style="margin:0 0 2px">MOIS</div><div id="month-label" style="font-size:15px;font-weight:700;text-transform:capitalize">—</div></div>
+      <button class="btn btn-blue" onclick="changeMonth(1)">Suiv. ›</button>
+    </div>
+
     <div class="card green-border">
-      <div class="card-title">REVENUS MENSUELS — MODIFIER AU BESOIN</div>
-
-      <div style="display:grid;gap:8px;margin-bottom:12px">
-
-        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
-          <div>
-            <label class="inp-lbl">SALAIRE NET (€)</label>
-            <input class="inp" id="rev-salaire" type="number" placeholder="2400" value="2400" oninput="recalcRevenues()">
-          </div>
-          <div style="text-align:right;padding-top:16px">
-            <span class="val-pos" id="rev-salaire-disp">+€2,400</span>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
-          <div>
-            <label class="inp-lbl">REMBOURSEMENT KM (€)</label>
-            <input class="inp" id="rev-km" type="number" placeholder="600" value="600" oninput="recalcRevenues()">
-          </div>
-          <div style="text-align:right;padding-top:16px">
-            <span class="val-pos" id="rev-km-disp">+€600</span>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
-          <div>
-            <label class="inp-lbl">LOCATION MAISON FAMILIALE (€) <span style="color:var(--txt3)">(défaut 395 USD ≈ €365)</span></label>
-            <input class="inp" id="rev-location" type="number" placeholder="365" value="365" oninput="recalcRevenues()">
-          </div>
-          <div style="text-align:right;padding-top:16px">
-            <span class="val-pos" id="rev-location-disp">+€365</span>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
-          <div>
-            <label class="inp-lbl">AUTRES REVENUS (€) <span style="color:var(--txt3)">freelance, bonus, remb...</span></label>
-            <input class="inp" id="rev-autres" type="number" placeholder="0" value="0" oninput="recalcRevenues()">
-          </div>
-          <div style="text-align:right;padding-top:16px">
-            <span class="val-pos" id="rev-autres-disp">+€0</span>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
-          <div>
-            <label class="inp-lbl">REVENUS EXCEPTIONNELS (€) <span style="color:var(--txt3)">pécule, 13ème mois...</span></label>
-            <input class="inp" id="rev-excep" type="number" placeholder="0" value="0" oninput="recalcRevenues()">
-          </div>
-          <div style="text-align:right;padding-top:16px">
-            <span class="val-pos" id="rev-excep-disp">+€0</span>
-          </div>
-        </div>
-
-      </div>
-
-      <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700">TOTAL REVENUS CE MOIS</span>
-        <span class="val-pos" style="font-size:20px" id="total-rev">+€3,365</span>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn btn-gold" onclick="saveRevenues()" style="flex:1">💾 SAUVEGARDER CE MOIS</button>
-        <button class="btn btn-blue" onclick="resetRevenues()">↺ RÉINITIALISER</button>
-      </div>
-      <div id="rev-saved-msg" style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:6px;text-align:center"></div>
-    </div>
-
-    <!-- Charges fixes -->
-    <div class="card red-border">
-      <div class="card-title">CHARGES FIXES MENSUELLES</div>
-      <div class="budget-row"><span class="lbl">Loyer</span><span class="val-neg">-€700</span></div>
-      <div class="budget-row"><span class="lbl">Téléphone</span><span class="val-neg">-€100</span></div>
-      <div class="budget-row"><span class="lbl">ONEM <span style="color:var(--txt3);font-size:10px">(€1,300 restants)</span></span><span class="val-neg">-€150</span></div>
-      <div class="budget-row"><span class="lbl">Huissier <span style="color:var(--txt3);font-size:10px">(€<span id="huissier-bal">14,000</span> restants)</span></span><span class="val-neg">-€150</span></div>
-      <div class="budget-row"><span class="lbl">Eau + électricité (épouse)</span><span style="color:var(--txt3);font-family:var(--mono)">~€120</span></div>
-      <div class="budget-row"><span>TOTAL CHARGES</span><span class="val-neg" style="font-size:16px">-€1,220</span></div>
-    </div>
-
-    <!-- Dépenses variables -->
-    <div class="card">
-      <div class="card-title">DÉPENSES VARIABLES CE MOIS</div>
-      <div id="expense-list">
-        <div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:16px">Aucune dépense saisie ce mois.</div>
-      </div>
+      <div class="card-title">REVENUS — REÇU / À VENIR</div>
+      <div id="rev-list"></div>
       <div class="expense-form">
-        <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--gold)">+ Ajouter une dépense</div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--electric2)">+ Ajouter un revenu</div>
         <div class="form-row">
-          <div>
-            <label class="inp-lbl">DESCRIPTION</label>
-            <input class="inp" id="exp-name" placeholder="ex: Courses, Carburant...">
-          </div>
-          <div>
-            <label class="inp-lbl">MONTANT (€)</label>
-            <input class="inp" id="exp-amt" type="number" placeholder="150">
-          </div>
-          <div>
-            <label class="inp-lbl">CATÉGORIE</label>
-            <select class="inp" id="exp-cat">
-              <option value="alimentaire">🛒 Alimentaire</option>
-              <option value="transport">🚗 Transport</option>
-              <option value="sante">💊 Santé</option>
-              <option value="loisirs">🎮 Loisirs</option>
-              <option value="vetements">👕 Vêtements</option>
-              <option value="education">📚 Éducation</option>
-              <option value="investissement">📈 Investissement</option>
-              <option value="autre">📦 Autre</option>
-            </select>
-          </div>
+          <div><label class="inp-lbl">DESCRIPTION</label><input class="inp" id="rev-name" placeholder="ex: Salaire, Location..."></div>
+          <div><label class="inp-lbl">MONTANT (€)</label><input class="inp" id="rev-amt" type="number" placeholder="2431"></div>
+          <div><label class="inp-lbl">STATUT</label><select class="inp" id="rev-status"><option value="received">✓ Reçu</option><option value="expected">⏳ À venir</option></select></div>
         </div>
-        <button class="btn btn-gold" onclick="addExpense()" style="width:100%">+ AJOUTER</button>
+        <button class="btn btn-gold" onclick="addRevenue()" style="width:100%">+ AJOUTER REVENU</button>
       </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px;display:flex;justify-content:space-between"><span style="font-weight:700">Reçu ce mois</span><span class="val-pos" id="rev-received">+€0</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--txt3)">À venir</span><span style="font-family:var(--mono);color:var(--txt3)" id="rev-expected">€0</span></div>
     </div>
 
-    <!-- Bilan mensuel -->
+    <div class="card red-border">
+      <div class="card-title">DÉPENSES &amp; CHARGES — PAYÉE / PRÉVUE</div>
+      <div id="exp-list"></div>
+      <div class="expense-form">
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--electric2)">+ Ajouter une dépense</div>
+        <div class="form-row">
+          <div><label class="inp-lbl">DESCRIPTION</label><input class="inp" id="exp-name" placeholder="ex: Loyer, Courses..."></div>
+          <div><label class="inp-lbl">MONTANT (€)</label><input class="inp" id="exp-amt" type="number" placeholder="150"></div>
+          <div><label class="inp-lbl">CATÉGORIE</label><select class="inp" id="exp-cat"><option value="alimentaire">🛒 Alimentaire</option><option value="transport">🚗 Transport</option><option value="sante">💊 Santé</option><option value="logement">🏠 Logement</option><option value="loisirs">🎮 Loisirs</option><option value="vetements">👕 Vêtements</option><option value="education">📚 Éducation</option><option value="abonnement">🔁 Abonnement</option><option value="dette">⚖️ Dette</option><option value="investissement">📈 Investissement</option><option value="autre">📦 Autre</option></select></div>
+        </div>
+        <div class="form-row">
+          <div><label class="inp-lbl">STATUT</label><select class="inp" id="exp-status"><option value="paid">✓ Payée</option><option value="planned">⏳ Prévue</option></select></div>
+          <div></div>
+          <button class="btn btn-gold" onclick="addExpense()">+ AJOUTER</button>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px;display:flex;justify-content:space-between"><span style="font-weight:700">Payé ce mois</span><span class="val-neg" id="exp-paid">-€0</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--txt3)">Prévu (pas encore payé)</span><span style="font-family:var(--mono);color:var(--txt3)" id="exp-planned">€0</span></div>
+    </div>
+
     <div class="card gold-border">
       <div class="card-title">BILAN DU MOIS</div>
-      <div class="budget-row"><span class="lbl">Revenus</span><span class="val-pos">+€<span id="bilan-rev">3,365</span></span></div>
-      <div class="budget-row"><span class="lbl">Charges fixes</span><span class="val-neg">-€1,220</span></div>
-      <div class="budget-row"><span class="lbl">Dépenses variables</span><span class="val-neg">-€<span id="bilan-var">0</span></span></div>
-      <div class="budget-row"><span class="lbl">Investi</span><span class="val-pos">+€<span id="bilan-inv">0</span></span></div>
-      <div class="budget-row"><span>DISPONIBLE RESTANT</span><span class="val-neu" id="bilan-reste">€2,145</span></div>
+      <div class="budget-row"><span class="lbl">Revenus reçus</span><span class="val-pos" id="bilan-rev">+€0</span></div>
+      <div class="budget-row"><span class="lbl">Dépenses payées</span><span class="val-neg" id="bilan-paid">-€0</span></div>
+      <div class="budget-row"><span>SOLDE RÉEL (comme ING)</span><span class="val-neu" id="bilan-real">€0</span></div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:11px;color:var(--txt3);font-family:var(--mono)">Prévisionnel fin de mois (tout encaissé &amp; payé) : <span id="bilan-forecast" style="color:var(--gold)">€0</span></div>
     </div>
 
-    <!-- Investissement ce mois -->
+    <div class="card blue-border">
+      <div class="card-title">ANALYSE — RÉEL VS RÉFÉRENCE</div>
+      <div id="budget-analysis" style="font-size:12px;line-height:1.8"></div>
+      <div style="position:relative;height:200px;margin-top:12px"><canvas id="cat-chart"></canvas></div>
+    </div>
+
     <div class="card green-border">
-      <div class="card-title">INVESTISSEMENT CE MOIS</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px">
-        <input class="inp" id="inv-input" type="number" placeholder="Montant investi ce mois (€)" style="flex:1">
-        <button class="btn btn-green" onclick="updateInvested()">SAUVER</button>
-      </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--txt3)">Objectif mensuel: <span style="color:var(--gold)">€1,000</span></div>
+      <div class="card-title">INVESTI CE MOIS</div>
+      <div style="display:flex;gap:8px"><input class="inp" id="inv-input" type="number" placeholder="Montant investi (€)" style="flex:1"><button class="btn btn-green" onclick="updateInvested()">SAUVER</button></div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:8px">Objectif mensuel : <span style="color:var(--gold)">€1,000</span></div>
     </div>
 
   </div>
 </div>
 
-<!-- ══ FISCAL ══ -->
 <div class="panel" id="p-fiscal">
   <div class="scroll">
 
@@ -742,6 +667,7 @@ function save() {
     realCapital,
     revenues,
     planStartDate: PLAN_START_DATE,
+    ledger: (typeof ledger!=='undefined'?ledger:{}),
     lastSavedAt: new Date().toISOString()
   }));
   if(typeof writeFinanceIQBridge==='function'){ writeFinanceIQBridge(); }
@@ -776,6 +702,7 @@ function go(id, el) {
     if ((b.getAttribute('onclick')||'').includes("'"+id+"'")) b.classList.add('active');
   });
   if (id === 'projection') renderProjection();
+  if (id === 'budget' && typeof renderBudget==='function') renderBudget();
   if (id === 'parametres' && typeof renderOmniLink === 'function') renderOmniLink();
 }
 
@@ -950,6 +877,253 @@ function updateIBKR() {
   document.getElementById('ibkr-input').value = '';
 }
 
+// ══ BUDGET ENGINE — monthly ledger (rewritten logic) ══
+var REF = {
+  revenues: [ {label:'Salaire net', amount:2400}, {label:'Remboursement KM', amount:600}, {label:'Location maison', amount:365} ],
+  expenses: [ {name:'Loyer',amt:700,cat:'logement'}, {name:'Téléphone',amt:100,cat:'abonnement'}, {name:'ONEM',amt:150,cat:'dette'}, {name:'Huissier',amt:150,cat:'dette'}, {name:'Eau + électricité',amt:120,cat:'logement'} ]
+};
+var ledger = (st && st.ledger) ? st.ledger : {};
+function _two(n){ return (n<10?'0':'')+n; }
+function monthKey(d){ return d.getFullYear()+'-'+_two(d.getMonth()+1); }
+function monthLabelKey(key){ var p=key.split('-'); return new Date(+p[0],+p[1]-1,1).toLocaleDateString('fr-BE',{month:'long',year:'numeric'}); }
+function getMonth(key){ if(!ledger[key]) ledger[key]={rev:[],exp:[],invested:0}; if(!ledger[key].rev)ledger[key].rev=[]; if(!ledger[key].exp)ledger[key].exp=[]; return ledger[key]; }
+var curMonthKey = monthKey(getAppToday());
+var viewMonthKey = curMonthKey;
+var editRevId = null, editExpId = null;
+function newId(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function escq(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escA(x){ return escq(x).replace(/"/g,'&quot;'); }
+function setTxt(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; }
+
+function migrateLedger(){
+  if(ledger.__migrated) return;
+  var M=getMonth(curMonthKey);
+  if(M.rev.length===0 && M.exp.length===0){
+    var o=(typeof revenues==='object'&&revenues)?revenues:{};
+    function aRev(l,a,stt){ M.rev.push({id:newId('r'),label:l,amount:a,status:stt,date:new Date().toISOString()}); }
+    (+o.salaire||0)>0 ? aRev('Salaire net',+o.salaire,'received') : aRev('Salaire net',2400,'expected');
+    (+o.km||0)>0 ? aRev('Remboursement KM',+o.km,'received') : aRev('Remboursement KM',600,'expected');
+    (+o.location||0)>0 ? aRev('Location maison',+o.location,'received') : aRev('Location maison',365,'expected');
+    if((+o.autres||0)>0) aRev('Autres revenus',+o.autres,'received');
+    if((+o.excep||0)>0) aRev('Revenus exceptionnels',+o.excep,'received');
+    REF.expenses.forEach(function(c){ M.exp.push({id:newId('e'),name:c.name,amt:c.amt,cat:c.cat,status:'paid',date:new Date().toISOString()}); });
+    (Array.isArray(expenses)?expenses:[]).forEach(function(e){ M.exp.push({id:newId('e'),name:e.name,amt:e.amt,cat:e.cat||'autre',status:'paid',date:e.date||new Date().toISOString()}); });
+    M.invested=(typeof investedThisMonth==='number')?investedThisMonth:0;
+  }
+  ledger.__migrated=true;
+  if(typeof save==='function') save();
+}
+
+function sumRev(M,stt){ return M.rev.filter(function(r){return stt?r.status===stt:true;}).reduce(function(s,r){return s+(+r.amount||0);},0); }
+function sumExp(M,stt){ return M.exp.filter(function(e){return stt?e.status===stt:true;}).reduce(function(s,e){return s+(+e.amt||0);},0); }
+
+function syncLegacyFromLedger(){
+  var M=getMonth(curMonthKey);
+  expenses = M.exp.map(function(e){return {name:e.name,amt:e.amt,cat:e.cat,date:e.date,status:e.status};});
+  investedThisMonth = M.invested||0;
+}
+
+// overrides of legacy money accessors
+function getTotalRevenues(){ return sumRev(getMonth(curMonthKey),'received'); }
+function getPaidExpenses(){ return sumExp(getMonth(curMonthKey),'paid'); }
+
+function revRowHTML(r){
+  if(editRevId===r.id){
+    return '<div class="expense-item" style="flex-wrap:wrap;gap:6px">'+
+      '<input class="inp" id="er-name" value="'+escA(r.label)+'" style="flex:2;min-width:110px">'+
+      '<input class="inp" id="er-amt" type="number" value="'+(+r.amount)+'" style="width:88px">'+
+      '<select class="inp" id="er-status" style="width:104px"><option value="received"'+(r.status==='received'?' selected':'')+'>✓ Reçu</option><option value="expected"'+(r.status==='expected'?' selected':'')+'>⏳ À venir</option></select>'+
+      '<button class="btn btn-green" onclick="saveRevEdit(\''+r.id+'\')">OK</button>'+
+      '<button class="btn btn-red" onclick="editRevId=null;renderBudget()">✕</button></div>';
+  }
+  var rec=r.status==='received';
+  var badge='<span class="ei-cat" style="background:'+(rec?'rgba(0,229,160,.15)':'rgba(74,158,255,.12)')+';color:'+(rec?'var(--green)':'var(--blue)')+'">'+(rec?'✓ reçu':'⏳ à venir')+'</span>';
+  return '<div class="expense-item">'+badge+
+    '<span class="ei-name">'+escq(r.label)+'</span>'+
+    '<span class="ei-amt" style="color:'+(rec?'var(--green)':'var(--txt3)')+'">+€'+(+r.amount).toFixed(2)+'</span>'+
+    '<button class="ei-del" title="Basculer reçu/à venir" onclick="toggleRevStatus(\''+r.id+'\')">⇄</button>'+
+    '<button class="ei-del" title="Modifier" onclick="editRevId=\''+r.id+'\';renderBudget()">✎</button>'+
+    '<button class="ei-del" title="Supprimer" onclick="delRevenue(\''+r.id+'\')">✕</button></div>';
+}
+function expRowHTML(e){
+  if(editExpId===e.id){
+    var cats=['alimentaire','transport','sante','logement','loisirs','vetements','education','abonnement','dette','investissement','autre'];
+    var opts=cats.map(function(c){return '<option value="'+c+'"'+(e.cat===c?' selected':'')+'>'+c+'</option>';}).join('');
+    return '<div class="expense-item" style="flex-wrap:wrap;gap:6px">'+
+      '<input class="inp" id="ee-name" value="'+escA(e.name)+'" style="flex:2;min-width:100px">'+
+      '<input class="inp" id="ee-amt" type="number" value="'+(+e.amt)+'" style="width:80px">'+
+      '<select class="inp" id="ee-cat" style="width:120px">'+opts+'</select>'+
+      '<select class="inp" id="ee-status" style="width:100px"><option value="paid"'+(e.status==='paid'?' selected':'')+'>✓ Payée</option><option value="planned"'+(e.status==='planned'?' selected':'')+'>⏳ Prévue</option></select>'+
+      '<button class="btn btn-green" onclick="saveExpEdit(\''+e.id+'\')">OK</button>'+
+      '<button class="btn btn-red" onclick="editExpId=null;renderBudget()">✕</button></div>';
+  }
+  var paid=e.status==='paid';
+  var ic=(typeof catIcons!=='undefined'&&catIcons[e.cat])?catIcons[e.cat]:'📦';
+  var col=(typeof catColors!=='undefined'&&catColors[e.cat])?catColors[e.cat]:'rgba(255,255,255,.07)';
+  var sb=paid?'':'<span style="color:var(--blue);font-family:var(--mono);font-size:9px;margin-left:4px">prévue</span>';
+  return '<div class="expense-item"'+(paid?'':' style="opacity:.7"')+'>'+
+    '<span class="ei-cat" style="background:'+col+'">'+ic+' '+escq(e.cat)+'</span>'+
+    '<span class="ei-name">'+escq(e.name)+sb+'</span>'+
+    '<span class="ei-amt" style="color:var(--red)">-€'+(+e.amt).toFixed(2)+'</span>'+
+    '<button class="ei-del" title="Basculer payée/prévue" onclick="toggleExpStatus(\''+e.id+'\')">⇄</button>'+
+    '<button class="ei-del" title="Modifier" onclick="editExpId=\''+e.id+'\';renderBudget()">✎</button>'+
+    '<button class="ei-del" title="Supprimer" onclick="delExpense(\''+e.id+'\')">✕</button></div>';
+}
+
+function renderBudget(){
+  var M=getMonth(viewMonthKey);
+  setTxt('month-label', monthLabelKey(viewMonthKey)+(viewMonthKey===curMonthKey?' (en cours)':''));
+  var rl=document.getElementById('rev-list');
+  if(rl) rl.innerHTML = M.rev.length? M.rev.map(revRowHTML).join('') : '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:12px">Aucun revenu. Ajoute ton salaire ci-dessous.</div>';
+  var el=document.getElementById('exp-list');
+  if(el) el.innerHTML = M.exp.length? M.exp.map(expRowHTML).join('') : '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:12px">Aucune dépense.</div>';
+  setTxt('rev-received','+€'+sumRev(M,'received').toLocaleString('fr-BE'));
+  setTxt('rev-expected','€'+sumRev(M,'expected').toLocaleString('fr-BE'));
+  setTxt('exp-paid','-€'+sumExp(M,'paid').toLocaleString('fr-BE'));
+  setTxt('exp-planned','€'+sumExp(M,'planned').toLocaleString('fr-BE'));
+  renderBilan(); renderAnalysis();
+  syncLegacyFromLedger();
+}
+
+function renderBilan(){
+  var M=getMonth(viewMonthKey);
+  var recv=sumRev(M,'received'), paid=sumExp(M,'paid');
+  var allRev=sumRev(M), allExp=sumExp(M);
+  setTxt('bilan-rev','+€'+recv.toFixed(2));
+  setTxt('bilan-paid','-€'+paid.toFixed(2));
+  var real=recv-paid;
+  setTxt('bilan-real','€'+real.toFixed(2));
+  var be=document.getElementById('bilan-real'); if(be) be.style.color = real>=0?'var(--gold)':'var(--red)';
+  setTxt('bilan-forecast','€'+(allRev-allExp-(M.invested||0)).toFixed(2));
+}
+
+function renderAnalysis(){
+  var M=getMonth(viewMonthKey);
+  var box=document.getElementById('budget-analysis'); if(!box) return;
+  var recv=sumRev(M,'received'), paid=sumExp(M,'paid');
+  var refRev=REF.revenues.reduce(function(s,r){return s+r.amount;},0);
+  var refExp=REF.expenses.reduce(function(s,e){return s+e.amt;},0);
+  var savings=recv-paid, refSavings=refRev-refExp;
+  function line(lbl,val,ref,inv){
+    var diff=val-ref; var good=inv?(diff<=0):(diff>=0); var col=good?'var(--green)':'var(--red)';
+    return '<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--txt2)">'+lbl+'</span><span style="font-family:var(--mono)">€'+Math.round(val).toLocaleString('fr-BE')+' <span style="color:var(--txt3)">/ réf €'+Math.round(ref).toLocaleString('fr-BE')+'</span> <span style="color:'+col+'">('+(diff>=0?'+':'')+Math.round(diff).toLocaleString('fr-BE')+')</span></span></div>';
+  }
+  // month-over-month
+  var pk=(function(){var p=viewMonthKey.split('-');var d=new Date(+p[0],+p[1]-2,1);return monthKey(d);})();
+  var prev=ledger[pk];
+  var mom='';
+  if(prev){ var pSav=sumRev(prev,'received')-sumExp(prev,'paid'); var d=savings-pSav; mom='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);color:var(--txt2)">Vs mois précédent ('+monthLabelKey(pk)+') : épargne <span style="font-family:var(--mono);color:'+(d>=0?'var(--green)':'var(--red)')+'">'+(d>=0?'+':'')+'€'+Math.round(d).toLocaleString('fr-BE')+'</span></div>'; }
+  box.innerHTML = line('Revenus reçus',recv,refRev,false)+line('Dépenses payées',paid,refExp,true)+line('Épargne du mois',savings,refSavings,false)+mom;
+  // category doughnut (paid expenses)
+  var cats={};
+  M.exp.filter(function(e){return e.status==='paid';}).forEach(function(e){ cats[e.cat]=(cats[e.cat]||0)+(+e.amt||0); });
+  var labels=Object.keys(cats), vals=labels.map(function(k){return cats[k];});
+  var palette=['#4a9eff','#00e5a0','#ffa502','#a78bfa','#ff4757','#c9a84c','#8fc6ff','#7c879a','#e8c97a','#ff6b81','#aeb8c7'];
+  var ctx=document.getElementById('cat-chart');
+  if(ctx && typeof Chart!=='undefined'){
+    if(window._catChart){window._catChart.destroy();window._catChart=null;}
+    if(labels.length){
+      window._catChart=new Chart(ctx,{type:'doughnut',data:{labels:labels,datasets:[{data:vals,backgroundColor:palette,borderColor:'#0d0f13',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8b919e',font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:function(c){return c.label+': €'+Math.round(c.parsed).toLocaleString('fr-BE');}}}}}});
+    }
+  }
+}
+
+function addRevenue(){
+  var n=document.getElementById('rev-name'), a=document.getElementById('rev-amt'), st2=document.getElementById('rev-status');
+  var name=n?n.value.trim():'', amt=a?parseFloat(a.value):NaN, status=st2?st2.value:'received';
+  if(!name||isNaN(amt)){ toast('Remplis description et montant','err'); return; }
+  getMonth(viewMonthKey).rev.push({id:newId('r'),label:name,amount:amt,status:status,date:new Date().toISOString()});
+  if(n)n.value='';if(a)a.value='';
+  save(); renderBudget(); renderDashboard(); toast('Revenu ajouté: '+name);
+}
+function saveRevEdit(id){
+  var M=getMonth(viewMonthKey); var r=M.rev.filter(function(x){return x.id===id;})[0]; if(!r)return;
+  var n=document.getElementById('er-name'), a=document.getElementById('er-amt'), stt=document.getElementById('er-status');
+  if(n)r.label=n.value.trim()||r.label; if(a&&!isNaN(parseFloat(a.value)))r.amount=parseFloat(a.value); if(stt)r.status=stt.value;
+  editRevId=null; save(); renderBudget(); renderDashboard(); toast('Revenu modifié');
+}
+function toggleRevStatus(id){ var M=getMonth(viewMonthKey); var r=M.rev.filter(function(x){return x.id===id;})[0]; if(!r)return; r.status=(r.status==='received')?'expected':'received'; save(); renderBudget(); renderDashboard(); }
+function delRevenue(id){ var M=getMonth(viewMonthKey); M.rev=M.rev.filter(function(x){return x.id!==id;}); save(); renderBudget(); renderDashboard(); toast('Revenu supprimé'); }
+
+function addExpense(){
+  var n=document.getElementById('exp-name'), a=document.getElementById('exp-amt'), c=document.getElementById('exp-cat'), stt=document.getElementById('exp-status');
+  var name=n?n.value.trim():'', amt=a?parseFloat(a.value):NaN, cat=c?c.value:'autre', status=stt?stt.value:'paid';
+  if(!name||isNaN(amt)){ toast('Remplis description et montant','err'); return; }
+  getMonth(viewMonthKey).exp.push({id:newId('e'),name:name,amt:amt,cat:cat,status:status,date:new Date().toISOString()});
+  if(n)n.value='';if(a)a.value='';
+  save(); renderBudget(); renderDashboard(); toast('Dépense ajoutée: '+name);
+}
+function saveExpEdit(id){
+  var M=getMonth(viewMonthKey); var e=M.exp.filter(function(x){return x.id===id;})[0]; if(!e)return;
+  var n=document.getElementById('ee-name'), a=document.getElementById('ee-amt'), c=document.getElementById('ee-cat'), stt=document.getElementById('ee-status');
+  if(n)e.name=n.value.trim()||e.name; if(a&&!isNaN(parseFloat(a.value)))e.amt=parseFloat(a.value); if(c)e.cat=c.value; if(stt)e.status=stt.value;
+  editExpId=null; save(); renderBudget(); renderDashboard(); toast('Dépense modifiée');
+}
+function toggleExpStatus(id){ var M=getMonth(viewMonthKey); var e=M.exp.filter(function(x){return x.id===id;})[0]; if(!e)return; e.status=(e.status==='paid')?'planned':'paid'; save(); renderBudget(); renderDashboard(); }
+function delExpense(id){ var M=getMonth(viewMonthKey); M.exp=M.exp.filter(function(x){return x.id!==id;}); save(); renderBudget(); renderDashboard(); toast('Dépense supprimée'); }
+
+function updateInvested(){
+  var v=parseFloat(document.getElementById('inv-input').value);
+  if(!isNaN(v)){ getMonth(viewMonthKey).invested=v; save(); renderBudget(); renderDashboard(); toast('Investissement mis à jour: €'+v); }
+  document.getElementById('inv-input').value='';
+}
+function changeMonth(delta){
+  var p=viewMonthKey.split('-'); var d=new Date(+p[0],+p[1]-1+delta,1); viewMonthKey=monthKey(d);
+  editRevId=null; editExpId=null; renderBudget();
+  var inv=document.getElementById('inv-input'); if(inv)inv.placeholder='Investi: €'+(getMonth(viewMonthKey).invested||0);
+}
+
+// legacy renders redirected to ledger
+function renderExpenses(){ renderBudget(); }
+function restoreRevenues(){ renderBudget(); }
+
+function renderDashboard(){
+  var M=getMonth(curMonthKey);
+  var totalRev=sumRev(M,'received');
+  var paid=sumExp(M,'paid');
+  var invested=M.invested||0;
+  var reste=totalRev-paid-invested;
+  var debtTotal=debtHuissier+debtOnem;
+  var debtPct=Math.max(0,100-(debtTotal/15300*100));
+  var capitalPct=Math.min(100,realCapital/10000*100);
+  var planPct=Math.min(100,(currentMonth/60)*100);
+  setTxt('d-revenus','+€'+totalRev.toLocaleString('fr-BE'));
+  setTxt('d-depenses','-€'+paid.toFixed(2));
+  setTxt('d-investi','+€'+invested.toFixed(2));
+  setTxt('d-reste','€'+reste.toFixed(2));
+  setTxt('ibkr-bal',ibkrBalance.total.toFixed(2));
+  setTxt('ibkr-pnl',(ibkrBalance.pnl>=0?'+':'')+ibkrBalance.pnl.toFixed(2));
+  setTxt('huissier-bal',debtHuissier.toLocaleString('fr-BE'));
+  var dp=document.getElementById('debt-prog'); if(dp)dp.style.width=debtPct+'%';
+  setTxt('debt-pct-lbl','Remboursé '+debtPct.toFixed(0)+'%');
+  var cp=document.getElementById('capital-prog'); if(cp)cp.style.width=capitalPct+'%';
+  setTxt('capital-pct-lbl','€'+realCapital.toLocaleString('fr-BE')+' / €10,000');
+  var pp=document.getElementById('plan-prog'); if(pp)pp.style.width=planPct+'%';
+  setTxt('plan-pct-lbl','Mois '+currentMonth+' / 60');
+  var dm=[
+    {lbl:'REVENUS REÇUS',val:'€'+totalRev.toLocaleString('fr-BE'),cls:'m-green',sub:'Ce mois (encaissé)'},
+    {lbl:'DÉPENSES PAYÉES',val:'-€'+Math.round(paid).toLocaleString('fr-BE'),cls:'m-red',sub:'Ce mois'},
+    {lbl:'DETTE TOTALE',val:'-€'+debtTotal.toLocaleString('fr-BE'),cls:'m-red',sub:'Huissier + ONEM'},
+    {lbl:'CAPITAL IBKR',val:'€'+realCapital.toLocaleString('fr-BE'),cls:'m-gold',sub:'Compte réel'},
+    {lbl:'SOLDE DU MOIS',val:'€'+Math.round(reste).toLocaleString('fr-BE'),cls:reste>=0?'m-green':'m-red',sub:'Reçu - payé - investi'},
+    {lbl:'MOIS DU PLAN',val:'M'+currentMonth,cls:'m-blue',sub:'M0 = mai 2026'}
+  ];
+  var dmel=document.getElementById('dash-metrics');
+  if(dmel) dmel.innerHTML=dm.map(function(m){return '<div class="metric '+m.cls+'"><div class="m-lbl">'+m.lbl+'</div><div class="m-val">'+m.val+'</div><div class="m-sub">'+m.sub+'</div></div>';}).join('');
+}
+
+// OmniVest share uses real received/paid (no hardcoded charges)
+function buildFinanceIQShare(){
+  var M=getMonth(curMonthKey);
+  var recv=sumRev(M,'received'), paid=sumExp(M,'paid');
+  var reste=recv-paid-(M.invested||0);
+  var insights=['Plan month M'+currentMonth+'/60','Available this month: \u20ac'+Math.round(reste)];
+  if(debtHuissier>0) insights.push('Huissier debt: \u20ac'+debtHuissier.toLocaleString('fr-BE'));
+  return {source:'financeiq',capital:realCapital,monthlyIncome:recv,available:Math.round(reste),invested:(M.invested||0),debts:{huissier:debtHuissier,onem:debtOnem},planMonth:currentMonth,goals:'Objectif \u20ac10K capital (plan 60 mois \u2014 M'+currentMonth+')',notes:'Budget net dispo ~\u20ac'+Math.round(reste)+'/mois \u00b7 TOB 0.12% \u00e0 d\u00e9clarer trimestriellement',insights:insights,updatedAt:new Date().toISOString()};
+}
+
+migrateLedger();
+syncLegacyFromLedger();
 // ══ PROJECTION ══
 function calcProjection(apportOverride, rateOverride) {
   var rate = rateOverride !== undefined ? rateOverride / 100 : 0.10;
@@ -1153,8 +1327,8 @@ function getUserId(){var uid=localStorage.getItem('financeiq_uid');if(!uid){uid=
 var USER_ID=getUserId();
 var syncTimeout=null;
 function setSyncUI(status){var el=document.getElementById('sync-indicator');if(!el)return;var s={idle:{txt:'☁️ Cloud',col:'#4a5260'},syncing:{txt:'🔄 Sync...',col:'#ffa502'},ok:{txt:'✅ Sync',col:'#00e5a0'},error:{txt:'⚠️ Hors ligne',col:'#ff4757'}}[status]||{txt:'☁️',col:'#4a5260'};el.textContent=s.txt;el.style.color=s.col;}
-async function syncToCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return;}setSyncUI('syncing');try{var payload={user_id:USER_ID,revenues:JSON.parse(JSON.stringify(revenues)),expenses:JSON.parse(JSON.stringify(expenses)),ibkr:JSON.parse(JSON.stringify(ibkrBalance)),debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},updated_at:new Date().toISOString()};var res=await fetch(url+'/rest/v1/financeiq_state',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');localStorage.setItem('financeiq_last_sync',new Date().toISOString());}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);}}
-async function syncFromCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return false;}setSyncUI('syncing');try{var res=await fetch(url+'/rest/v1/financeiq_state?user_id=eq.'+encodeURIComponent(USER_ID)+'&limit=1',{method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);var rows=await res.json();if(!rows||rows.length===0){setSyncUI('ok');return false;}var data=rows[0];var cloudTime=new Date(data.updated_at).getTime();var localTime=new Date(localStorage.getItem('financeiq_last_sync')||0).getTime();if(cloudTime<=localTime){setSyncUI('ok');return false;}if(data.revenues)revenues=data.revenues;if(data.expenses)expenses=data.expenses;if(data.ibkr)ibkrBalance=data.ibkr;if(data.debts){debtHuissier=data.debts.huissier??debtHuissier;debtOnem=data.debts.onem??debtOnem;investedThisMonth=data.debts.invested??investedThisMonth;realCapital=data.debts.capital??realCapital;currentMonth=data.debts.month??currentMonth;manualPlanMonth=data.debts.manual??manualPlanMonth;}save();setSyncUI('ok');localStorage.setItem('financeiq_last_sync',data.updated_at);return true;}catch(e){setSyncUI('error');return false;}}
+async function syncToCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return;}setSyncUI('syncing');try{var payload={user_id:USER_ID,revenues:JSON.parse(JSON.stringify(revenues)),expenses:JSON.parse(JSON.stringify(expenses)),ibkr:JSON.parse(JSON.stringify(ibkrBalance)),debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},ledger:JSON.parse(JSON.stringify(typeof ledger!=='undefined'?ledger:{})),updated_at:new Date().toISOString()};var res=await fetch(url+'/rest/v1/financeiq_state',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');localStorage.setItem('financeiq_last_sync',new Date().toISOString());}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);}}
+async function syncFromCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return false;}setSyncUI('syncing');try{var res=await fetch(url+'/rest/v1/financeiq_state?user_id=eq.'+encodeURIComponent(USER_ID)+'&limit=1',{method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);var rows=await res.json();if(!rows||rows.length===0){setSyncUI('ok');return false;}var data=rows[0];var cloudTime=new Date(data.updated_at).getTime();var localTime=new Date(localStorage.getItem('financeiq_last_sync')||0).getTime();if(cloudTime<=localTime){setSyncUI('ok');return false;}if(data.revenues)revenues=data.revenues;if(data.expenses)expenses=data.expenses;if(data.ibkr)ibkrBalance=data.ibkr;if(data.ledger){ledger=data.ledger;}if(data.debts){debtHuissier=data.debts.huissier??debtHuissier;debtOnem=data.debts.onem??debtOnem;investedThisMonth=data.debts.invested??investedThisMonth;realCapital=data.debts.capital??realCapital;currentMonth=data.debts.month??currentMonth;manualPlanMonth=data.debts.manual??manualPlanMonth;}save();setSyncUI('ok');localStorage.setItem('financeiq_last_sync',data.updated_at);return true;}catch(e){setSyncUI('error');return false;}}
 function scheduleSave(){save();if(syncTimeout)clearTimeout(syncTimeout);syncTimeout=setTimeout(syncToCloud,2000);}
 // ══ OMNIVEST COLLABORATION (shared cloud + bridge) ══
 var SHARED_SB_URL='https://ariagmqrbeliwvmxwnav.supabase.co';
@@ -1223,8 +1397,7 @@ function restoreSupaUI(){var url=localStorage.getItem('financeiq_supa_url');var 
 async function initApp(){
   restoreRevenues();
   restoreSupaUI();
-  renderExpenses();
-  renderBilan();
+  renderBudget();
   renderDashboard();
   if(typeof writeFinanceIQBridge==='function') writeFinanceIQBridge();
   try{ omnivestSharePull(); }catch(e){}
