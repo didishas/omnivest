@@ -333,6 +333,7 @@ body[data-theme="dark"] .quick-card:hover{
 .refresh-progress{height:5px;border-radius:999px;background:var(--bg3);overflow:hidden;margin:0 0 14px;opacity:0;transition:opacity .3s}.refresh-progress.active{opacity:1}.refresh-progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--gold2),var(--green));border-radius:999px;box-shadow:0 0 12px rgba(0,200,150,.4)}.refresh-signals-btn.loading{transform:translateY(2px) scale(.97);box-shadow:inset 0 4px 12px rgba(0,0,0,.28)}.spin{display:inline-block;animation:spin360 .8s linear infinite}@keyframes spin360{to{transform:rotate(360deg)}}.primary-btn:active,.secondary-btn:active,.bp-submit:active,.refresh-signals-btn:active,.add-btn:active,.api-save:active,.ib-save:active,.go:active,.pos-btn:active,.filter-chip:active,.sc:active,.icon-btn:active,.theme-toggle:active,.bnav-btn:active,.tab:active,.bp-copy:active,.bp-cancel:active,.drawer-close:active,.icon-link:active,.style-select:active,.nav-reveal-btn:active,.side-close-btn:active,.desktop-menu-btn:active,.more-card:active,.quick-card:active{transform:translateY(1px) scale(.97);box-shadow:inset 0 3px 10px rgba(0,0,0,.22);transition:transform .08s ease,box-shadow .1s ease}
 .chart-ai-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.chart-ai-modes{display:inline-flex;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:3px}.chart-ai-modes button{border:0;background:transparent;color:var(--txt2);font-weight:800;font-size:12px;padding:6px 12px;border-radius:9px;cursor:pointer}.chart-ai-modes button.active{background:var(--gold);color:#111}
 .explore-input{min-height:40px;border:1px solid var(--border);background:var(--surface);color:var(--txt);border-radius:12px;padding:0 12px;font-weight:700;font-size:13px;min-width:150px;outline:0}.explore-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,167,44,.13)}.readiness{display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:11px 14px}.readiness-bar{flex:1;height:10px;border-radius:999px;background:var(--surface-2);overflow:hidden}.readiness-fill{height:100%;border-radius:999px;transition:width .5s ease}.readiness-val{font-family:var(--mono);font-weight:900;font-size:18px;display:flex;flex-direction:column;align-items:flex-end;line-height:1.05}.readiness-val span{font-size:9px;letter-spacing:.5px;color:var(--txt2);text-transform:uppercase;font-weight:800}
+.score-filter{display:inline-flex;align-items:center;gap:6px;color:var(--txt2);font-size:12px;font-weight:800;margin-left:4px}.score-filter select{border:1px solid var(--border);background:var(--surface);color:var(--txt);border-radius:10px;padding:4px 8px;font-weight:800;font-size:12px;outline:0;cursor:pointer}
 </style>
 </head>
 <body data-theme="light">
@@ -417,7 +418,7 @@ body[data-theme="dark"] .quick-card:hover{
     <section class="panel" id="p-signals">
       <div class="scroll">
         <div class="page-head"><div><div class="eyebrow">Live market signals</div><h1 class="page-title">Signals</h1><p class="page-sub" id="signals-updated">Tap Refresh to generate new signals.</p></div><div class="sig-controls"><select class="style-select" id="style-select" onchange="setTradingStyle(this.value)" title="Trading style"><option value="mix">🎛 Mix styles</option><option value="day">⚡ Day trading</option><option value="swing">📅 Swing (2w+)</option><option value="long">🏛 Long-term</option></select><select class="style-select" id="sector-select" onchange="setSignalSector(this.value)" title="Sector / theme"><option value="auto">🌐 All sectors</option><option value="energy">🛢 Energy</option><option value="tech">💻 Technology</option><option value="health">🧬 Healthcare</option><option value="financials">🏦 Financials</option><option value="materials">⛏ Materials</option><option value="industrials">🏭 Industrials</option><option value="consumer">🛒 Consumer</option><option value="crypto">₿ Crypto</option><option value="dividend">💸 Dividend</option></select><input class="explore-input" id="explore-input" type="text" placeholder="🔍 Explore a theme (optional)"><button class="refresh-signals-btn" id="refresh-btn" onclick="refreshSignals()"><span id="refresh-icon">↻</span> Refresh signals</button></div></div><div class="refresh-progress" id="refresh-progress"><div class="refresh-progress-bar" id="refresh-progress-bar"></div></div>
-        <div class="filters"><button class="filter-chip active" data-filter="ALL" onclick="setSignalFilter('ALL',this)">All</button><button class="filter-chip" data-filter="BUY" onclick="setSignalFilter('BUY',this)">BUY</button><button class="filter-chip" data-filter="SELL" onclick="setSignalFilter('SELL',this)">SELL</button><button class="filter-chip" data-filter="WATCH" onclick="setSignalFilter('WATCH',this)">WATCH</button><button class="filter-chip" data-filter="HOLD" onclick="setSignalFilter('HOLD',this)">HOLD</button></div>
+        <div class="filters"><button class="filter-chip active" data-filter="ALL" onclick="setSignalFilter('ALL',this)">All</button><button class="filter-chip" data-filter="BUY" onclick="setSignalFilter('BUY',this)">BUY</button><button class="filter-chip" data-filter="SELL" onclick="setSignalFilter('SELL',this)">SELL</button><button class="filter-chip" data-filter="WATCH" onclick="setSignalFilter('WATCH',this)">WATCH</button><button class="filter-chip" data-filter="HOLD" onclick="setSignalFilter('HOLD',this)">HOLD</button><span class="score-filter">Score<select id="conf-min" onchange="setConfRange()"><option value="0">≥ any</option><option value="5">≥ 5</option><option value="6">≥ 6</option><option value="7">≥ 7</option><option value="8">≥ 8</option><option value="9">≥ 9</option></select><select id="conf-max" onchange="setConfRange()"><option value="10">≤ 10</option><option value="9">≤ 9</option><option value="8">≤ 8</option><option value="7">≤ 7</option><option value="6">≤ 6</option></select></span></div>
         <div class="gauge-grid" id="gauges"></div>
         <div class="signals-layout" id="signal-cards"><div class="empty-state"><strong>Ready to generate signals.</strong><span>Cards will show entry, target, stop-loss and AI explanation.</span></div></div>
       </div>
@@ -726,6 +727,8 @@ async function refreshSignals() {
   icon.textContent = '↻';
 }
 var currentSignalFilter='ALL';
+var confMin=0, confMax=10;
+function setConfRange(){ var a=document.getElementById('conf-min'), b=document.getElementById('conf-max'); confMin=a?Number(a.value):0; confMax=b?Number(b.value):10; if(confMin>confMax){ confMax=confMin; if(b) b.value=String(confMax); } renderSignalCards(); }
 function setSignalFilter(f,el){ currentSignalFilter=f; var chips=document.querySelectorAll('.filters .filter-chip'); for(var c=0;c<chips.length;c++) chips[c].classList.remove('active'); if(el) el.classList.add('active'); renderSignalCards(); }
 function renderSignals(signals){ lastSignals = signals || []; renderSignalCards(); if (typeof syncHome === 'function') syncHome(); }
 function readinessColor(p){ p=Math.max(0,Math.min(100,Number(p)||0)); var h=Math.round((p/100)*130); return "hsl("+h+",72%,45%)"; }
@@ -742,6 +745,7 @@ function renderSignalCards() {
   lastSignals.forEach((s, i) => {
     const __act=(s.action||'WATCH').toUpperCase();
     if(currentSignalFilter!=='ALL' && __act!==currentSignalFilter) return;
+    var __conf=Number(s.confidence||0); if(__conf<confMin || __conf>confMax) return;
     shown++;
     const action = (s.action || 'WATCH').toUpperCase();
     const conf = Number(s.confidence || 0);
@@ -770,7 +774,7 @@ function renderSignalCards() {
       '</div>';
     container.appendChild(card);
   });
-  if(!shown){ container.innerHTML='<div class="empty-state"><strong>No '+currentSignalFilter+' signals.</strong><span>Tap All to see every opportunity.</span></div>'; }
+  if(!shown){ var _rng=(confMin>0||confMax<10)?(' with score '+confMin+'\u2013'+confMax):''; container.innerHTML='<div class="empty-state"><strong>No matching signals'+_rng+'.</strong><span>Widen the score range or tap All.</span></div>'; }
 }
 // ══ BRACKET ORDER ══
 function openBracketIdx(i) {
