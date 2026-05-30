@@ -219,7 +219,7 @@ body[data-theme="dark"] .app-shell{background:
   font-weight:900;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 22px rgba(0,0,0,.16);
 }
-.desktop-menu-btn{flex:0 0 auto;display:grid;}
+.desktop-menu-btn{flex:0 0 auto;display:grid;height:42px;opacity:0;visibility:hidden;width:0;min-width:0;padding:0;border-width:0;margin-right:-14px;overflow:hidden;pointer-events:none;transform:scale(.8);transition:opacity .3s ease,width .32s ease,margin .32s ease,transform .3s ease,border-width .3s}.app-shell.sidebar-hidden .desktop-menu-btn{opacity:1;visibility:visible;width:42px;min-width:42px;border-width:1px;margin-right:0;pointer-events:auto;transform:none}
 .nav-reveal-btn{position:fixed;left:18px;top:18px;z-index:140;display:grid;opacity:0;visibility:hidden;transform:translateX(-10px) scale(.82);pointer-events:none;transition:opacity .32s ease,transform .32s ease,visibility .32s;background:linear-gradient(145deg,#05070a,#0e151d);box-shadow:0 18px 45px rgba(0,0,0,.38),0 0 26px rgba(241,199,91,.16)}
 .app-shell.sidebar-hidden{grid-template-columns:0 1fr;}
 .app-shell.sidebar-hidden .sidebar{transform:translateX(-112%);opacity:0;pointer-events:none;}
