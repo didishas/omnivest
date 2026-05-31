@@ -312,6 +312,7 @@ select.inp{cursor:pointer}
           <div></div>
           <button class="btn btn-gold" onclick="addExpense()">+ AJOUTER</button>
         </div>
+        <button class="btn btn-blue" onclick="seedRecurring(viewMonthKey)" style="width:100%;margin-top:6px">↻ Reporter les charges récurrentes</button>
       </div>
       <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px;display:flex;justify-content:space-between"><span style="font-weight:700">Payé ce mois</span><span class="val-neg" id="exp-paid">-€0</span></div>
       <div style="display:flex;justify-content:space-between"><span style="color:var(--txt3)">Prévu (pas encore payé)</span><span style="font-family:var(--mono);color:var(--txt3)" id="exp-planned">€0</span></div>
@@ -329,6 +330,8 @@ select.inp{cursor:pointer}
       <div class="card-title">ANALYSE — RÉEL VS RÉFÉRENCE</div>
       <div id="budget-analysis" style="font-size:12px;line-height:1.8"></div>
       <div style="position:relative;height:200px;margin-top:12px"><canvas id="cat-chart"></canvas></div>
+      <div style="font-size:11px;color:var(--txt3);font-family:var(--mono);margin-top:16px;margin-bottom:4px">ÉVOLUTION DE L'ÉPARGNE (par mois)</div>
+      <div style="position:relative;height:160px"><canvas id="trend-chart"></canvas></div>
     </div>
 
     <div class="card green-border">
@@ -904,7 +907,9 @@ var ledger = (st && st.ledger) ? st.ledger : {};
 function _two(n){ return (n<10?'0':'')+n; }
 function monthKey(d){ return d.getFullYear()+'-'+_two(d.getMonth()+1); }
 function monthLabelKey(key){ var p=key.split('-'); return new Date(+p[0],+p[1]-1,1).toLocaleDateString('fr-BE',{month:'long',year:'numeric'}); }
-function getMonth(key){ if(!ledger[key]) ledger[key]={rev:[],exp:[],invested:0}; if(!ledger[key].rev)ledger[key].rev=[]; if(!ledger[key].exp)ledger[key].exp=[]; return ledger[key]; }
+function getMonth(key){ if(!ledger[key]){ ledger[key]={rev:[],exp:[],invested:0}; seedRecurringInto(key); if(typeof save==='function') save(); } if(!ledger[key].rev)ledger[key].rev=[]; if(!ledger[key].exp)ledger[key].exp=[]; return ledger[key]; }
+function seedRecurringInto(key){ if(key<curMonthKey) return; var m=ledger[key]; if(!m) return; if(Array.isArray(ledger.__recurringRev)) ledger.__recurringRev.forEach(function(r){ if(!m.rev.some(function(x){return x.label===r.label;})) m.rev.push({id:newId('r'),label:r.label,amount:r.amount,status:'expected',date:new Date().toISOString()}); }); if(Array.isArray(ledger.__recurring)) ledger.__recurring.forEach(function(c){ if(!m.exp.some(function(x){return x.name===c.name;})) m.exp.push({id:newId('e'),name:c.name,amt:c.amt,cat:c.cat,status:'planned',date:new Date().toISOString()}); }); }
+function seedRecurring(key,force){ var m=getMonth(key); if(Array.isArray(ledger.__recurring)) ledger.__recurring.forEach(function(c){ if(force||!m.exp.some(function(x){return x.name===c.name;})) m.exp.push({id:newId('e'),name:c.name,amt:c.amt,cat:c.cat,status:'planned',date:new Date().toISOString()}); }); if(Array.isArray(ledger.__recurringRev)) ledger.__recurringRev.forEach(function(r){ if(!m.rev.some(function(x){return x.label===r.label;})) m.rev.push({id:newId('r'),label:r.label,amount:r.amount,status:'expected',date:new Date().toISOString()}); }); save(); renderBudget(); renderDashboard(); toast('Charges r\u00e9currentes report\u00e9es'); }
 var curMonthKey = monthKey(getAppToday());
 var viewMonthKey = curMonthKey;
 var editRevId = null, editExpId = null;
@@ -1031,7 +1036,13 @@ function renderAnalysis(){
   var prev=ledger[pk];
   var mom='';
   if(prev){ var pSav=sumRev(prev,'received')-sumExp(prev,'paid'); var d=savings-pSav; mom='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);color:var(--txt2)">Vs mois précédent ('+monthLabelKey(pk)+') : épargne <span style="font-family:var(--mono);color:'+(d>=0?'var(--green)':'var(--red)')+'">'+(d>=0?'+':'')+'€'+Math.round(d).toLocaleString('fr-BE')+'</span></div>'; }
-  box.innerHTML = line('Revenus reçus',recv,refRev,false)+line('Dépenses payées',paid,refExp,true)+line('Épargne du mois',savings,refSavings,false)+mom;
+  var pctSpent = recv>0 ? Math.round(paid/recv*100) : 0;
+  var pctCol = pctSpent<=70?'var(--green)':(pctSpent<=100?'var(--gold)':'var(--red)');
+  var pctHtml = '<div style="margin-top:6px;display:flex;justify-content:space-between"><span style="color:var(--txt2)">% du revenu d\u00e9pens\u00e9</span><span style="font-family:var(--mono);color:'+pctCol+'">'+pctSpent+'%</span></div>';
+  var catMap={}; M.exp.filter(function(e){return e.status==='paid';}).forEach(function(e){ catMap[e.cat]=(catMap[e.cat]||0)+(+e.amt||0); });
+  var top=Object.keys(catMap).map(function(k){return [k,catMap[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+  var topHtml = top.length? ('<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);color:var(--txt2)">Top cat\u00e9gories : '+top.map(function(t){return '<b>'+escq(t[0])+'</b> (\u20ac'+Math.round(t[1]).toLocaleString('fr-BE')+')';}).join(' \u00b7 ')+'</div>') : '';
+  box.innerHTML = line('Revenus re\u00e7us',recv,refRev,false)+line('D\u00e9penses pay\u00e9es',paid,refExp,true)+line('\u00c9pargne du mois',savings,refSavings,false)+pctHtml+topHtml+mom;
   // category doughnut (paid expenses)
   var cats={};
   M.exp.filter(function(e){return e.status==='paid';}).forEach(function(e){ cats[e.cat]=(cats[e.cat]||0)+(+e.amt||0); });
@@ -1044,8 +1055,17 @@ function renderAnalysis(){
       window._catChart=new Chart(ctx,{type:'doughnut',data:{labels:labels,datasets:[{data:vals,backgroundColor:palette,borderColor:'#0d0f13',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8b919e',font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:function(c){return c.label+': €'+Math.round(c.parsed).toLocaleString('fr-BE');}}}}}});
     }
   }
+  renderTrend();
 }
 
+function renderTrend(){
+  var ctx=document.getElementById('trend-chart'); if(!ctx||typeof Chart==='undefined')return;
+  var keys=Object.keys(ledger).filter(function(k){return /^[0-9]{4}-[0-9]{2}$/.test(k);}).sort().slice(-6);
+  var labels=keys.map(function(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,1).toLocaleDateString('fr-BE',{month:'short'});});
+  var data=keys.map(function(k){var m=ledger[k];return sumRev(m,'received')-sumExp(m,'paid');});
+  if(window._trendChart){window._trendChart.destroy();window._trendChart=null;}
+  window._trendChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{label:'\u00c9pargne',data:data,borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,.12)',fill:true,tension:.3,pointRadius:3,pointBackgroundColor:'#00e5a0'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '\u20ac'+Math.round(c.parsed.y).toLocaleString('fr-BE');}}}},scales:{y:{ticks:{color:'#8b919e',font:{size:9},callback:function(v){return '\u20ac'+v;}},grid:{color:'rgba(255,255,255,.05)'}},x:{ticks:{color:'#8b919e',font:{size:9}},grid:{display:false}}}}});
+}
 function addRevenue(){
   var n=document.getElementById('rev-name'), a=document.getElementById('rev-amt'), st2=document.getElementById('rev-status');
   var name=n?n.value.trim():'', amt=a?parseFloat(a.value):NaN, status=st2?st2.value:'received';
@@ -1141,6 +1161,8 @@ function buildFinanceIQShare(){
 }
 
 migrateLedger();
+if(!ledger.__recurring){ ledger.__recurring = REF.expenses.map(function(c){return {name:c.name,amt:c.amt,cat:c.cat};}); }
+if(!ledger.__recurringRev){ ledger.__recurringRev = [{label:'Salaire net',amount:2400}]; }
 syncLegacyFromLedger();
 // ══ PROJECTION ══
 function calcProjection(apportOverride, rateOverride) {
