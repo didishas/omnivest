@@ -191,6 +191,7 @@ select.inp{cursor:pointer}
 </head>
 <body>
 <div class="toast" id="toast"></div>
+<div id="auth-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(7,8,10,.96);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px"><div style="width:100%;max-width:360px;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:22px"><div style="text-align:center;margin-bottom:16px"><div class="bmark" style="margin:0 auto 8px">₣</div><div class="bname" style="font-size:18px">Finance<em>IQ</em></div><div class="bsub" style="margin-top:4px">Connecte-toi pour synchroniser tes appareils</div></div><input class="inp" id="auth-email" type="email" placeholder="Email" autocomplete="email" style="margin-bottom:8px"><input class="inp" id="auth-pw" type="password" placeholder="Mot de passe (min 6)" autocomplete="current-password" style="margin-bottom:12px" onkeydown="if(event.key==='Enter')authSignIn()"><div id="auth-msg" style="font-family:var(--mono);font-size:10px;color:var(--red);margin-bottom:10px;min-height:13px"></div><button class="btn btn-gold" onclick="authSignIn()" style="width:100%;margin-bottom:8px">SE CONNECTER</button><button class="btn btn-green" onclick="authSignUp()" style="width:100%;margin-bottom:10px">CRÉER UN COMPTE</button><div style="text-align:center"><a onclick="authSkip()" style="font-size:11px;color:var(--txt3);cursor:pointer;text-decoration:underline">Continuer sans compte (cet appareil seulement)</a></div></div></div>
 
 <!-- TOPBAR -->
 <div class="topbar">
@@ -567,6 +568,14 @@ select.inp{cursor:pointer}
 <!-- PARAMETRES -->
 <div class="panel" id="p-parametres">
   <div class="scroll">
+    <div class="card" style="margin-bottom:12px;border-color:rgba(201,168,76,.35)">
+      <div class="card-title">👤 COMPTE</div>
+      <div id="account-status" style="font-family:var(--mono);font-size:11px;margin-bottom:10px;color:var(--txt2)">—</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-gold" onclick="showAuth()" style="flex:1">SE CONNECTER / CHANGER</button>
+        <button class="btn btn-red" onclick="authLogout()">DÉCONNEXION</button>
+      </div>
+    </div>
     <div class="card" style="margin-bottom:12px;border-color:rgba(0,229,160,.35)">
       <div class="card-title">☁️ SAUVEGARDE CLOUD</div>
       <p style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">Tes données sont sauvegardées <strong>automatiquement</strong> après chaque modification. Tu peux aussi forcer une synchro ici.</p>
@@ -712,6 +721,7 @@ function go(id, el) {
   if (id === 'budget' && typeof renderBudget==='function') renderBudget();
   if (id === 'parametres' && typeof renderOmniLink === 'function') renderOmniLink();
   if (id === 'parametres' && typeof refreshSyncStatusBig === 'function') refreshSyncStatusBig();
+  if (id === 'parametres' && typeof renderAccountUI === 'function') renderAccountUI();
 }
 
 // ══ TOAST ══
@@ -1334,12 +1344,25 @@ function saveKeyQuick() {
 function getUserId(){var uid=localStorage.getItem('financeiq_uid');if(!uid){uid='user_'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('financeiq_uid',uid);}return uid;}
 var USER_ID=getUserId();
 var syncTimeout=null;
+// ══ ACCOUNT / AUTH (Supabase) ══
+var AUTH=null; try{ AUTH=JSON.parse(localStorage.getItem('financeiq_auth')||'null'); }catch(e){}
+function authUid(){ return (AUTH&&AUTH.uid)?AUTH.uid:USER_ID; }
+function showAuth(){ var o=document.getElementById('auth-overlay'); if(o)o.style.display='flex'; var m=document.getElementById('auth-msg'); if(m)m.textContent=''; }
+function hideAuth(){ var o=document.getElementById('auth-overlay'); if(o)o.style.display='none'; }
+function authMsg(t,ok){ var m=document.getElementById('auth-msg'); if(m){ m.textContent=t||''; m.style.color=ok?'var(--green)':'var(--red)'; } }
+function renderAccountUI(){ var el=document.getElementById('account-status'); if(el){ el.innerHTML=(AUTH&&AUTH.email)?('Connecté : <b style="color:var(--green)">'+escq(AUTH.email)+'</b>'):'Non connecté (cet appareil seulement)'; } }
+async function authReq(path,body){ var res=await fetch(SHARED_SB_URL+'/auth/v1/'+path,{method:'POST',headers:{'Content-Type':'application/json','apikey':SHARED_SB_KEY},body:JSON.stringify(body)}); var d=await res.json(); if(!res.ok) throw new Error(d.msg||d.error_description||d.error||d.message||('Erreur '+res.status)); return d; }
+async function afterAuth(d){ var uid=(d.user&&d.user.id)||d.id; var email=(d.user&&d.user.email)||d.email||''; if(!uid){ authMsg('Réponse inattendue, réessaie',false); return; } AUTH={uid:uid,email:email,token:d.access_token||''}; localStorage.setItem('financeiq_auth',JSON.stringify(AUTH)); localStorage.removeItem('financeiq_skipauth'); hideAuth(); toast('Connecté : '+email); renderAccountUI(); var pulled=false; try{ pulled=await syncFromCloud(); }catch(e){} if(!pulled){ try{ syncToCloud(); }catch(e){} } if(typeof renderBudget==='function')renderBudget(); if(typeof renderDashboard==='function')renderDashboard(); }
+async function authSignIn(){ var e=(document.getElementById('auth-email')||{}).value; var p=(document.getElementById('auth-pw')||{}).value; e=(e||'').trim(); if(!e||!p){ authMsg('Entre email et mot de passe'); return; } authMsg('Connexion…',true); try{ var d=await authReq('token?grant_type=password',{email:e,password:p}); await afterAuth(d); }catch(err){ authMsg(err.message); } }
+async function authSignUp(){ var e=(document.getElementById('auth-email')||{}).value; var p=(document.getElementById('auth-pw')||{}).value; e=(e||'').trim(); if(!e||!p||p.length<6){ authMsg('Email + mot de passe (min 6 caractères)'); return; } authMsg('Création du compte…',true); try{ var d=await authReq('signup',{email:e,password:p}); if(!d.access_token && !(d.user&&d.user.id)){ authMsg('Compte créé. Connecte-toi maintenant.',true); return; } await afterAuth(d); }catch(err){ authMsg(err.message); } }
+function authSkip(){ hideAuth(); localStorage.setItem('financeiq_skipauth','1'); }
+function authLogout(){ AUTH=null; localStorage.removeItem('financeiq_auth'); localStorage.removeItem('financeiq_skipauth'); renderAccountUI(); toast('Déconnecté'); showAuth(); }
 var _cloudSyncTimer=null,_cloudRetry=0;
 function scheduleCloudSync(){ if(_cloudSyncTimer)clearTimeout(_cloudSyncTimer); _cloudSyncTimer=setTimeout(function(){ if(typeof syncToCloud==='function') syncToCloud(); },1500); }
 function refreshSyncStatusBig(){ var big=document.getElementById('sync-big-status'); if(!big)return; var ls=localStorage.getItem('financeiq_last_sync'); if(false){ big.textContent='☁️ Sync cloud perso non configurée (optionnel) — tes données sont déjà sauvées en local'; big.style.color='#4a5260'; return; } big.textContent= ls? ('✅ Dernière sauvegarde cloud : '+new Date(ls).toLocaleString('fr-BE')) : '☁️ Prêt — pas encore synchronisé'; big.style.color= ls?'#00e5a0':'#4a5260'; }
 function setSyncUI(status){var map={idle:{txt:'☁️ Cloud',col:'#4a5260',big:'☁️ Prêt'},syncing:{txt:'🔄 Sync...',col:'#ffa502',big:'🔄 Synchronisation…'},ok:{txt:'✅ Sync',col:'#00e5a0',big:'✅ Sauvegardé dans le cloud'},error:{txt:'⚠️ Hors ligne',col:'#ff4757',big:'⚠️ Hors ligne — nouvelle tentative automatique…'}};var s=map[status]||{txt:'☁️',col:'#4a5260',big:'☁️'};var el=document.getElementById('sync-indicator');if(el){el.textContent=s.txt;el.style.color=s.col;}var big=document.getElementById('sync-big-status');if(big){var ls=localStorage.getItem('financeiq_last_sync');var when=(status==='ok'&&ls)?(' · '+new Date(ls).toLocaleString('fr-BE')):'';big.textContent=s.big+when;big.style.color=s.col;}}
-async function syncToCloud(){setSyncUI('syncing');try{var blob={user_id:USER_ID,revenues:revenues,expenses:expenses,ibkr:ibkrBalance,debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},ledger:(typeof ledger!=='undefined'?ledger:{}),updated_at:new Date().toISOString()};var res=await fetch(SHARED_SB_URL+'/rest/v1/omnivest_data',{method:'POST',headers:{'Content-Type':'application/json','apikey':SHARED_SB_KEY,'Authorization':'Bearer '+SHARED_SB_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'fiq_'+USER_ID,data:blob,updated_at:blob.updated_at})});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');_cloudRetry=0;localStorage.setItem('financeiq_last_sync',blob.updated_at);}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);if(_cloudRetry<3){_cloudRetry++;setTimeout(function(){if(typeof syncToCloud==='function')syncToCloud();},8000);}}}
-async function syncFromCloud(){setSyncUI('syncing');try{var res=await fetch(SHARED_SB_URL+'/rest/v1/omnivest_data?id=eq.'+encodeURIComponent('fiq_'+USER_ID)+'&select=data,updated_at',{method:'GET',headers:{'apikey':SHARED_SB_KEY,'Authorization':'Bearer '+SHARED_SB_KEY,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);var rows=await res.json();if(!rows||rows.length===0){setSyncUI('ok');return false;}var data=rows[0].data||{};var cloudTime=new Date(rows[0].updated_at||data.updated_at||0).getTime();var localTime=new Date(localStorage.getItem('financeiq_last_sync')||0).getTime();if(cloudTime<=localTime){setSyncUI('ok');return false;}if(data.revenues)revenues=data.revenues;if(data.expenses)expenses=data.expenses;if(data.ibkr)ibkrBalance=data.ibkr;if(data.ledger){ledger=data.ledger;}if(data.debts){debtHuissier=data.debts.huissier??debtHuissier;debtOnem=data.debts.onem??debtOnem;investedThisMonth=data.debts.invested??investedThisMonth;realCapital=data.debts.capital??realCapital;currentMonth=data.debts.month??currentMonth;manualPlanMonth=data.debts.manual??manualPlanMonth;}save();setSyncUI('ok');localStorage.setItem('financeiq_last_sync',rows[0].updated_at||data.updated_at);return true;}catch(e){setSyncUI('error');return false;}}
+async function syncToCloud(){setSyncUI('syncing');try{var blob={user_id:USER_ID,revenues:revenues,expenses:expenses,ibkr:ibkrBalance,debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},ledger:(typeof ledger!=='undefined'?ledger:{}),updated_at:new Date().toISOString()};var res=await fetch(SHARED_SB_URL+'/rest/v1/omnivest_data',{method:'POST',headers:{'Content-Type':'application/json','apikey':SHARED_SB_KEY,'Authorization':'Bearer '+SHARED_SB_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'fiq_'+authUid(),data:blob,updated_at:blob.updated_at})});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');_cloudRetry=0;localStorage.setItem('financeiq_last_sync',blob.updated_at);}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);if(_cloudRetry<3){_cloudRetry++;setTimeout(function(){if(typeof syncToCloud==='function')syncToCloud();},8000);}}}
+async function syncFromCloud(){setSyncUI('syncing');try{var res=await fetch(SHARED_SB_URL+'/rest/v1/omnivest_data?id=eq.'+encodeURIComponent('fiq_'+authUid())+'&select=data,updated_at',{method:'GET',headers:{'apikey':SHARED_SB_KEY,'Authorization':'Bearer '+SHARED_SB_KEY,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);var rows=await res.json();if(!rows||rows.length===0){setSyncUI('ok');return false;}var data=rows[0].data||{};var cloudTime=new Date(rows[0].updated_at||data.updated_at||0).getTime();var localTime=new Date(localStorage.getItem('financeiq_last_sync')||0).getTime();if(cloudTime<=localTime){setSyncUI('ok');return false;}if(data.revenues)revenues=data.revenues;if(data.expenses)expenses=data.expenses;if(data.ibkr)ibkrBalance=data.ibkr;if(data.ledger){ledger=data.ledger;}if(data.debts){debtHuissier=data.debts.huissier??debtHuissier;debtOnem=data.debts.onem??debtOnem;investedThisMonth=data.debts.invested??investedThisMonth;realCapital=data.debts.capital??realCapital;currentMonth=data.debts.month??currentMonth;manualPlanMonth=data.debts.manual??manualPlanMonth;}save();setSyncUI('ok');localStorage.setItem('financeiq_last_sync',rows[0].updated_at||data.updated_at);return true;}catch(e){setSyncUI('error');return false;}}
 function scheduleSave(){save();if(syncTimeout)clearTimeout(syncTimeout);syncTimeout=setTimeout(syncToCloud,2000);}
 // ══ OMNIVEST COLLABORATION (shared cloud + bridge) ══
 var SHARED_SB_URL='https://ariagmqrbeliwvmxwnav.supabase.co';
@@ -1410,6 +1433,8 @@ async function initApp(){
   restoreSupaUI();
   renderBudget();
   renderDashboard();
+  if(typeof renderAccountUI==='function') renderAccountUI();
+  if(!AUTH && localStorage.getItem('financeiq_skipauth')!=='1' && typeof showAuth==='function') showAuth();
   if(typeof writeFinanceIQBridge==='function') writeFinanceIQBridge();
   try{ omnivestSharePull(); }catch(e){}
   if(location.hash.indexOf('from=omnivest')>=0){ setTimeout(function(){ if(typeof refreshAdaptivePlan==='function') refreshAdaptivePlan(); }, 800); }
