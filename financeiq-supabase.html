@@ -567,8 +567,14 @@ select.inp{cursor:pointer}
 <!-- PARAMETRES -->
 <div class="panel" id="p-parametres">
   <div class="scroll">
+    <div class="card" style="margin-bottom:12px;border-color:rgba(0,229,160,.35)">
+      <div class="card-title">☁️ SAUVEGARDE CLOUD</div>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">Tes données sont sauvegardées <strong>automatiquement</strong> après chaque modification. Tu peux aussi forcer une synchro ici.</p>
+      <div id="sync-big-status" style="font-family:var(--mono);font-size:11px;margin-bottom:10px;color:#4a5260">☁️ Prêt</div>
+      <button class="btn btn-green" onclick="syncToCloud()" style="width:100%">☁️ SYNCHRONISER MAINTENANT</button>
+    </div>
     <div class="card" style="margin-bottom:12px;border-color:rgba(74,158,255,.3)">
-      <div class="card-title">SYNCHRONISATION SUPABASE</div>
+      <div class="card-title">SYNCHRONISATION SUPABASE</div>      <div class="card-title">SYNCHRONISATION SUPABASE</div>
       <p style="font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.7">Clés stockées uniquement sur cet appareil — jamais dans le code.</p>
       <label class="inp-lbl">PROJECT URL</label>
       <input id="supa-url-input" type="text" placeholder="https://xxxxx.supabase.co" class="inp" style="margin-bottom:8px">
@@ -672,6 +678,7 @@ function save() {
   }));
   if(typeof writeFinanceIQBridge==='function'){ writeFinanceIQBridge(); }
   if(typeof omnivestSharePush==='function'){ omnivestSharePush(); }
+  if(typeof scheduleCloudSync==='function'){ scheduleCloudSync(); }
 }
 
 let st = load();
@@ -704,6 +711,7 @@ function go(id, el) {
   if (id === 'projection') renderProjection();
   if (id === 'budget' && typeof renderBudget==='function') renderBudget();
   if (id === 'parametres' && typeof renderOmniLink === 'function') renderOmniLink();
+  if (id === 'parametres' && typeof refreshSyncStatusBig === 'function') refreshSyncStatusBig();
 }
 
 // ══ TOAST ══
@@ -1326,8 +1334,11 @@ function saveKeyQuick() {
 function getUserId(){var uid=localStorage.getItem('financeiq_uid');if(!uid){uid='user_'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('financeiq_uid',uid);}return uid;}
 var USER_ID=getUserId();
 var syncTimeout=null;
-function setSyncUI(status){var el=document.getElementById('sync-indicator');if(!el)return;var s={idle:{txt:'☁️ Cloud',col:'#4a5260'},syncing:{txt:'🔄 Sync...',col:'#ffa502'},ok:{txt:'✅ Sync',col:'#00e5a0'},error:{txt:'⚠️ Hors ligne',col:'#ff4757'}}[status]||{txt:'☁️',col:'#4a5260'};el.textContent=s.txt;el.style.color=s.col;}
-async function syncToCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return;}setSyncUI('syncing');try{var payload={user_id:USER_ID,revenues:JSON.parse(JSON.stringify(revenues)),expenses:JSON.parse(JSON.stringify(expenses)),ibkr:JSON.parse(JSON.stringify(ibkrBalance)),debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},ledger:JSON.parse(JSON.stringify(typeof ledger!=='undefined'?ledger:{})),updated_at:new Date().toISOString()};var res=await fetch(url+'/rest/v1/financeiq_state',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');localStorage.setItem('financeiq_last_sync',new Date().toISOString());}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);}}
+var _cloudSyncTimer=null,_cloudRetry=0;
+function scheduleCloudSync(){ if(_cloudSyncTimer)clearTimeout(_cloudSyncTimer); _cloudSyncTimer=setTimeout(function(){ if(typeof syncToCloud==='function') syncToCloud(); },1500); }
+function refreshSyncStatusBig(){ var big=document.getElementById('sync-big-status'); if(!big)return; var url=localStorage.getItem('financeiq_supa_url'); var ls=localStorage.getItem('financeiq_last_sync'); if(!url){ big.textContent='☁️ Sync cloud perso non configurée (optionnel) — tes données sont déjà sauvées en local'; big.style.color='#4a5260'; return; } big.textContent= ls? ('✅ Dernière sauvegarde cloud : '+new Date(ls).toLocaleString('fr-BE')) : '☁️ Prêt — pas encore synchronisé'; big.style.color= ls?'#00e5a0':'#4a5260'; }
+function setSyncUI(status){var map={idle:{txt:'☁️ Cloud',col:'#4a5260',big:'☁️ Prêt'},syncing:{txt:'🔄 Sync...',col:'#ffa502',big:'🔄 Synchronisation…'},ok:{txt:'✅ Sync',col:'#00e5a0',big:'✅ Sauvegardé dans le cloud'},error:{txt:'⚠️ Hors ligne',col:'#ff4757',big:'⚠️ Hors ligne — nouvelle tentative automatique…'}};var s=map[status]||{txt:'☁️',col:'#4a5260',big:'☁️'};var el=document.getElementById('sync-indicator');if(el){el.textContent=s.txt;el.style.color=s.col;}var big=document.getElementById('sync-big-status');if(big){var ls=localStorage.getItem('financeiq_last_sync');var when=(status==='ok'&&ls)?(' · '+new Date(ls).toLocaleString('fr-BE')):'';big.textContent=s.big+when;big.style.color=s.col;}}
+async function syncToCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return;}setSyncUI('syncing');try{var payload={user_id:USER_ID,revenues:JSON.parse(JSON.stringify(revenues)),expenses:JSON.parse(JSON.stringify(expenses)),ibkr:JSON.parse(JSON.stringify(ibkrBalance)),debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},ledger:JSON.parse(JSON.stringify(typeof ledger!=='undefined'?ledger:{})),updated_at:new Date().toISOString()};var res=await fetch(url+'/rest/v1/financeiq_state',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');_cloudRetry=0;localStorage.setItem('financeiq_last_sync',new Date().toISOString());}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);if(_cloudRetry<3){_cloudRetry++;setTimeout(function(){if(typeof syncToCloud==='function')syncToCloud();},8000);}}}
 async function syncFromCloud(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){setSyncUI('idle');return false;}setSyncUI('syncing');try{var res=await fetch(url+'/rest/v1/financeiq_state?user_id=eq.'+encodeURIComponent(USER_ID)+'&limit=1',{method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);var rows=await res.json();if(!rows||rows.length===0){setSyncUI('ok');return false;}var data=rows[0];var cloudTime=new Date(data.updated_at).getTime();var localTime=new Date(localStorage.getItem('financeiq_last_sync')||0).getTime();if(cloudTime<=localTime){setSyncUI('ok');return false;}if(data.revenues)revenues=data.revenues;if(data.expenses)expenses=data.expenses;if(data.ibkr)ibkrBalance=data.ibkr;if(data.ledger){ledger=data.ledger;}if(data.debts){debtHuissier=data.debts.huissier??debtHuissier;debtOnem=data.debts.onem??debtOnem;investedThisMonth=data.debts.invested??investedThisMonth;realCapital=data.debts.capital??realCapital;currentMonth=data.debts.month??currentMonth;manualPlanMonth=data.debts.manual??manualPlanMonth;}save();setSyncUI('ok');localStorage.setItem('financeiq_last_sync',data.updated_at);return true;}catch(e){setSyncUI('error');return false;}}
 function scheduleSave(){save();if(syncTimeout)clearTimeout(syncTimeout);syncTimeout=setTimeout(syncToCloud,2000);}
 // ══ OMNIVEST COLLABORATION (shared cloud + bridge) ══
@@ -1405,6 +1416,8 @@ async function initApp(){
   var updated = await syncFromCloud();
   if(updated){restoreRevenues();renderExpenses();renderBilan();renderDashboard();toast('✅ Données synchronisées !');}
 }
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden'){ try{ if(typeof syncToCloud==='function') syncToCloud(); }catch(e){} } });
+window.addEventListener('pagehide',function(){ try{ if(typeof syncToCloud==='function') syncToCloud(); }catch(e){} });
 initApp();
 // == PLAN ADAPTATIF ==
 function getJournalData(){var r=localStorage.getItem('omnivest_journal_sync');if(!r)return null;try{return JSON.parse(r);}catch(e){return null;}}
