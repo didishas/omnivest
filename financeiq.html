@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#07080a">
+<title>FinanceIQ — Didier Ukanda</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080a;--bg2:#0d0f13;--bg3:#13161c;--bg4:#1a1e26;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --gold:#c9a84c;--gold2:#e8c97a;--gdim:rgba(201,168,76,0.13);
+  --green:#00e5a0;--gdim2:rgba(0,229,160,0.1);
+  --red:#ff4757;--rdim:rgba(255,71,87,0.1);
+  --blue:#4a9eff;--bdim:rgba(74,158,255,0.1);
+  --amber:#ffa502;--purple:#a78bfa;
+  --txt:#e8eaed;--txt2:#8b919e;--txt3:#4a5260;
+  --mono:'DM Mono',monospace;--sans:'Bricolage Grotesque',sans-serif;
+  --r:12px;--sb:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(7,8,10,.97);backdrop-filter:blur(20px);flex-shrink:0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px}
+.bmark{width:32px;height:32px;border:1.5px solid var(--gold);border-radius:8px;display:grid;place-items:center;font-size:16px;color:var(--gold);font-weight:800;flex-shrink:0}
+.bname{font-size:15px;font-weight:800;letter-spacing:-.5px}.bname em{color:var(--gold);font-style:normal}
+.bsub{font-size:9px;color:var(--txt3);font-family:var(--mono);letter-spacing:.8px}
+.tabs{display:flex;gap:0;flex:1;overflow-x:auto;justify-content:center}.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--mono);font-size:9px;letter-spacing:.8px;padding:8px 10px;border:none;background:transparent;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab:hover{color:var(--txt2)}.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.date-chip{font-family:var(--mono);font-size:9px;color:var(--txt3);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0}
+
+/* PANELS */
+.panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.panel.active{display:flex}
+.scroll{flex:1;overflow-y:auto;padding:14px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card-title{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:10px}
+.card.gold-border{border-color:rgba(201,168,76,.3)}
+.card.green-border{border-color:rgba(0,229,160,.3)}
+.card.red-border{border-color:rgba(255,71,87,.3)}
+.card.blue-border{border-color:rgba(74,158,255,.3)}
+.card.purple-border{border-color:rgba(167,139,250,.3)}
+
+/* METRICS GRID */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+.metric{background:var(--bg3);border-radius:10px;padding:12px;border:1px solid var(--border);position:relative;overflow:hidden}
+.metric::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px}
+.m-gold::after{background:var(--gold)}
+.m-green::after{background:var(--green)}
+.m-red::after{background:var(--red)}
+.m-blue::after{background:var(--blue)}
+.m-purple::after{background:var(--purple)}
+.m-amber::after{background:var(--amber)}
+.m-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:4px}
+.m-val{font-size:18px;font-weight:700}
+.m-sub{font-size:10px;color:var(--txt2);margin-top:2px}
+
+/* PROGRESS */
+.prog-wrap{margin:10px 0}
+.prog-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:5px}
+.prog-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s}
+
+/* BUDGET ROWS */
+.budget-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.budget-row:last-child{border-bottom:none;font-weight:700;padding-top:10px;margin-top:2px}
+.budget-row .lbl{color:var(--txt2)}
+.budget-row .val-pos{color:var(--green);font-family:var(--mono)}
+.budget-row .val-neg{color:var(--red);font-family:var(--mono)}
+.budget-row .val-neu{color:var(--gold);font-family:var(--mono);font-size:16px}
+
+/* EXPENSE FORM */
+.expense-form{background:var(--bg3);border-radius:10px;padding:12px;margin-top:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end}
+.inp{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--txt);font-family:var(--mono);font-size:12px;outline:none;width:100%;transition:border-color .2s}
+.inp:focus{border-color:var(--gold)}
+.inp::placeholder{color:var(--txt3)}
+.inp-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--txt3);display:block;margin-bottom:4px}
+.btn{padding:8px 14px;border-radius:7px;border:none;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .15s;white-space:nowrap}
+.btn-gold{background:var(--gold);color:#000}
+.btn-red{background:var(--rdim);color:var(--red);border:1px solid rgba(255,71,87,.3)}
+.btn-green{background:var(--gdim2);color:var(--green);border:1px solid rgba(0,229,160,.3)}
+.btn-blue{background:var(--bdim);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.btn:hover{opacity:.85}
+
+/* EXPENSE LIST */
+.expense-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px}
+.ei-cat{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;flex-shrink:0}
+.ei-name{flex:1;font-size:12px}
+.ei-date{font-family:var(--mono);font-size:9px;color:var(--txt3)}
+.ei-amt{font-family:var(--mono);font-size:13px;font-weight:500;flex-shrink:0}
+.ei-del{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:14px;flex-shrink:0;padding:2px 6px}
+.ei-del:hover{color:var(--red)}
+
+/* ALERT */
+.alert{border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono)}
+.alert.urgent{background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.3);color:var(--red)}
+.alert.info{background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.25);color:var(--blue)}
+.alert.success{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.25);color:var(--green)}
+.alert.gold{background:var(--gdim);border:1px solid rgba(201,168,76,.3);color:var(--gold2)}
+
+/* FISCAL ITEMS */
+.fiscal-item{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid}
+.fi-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.fi-detail{font-size:11px;color:var(--txt2);line-height:1.7}
+.fi-detail strong{color:var(--txt)}
+.fi-badge{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:8px}
+.deadline{background:rgba(255,71,87,.15);color:var(--red);border:1px solid rgba(255,71,87,.2)}
+.optional{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2)}
+.done{background:rgba(0,229,160,.1);color:var(--green);border:1px solid rgba(0,229,160,.2)}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msg{display:flex;gap:8px;animation:si .2s ease}
+@keyframes si{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0;font-family:var(--mono)}
+.av.ai{background:var(--gdim);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.av.user{background:var(--bdim);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.bub{max-width:88%;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.7}
+.msg.ai .bub{background:var(--bg3);border:1px solid var(--border)}
+.msg.user .bub{background:var(--bdim);border:1px solid rgba(74,158,255,.15)}
+.shortcuts{display:flex;gap:6px;padding:8px 14px;border-top:1px solid var(--border);overflow-x:auto;flex-shrink:0}.shortcuts::-webkit-scrollbar{display:none}
+.sc{font-family:var(--mono);font-size:9px;padding:5px 11px;border:1px solid var(--border);border-radius:20px;color:var(--txt3);cursor:pointer;background:transparent;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.sc:hover{border-color:var(--gold);color:var(--gold);background:var(--gdim)}
+.chat-in-row{display:flex;gap:8px;padding:10px 14px;padding-bottom:calc(10px + var(--sb));border-top:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.cin{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--txt);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .2s}
+.cin:focus{border-color:var(--gold)}
+.cin::placeholder{color:var(--txt3)}
+.go{background:var(--gold);color:#000;border:none;border-radius:9px;padding:11px 18px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;flex-shrink:0}
+.go:disabled{opacity:.3;cursor:not-allowed}
+
+/* PROJECTION */
+.proj-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.proj-table th{padding:7px 10px;text-align:left;color:var(--txt3);font-size:9px;letter-spacing:1px;border-bottom:1px solid var(--border2);background:var(--bg3)}
+.proj-table td{padding:7px 10px;border-bottom:1px solid var(--border)}
+.proj-table tr.milestone td{background:rgba(201,168,76,.07);border-left:2px solid var(--gold)}
+.proj-table tr.current-month td{background:rgba(0,229,160,.07);border-left:2px solid var(--green)}
+.ahead{color:var(--green)}.behind{color:var(--red)}.ontrack{color:var(--amber)}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 18px;font-family:var(--mono);font-size:11px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:rgba(0,229,160,.4);color:var(--green)}
+.toast.err{border-color:rgba(255,71,87,.4);color:var(--red)}
+
+/* BNAV */
+.bnav{display:none;flex-shrink:0;background:rgba(7,8,10,.97);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--sb));grid-template-columns:repeat(7,1fr)}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px 0;font-family:var(--mono);font-size:8px;letter-spacing:.4px;transition:color .2s}
+.bnav-btn.active{color:var(--gold)}
+.bnav-icon{font-size:18px}
+@media(max-width:700px){.tabs{display:none}.bnav{display:grid}}
+@media(min-width:701px){.bnav{display:none}}
+
+.dots::after{content:'.';animation:el 1.2s steps(3,end) infinite}
+@keyframes el{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+select.inp{cursor:pointer}
+/* ══ FinanceIQ — Platinum / Electric identity (distinct from OmniVest) ══ */
+:root{--chrome1:#eef2f8;--chrome2:#aeb8c7;--chrome3:#7c879a;--electric:#4a9eff;--electric2:#8fc6ff;--electric-deep:#1e6fe0;--platina:linear-gradient(145deg,#f4f7fb 0%,#c6cedb 36%,#8c97a8 60%,#eef2f7 100%)}
+.bmark{background:var(--platina);border:1px solid rgba(255,255,255,.55);color:#10141a;box-shadow:0 2px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.8)}
+.bname em{background:linear-gradient(120deg,var(--electric2),var(--electric));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.tab.active{color:var(--electric2);border-bottom-color:var(--electric);text-shadow:0 0 14px rgba(74,158,255,.55)}
+.bnav-btn.active{color:var(--electric2)}
+.btn-gold{background:linear-gradient(135deg,var(--electric2),var(--electric-deep));color:#04101f;box-shadow:0 4px 16px rgba(30,111,224,.42),inset 0 1px 0 rgba(255,255,255,.45)}
+.go{background:linear-gradient(135deg,var(--electric2),var(--electric-deep));color:#04101f;box-shadow:0 4px 16px rgba(30,111,224,.42)}
+.m-gold::after{background:var(--platina)}
+.card.gold-border{border-color:transparent;background:linear-gradient(var(--bg2),var(--bg2)) padding-box,var(--platina) border-box;border:1px solid transparent}
+.scroll>.card,.scroll>.metrics,.scroll>.alert,.scroll>.fiscal-item{animation:fiq-rise .5s cubic-bezier(.2,.7,.2,1) both}
+@keyframes fiq-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.panel.active{animation:fiq-slide .34s ease}
+@keyframes fiq-slide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+.btn,.go{position:relative;overflow:hidden}
+.btn::after,.go::after{content:'';position:absolute;top:0;left:-60%;width:42%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-20deg);transition:left .55s;pointer-events:none}
+.btn:hover::after,.go:hover::after{left:135%}
+.btn:active,.go:active{transform:translateY(1px) scale(.98)}
+.metric{transition:transform .18s ease,border-color .2s}
+.metric:hover{transform:translateY(-2px);border-color:var(--border2)}
+.prog-fill{background-image:linear-gradient(90deg,rgba(255,255,255,.28),transparent)}
+.sync-indicator,#sync-indicator{transition:all .2s}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div id="auth-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(7,8,10,.96);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px"><div style="width:100%;max-width:360px;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:22px"><div style="text-align:center;margin-bottom:16px"><div class="bmark" style="margin:0 auto 8px">₣</div><div class="bname" style="font-size:18px">Finance<em>IQ</em></div><div class="bsub" style="margin-top:4px">Connecte-toi pour synchroniser tes appareils</div></div><input class="inp" id="auth-email" type="email" placeholder="Email" autocomplete="email" style="margin-bottom:8px"><input class="inp" id="auth-pw" type="password" placeholder="Mot de passe (min 6)" autocomplete="current-password" style="margin-bottom:12px" onkeydown="if(event.key==='Enter')authSignIn()"><div id="auth-msg" style="font-family:var(--mono);font-size:10px;color:var(--red);margin-bottom:10px;min-height:13px"></div><button class="btn btn-gold" onclick="authSignIn()" style="width:100%;margin-bottom:8px">SE CONNECTER</button><button class="btn btn-green" onclick="authSignUp()" style="width:100%;margin-bottom:10px">CRÉER UN COMPTE</button><div style="text-align:center"><a onclick="authSkip()" style="font-size:11px;color:var(--txt3);cursor:pointer;text-decoration:underline">Continuer sans compte (cet appareil seulement)</a></div></div></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="bmark">₣</div>
+    <div><div class="bname">Finance<em>IQ</em></div><div class="bsub">Didier Ukanda · Flobecq</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="go('dashboard',this)">📊 DASHBOARD</button>
+    <button class="tab" onclick="go('budget',this)">💰 BUDGET</button>
+    <button class="tab" onclick="go('fiscal',this)">🇧🇪 FISCAL</button>
+    <button class="tab" onclick="go('projection',this)">📈 PROJECTION</button>
+    <button class="tab" onclick="go('advisor',this)">🧠 CONSEILLER</button>
+    <button class="tab" onclick="go('adaptatif',this)">🎯 PLAN ADAPTATIF</button>
+    <button class="tab" onclick="go('parametres',this)">⚙️ PARAMS</button>
+  </div>
+  <div class="date-chip" id="date-chip"></div>
+  <div id="sync-indicator" onclick="if(typeof syncToCloud==='function')syncToCloud()" style="font-family:var(--mono);font-size:9px;color:#4a5260;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0;cursor:pointer">☁️ Cloud</div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div class="panel active" id="p-dashboard">
+  <div class="scroll">
+
+    <div class="alert urgent" id="bnb-alert">
+      ⚠️ <strong>URGENT — Avant le 30 juin 2026 :</strong> Tu dois déclarer ton compte IBKR étranger (Irlande) à la Banque Nationale de Belgique. Voir onglet Fiscal pour les instructions exactes.
+    </div>
+
+    <div class="alert success">
+      ✓ <strong>Remboursement fiscal 2025 : €3,143.75</strong> en ta faveur. Tu recevras cet argent au plus tard le 30 juin 2027 sur BE86 3770 4249 7050.
+    </div>
+
+    <!-- Métriques clés -->
+    <div class="metrics" id="dash-metrics"></div>
+
+    <!-- Santé financière -->
+    <div class="card gold-border">
+      <div class="card-title">SANTÉ FINANCIÈRE</div>
+      <div class="prog-wrap">
+        <div class="prog-lbl"><span>Dette totale</span><span id="debt-pct-lbl">—</span></div>
+        <div class="prog-track"><div class="prog-fill" id="debt-prog" style="background:var(--red);width:0%"></div></div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-lbl"><span>Objectif €10K capital</span><span id="capital-pct-lbl">—</span></div>
+        <div class="prog-track"><div class="prog-fill" id="capital-prog" style="background:var(--gold);width:0%"></div></div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-lbl"><span>Avancement plan financier</span><span id="plan-pct-lbl">—</span></div>
+        <div class="prog-track"><div class="prog-fill" id="plan-prog" style="background:var(--green);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Résumé mois actuel -->
+    <div class="card">
+      <div class="card-title">RÉSUMÉ DU MOIS</div>
+      <div class="budget-row"><span class="lbl">Revenus totaux</span><span class="val-pos" id="d-revenus">€3,365</span></div>
+      <div class="budget-row"><span class="lbl">Dépenses saisies</span><span class="val-neg" id="d-depenses">€0</span></div>
+      <div class="budget-row"><span class="lbl">Charges fixes</span><span class="val-neg">-€1,220</span></div>
+      <div class="budget-row"><span class="lbl">Investi ce mois</span><span class="val-pos" id="d-investi">€0</span></div>
+      <div class="budget-row"><span class="lbl">Reste disponible</span><span class="val-neu" id="d-reste">€0</span></div>
+    </div>
+
+    <!-- IBKR -->
+    <div class="card green-border">
+      <div class="card-title">COMPTE IBKR — U25981774</div>
+      <div class="metrics" style="margin-bottom:8px">
+        <div class="metric m-green"><div class="m-lbl">SOLDE RÉEL</div><div class="m-val" style="color:var(--green)">€<span id="ibkr-bal">20.00</span></div><div class="m-sub">Compte réel</div></div>
+        <div class="metric m-gold"><div class="m-lbl">PAPER TRADING</div><div class="m-val" style="color:var(--gold)">$1M</div><div class="m-sub">Virtuel</div></div>
+        <div class="metric m-blue"><div class="m-lbl">P&L TOTAL</div><div class="m-val" style="color:var(--txt2)">€<span id="ibkr-pnl">0.00</span></div><div class="m-sub">Gains/pertes</div></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input class="inp" id="ibkr-input" type="number" placeholder="Nouveau solde IBKR (€)" style="flex:1">
+        <button class="btn btn-green" onclick="updateIBKR()">UPDATE</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ BUDGET ══ -->
+<div class="panel" id="p-budget">
+  <div class="scroll">
+
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <button class="btn btn-blue" onclick="changeMonth(-1)">‹ Préc.</button>
+      <div style="text-align:center"><div class="card-title" style="margin:0 0 2px">MOIS</div><div id="month-label" style="font-size:15px;font-weight:700;text-transform:capitalize">—</div></div>
+      <button class="btn btn-blue" onclick="changeMonth(1)">Suiv. ›</button>
+    </div>
+
+    <div class="card green-border">
+      <div class="card-title">REVENUS — REÇU / À VENIR</div>
+      <div id="rev-list"></div>
+      <div class="expense-form">
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--electric2)">+ Ajouter un revenu</div>
+        <div class="form-row">
+          <div><label class="inp-lbl">DESCRIPTION</label><input class="inp" id="rev-name" placeholder="ex: Salaire, Location..."></div>
+          <div><label class="inp-lbl">MONTANT (€)</label><input class="inp" id="rev-amt" type="number" placeholder="2431"></div>
+          <div><label class="inp-lbl">STATUT</label><select class="inp" id="rev-status"><option value="received">✓ Reçu</option><option value="expected">⏳ À venir</option></select></div>
+        </div>
+        <button class="btn btn-gold" onclick="addRevenue()" style="width:100%">+ AJOUTER REVENU</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px;display:flex;justify-content:space-between"><span style="font-weight:700">Reçu ce mois</span><span class="val-pos" id="rev-received">+€0</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--txt3)">À venir</span><span style="font-family:var(--mono);color:var(--txt3)" id="rev-expected">€0</span></div>
+    </div>
+
+    <div class="card red-border">
+      <div class="card-title">DÉPENSES &amp; CHARGES — PAYÉE / PRÉVUE</div>
+      <div id="exp-list"></div>
+      <div class="expense-form">
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--electric2)">+ Ajouter une dépense</div>
+        <div class="form-row">
+          <div><label class="inp-lbl">DESCRIPTION</label><input class="inp" id="exp-name" placeholder="ex: Loyer, Courses..."></div>
+          <div><label class="inp-lbl">MONTANT (€)</label><input class="inp" id="exp-amt" type="number" placeholder="150"></div>
+          <div><label class="inp-lbl">CATÉGORIE</label><select class="inp" id="exp-cat"><option value="alimentaire">🛒 Alimentaire</option><option value="transport">🚗 Transport</option><option value="sante">💊 Santé</option><option value="logement">🏠 Logement</option><option value="loisirs">🎮 Loisirs</option><option value="vetements">👕 Vêtements</option><option value="education">📚 Éducation</option><option value="abonnement">🔁 Abonnement</option><option value="dette">⚖️ Dette</option><option value="investissement">📈 Investissement</option><option value="autre">📦 Autre</option></select></div>
+        </div>
+        <div class="form-row">
+          <div><label class="inp-lbl">STATUT</label><select class="inp" id="exp-status"><option value="paid">✓ Payée</option><option value="planned">⏳ Prévue</option></select></div>
+          <div></div>
+          <button class="btn btn-gold" onclick="addExpense()">+ AJOUTER</button>
+        </div>
+        <button class="btn btn-blue" onclick="seedRecurring(viewMonthKey)" style="width:100%;margin-top:6px">↻ Reporter les charges récurrentes</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px;display:flex;justify-content:space-between"><span style="font-weight:700">Payé ce mois</span><span class="val-neg" id="exp-paid">-€0</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--txt3)">Prévu (pas encore payé)</span><span style="font-family:var(--mono);color:var(--txt3)" id="exp-planned">€0</span></div>
+    </div>
+
+    <div class="card gold-border">
+      <div class="card-title">BILAN DU MOIS</div>
+      <div class="budget-row"><span class="lbl">Revenus reçus</span><span class="val-pos" id="bilan-rev">+€0</span></div>
+      <div class="budget-row"><span class="lbl">Dépenses payées</span><span class="val-neg" id="bilan-paid">-€0</span></div>
+      <div class="budget-row"><span>SOLDE RÉEL (comme ING)</span><span class="val-neu" id="bilan-real">€0</span></div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:11px;color:var(--txt3);font-family:var(--mono)">Prévisionnel fin de mois (tout encaissé &amp; payé) : <span id="bilan-forecast" style="color:var(--gold)">€0</span></div>
+    </div>
+
+    <div class="card blue-border">
+      <div class="card-title">ANALYSE — RÉEL VS RÉFÉRENCE</div>
+      <div id="budget-analysis" style="font-size:12px;line-height:1.8"></div>
+      <div style="position:relative;height:200px;margin-top:12px"><canvas id="cat-chart"></canvas></div>
+      <div style="font-size:11px;color:var(--txt3);font-family:var(--mono);margin-top:16px;margin-bottom:4px">ÉVOLUTION DE L'ÉPARGNE (par mois)</div>
+      <div style="position:relative;height:160px"><canvas id="trend-chart"></canvas></div>
+    </div>
+
+    <div class="card green-border">
+      <div class="card-title">INVESTI CE MOIS</div>
+      <div style="display:flex;gap:8px"><input class="inp" id="inv-input" type="number" placeholder="Montant investi (€)" style="flex:1"><button class="btn btn-green" onclick="updateInvested()">SAUVER</button></div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:8px">Objectif mensuel : <span style="color:var(--gold)">€1,000</span></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="panel" id="p-fiscal">
+  <div class="scroll">
+
+    <div class="alert urgent">
+      ⚠️ <strong>ACTION REQUISE AVANT 30 JUIN 2026</strong><br>
+      Ton compte IBKR est domicilié en Irlande = compte étranger = déclaration obligatoire BNB.
+    </div>
+
+    <!-- Déclaration BNB -->
+    <div class="fiscal-item" style="border-color:var(--red)">
+      <span class="fi-badge deadline">⚠️ URGENT — avant 30 juin 2026</span>
+      <div class="fi-title">1. Déclaration Compte Étranger — BNB</div>
+      <div class="fi-detail">
+        Ton compte IBKR Ireland (U25981774) = compte étranger obligatoirement déclaré.<br><br>
+        <strong>Comment faire :</strong><br>
+        → Va sur <strong>myminfin.be</strong> → Ma déclaration → Comptes étrangers<br>
+        → Ou sur <strong>bnb.be</strong> → Point de contact central<br>
+        → Infos à fournir : IBKR Ireland, IBAN du compte, date d'ouverture 2026<br><br>
+        <strong>Sanctions si non-déclaré :</strong> amende €1,250 minimum par compte non déclaré.
+      </div>
+    </div>
+
+    <!-- Remboursement -->
+    <div class="fiscal-item" style="border-color:var(--green)">
+      <span class="fi-badge done">✓ EN COURS</span>
+      <div class="fi-title">2. Remboursement Fiscal 2025 — €3,143.75</div>
+      <div class="fi-detail">
+        <strong>Montant :</strong> €3,143.75 en ta faveur<br>
+        <strong>Compte de remboursement :</strong> BE86 3770 4249 7050<br>
+        <strong>Délai :</strong> reçu au plus tard le 30 juin 2027<br>
+        <strong>Taux d'imposition :</strong> 0% grâce à tes 5 enfants à charge + quotités exemptées<br><br>
+        <strong>Ta déclaration est correcte ?</strong> Tu ne dois rien faire — le SPF traitera automatiquement.<br>
+        Si incorrecte → corriger avant le <strong>15 juillet 2026</strong> sur myminfin.be
+      </div>
+    </div>
+
+    <!-- TOB -->
+    <div class="fiscal-item" style="border-color:var(--amber)">
+      <span class="fi-badge" style="background:rgba(255,165,2,.1);color:var(--amber);border:1px solid rgba(255,165,2,.2)">📅 TRIMESTRIEL</span>
+      <div class="fi-title">3. TOB — Taxe sur les Opérations Boursières</div>
+      <div class="fi-detail">
+        <strong>Taux :</strong> 0.12% sur actions ordinaires (comme STNG, XOM, MOS)<br>
+        <strong>Exemple :</strong> Trade €1,000 → TOB = €1.20 par trade<br>
+        <strong>IBKR ne retient pas le TOB</strong> → tu dois le déclarer toi-même<br><br>
+        <strong>Calendrier déclaration TOB :</strong><br>
+        → Q1 (jan-mar) : déclarer avant 20 avril<br>
+        → Q2 (avr-jun) : déclarer avant 20 juillet<br>
+        → Q3 (jul-sep) : déclarer avant 20 octobre<br>
+        → Q4 (oct-dec) : déclarer avant 20 janvier<br><br>
+        <strong>Comment :</strong> myminfin.be → Ma déclaration → TOB<br>
+        <strong>Calculateur :</strong> tob.tax
+      </div>
+    </div>
+
+    <!-- Plus-values -->
+    <div class="fiscal-item" style="border-color:var(--blue)">
+      <span class="fi-badge optional">📋 ANNUEL</span>
+      <div class="fi-title">4. Plus-values sur Actions — 10% (nouveau 2026)</div>
+      <div class="fi-detail">
+        <strong>Taux :</strong> 10% sur les gains nets annuels<br>
+        <strong>Exemption :</strong> premiers €10,000 de gains par an = EXEMPTÉ<br>
+        <strong>Exemple :</strong> Tu gagnes €3,000 cette année → impôt = €0<br>
+        <strong>Exemple :</strong> Tu gagnes €15,000 → impôt = 10% × €5,000 = €500<br><br>
+        <strong>Quand déclarer :</strong> Dans ta déclaration annuelle MyMinfin<br>
+        <strong>Rubrique :</strong> Code 1440 (gains mobiliers)<br><br>
+        <strong>Pour toi cette année :</strong> Tant que tes gains restent sous €10,000 → rien à payer ni déclarer spécifiquement.
+      </div>
+    </div>
+
+    <!-- Dividendes -->
+    <div class="fiscal-item" style="border-color:var(--purple)">
+      <span class="fi-badge optional">📋 SI APPLICABLE</span>
+      <div class="fi-title">5. Dividendes — 30% précompte mobilier</div>
+      <div class="fi-detail">
+        <strong>Taux :</strong> 30% sur dividendes reçus<br>
+        <strong>Exemption :</strong> premiers €833/an exemptés → récupère le précompte via code 1437<br>
+        <strong>IBKR déduit automatiquement</strong> le précompte sur les dividendes US<br><br>
+        <strong>Stratégie :</strong> Préfère les actions de croissance (pas de dividende) pour éviter cette taxe.<br>
+        STNG, XOM, MOS versent des dividendes → IBKR déduira automatiquement.
+      </div>
+    </div>
+
+    <!-- Données déclaration -->
+    <div class="card blue-border">
+      <div class="card-title">TES DONNÉES FISCALES 2025</div>
+      <div class="budget-row"><span class="lbl">Traitements et salaires</span><span style="font-family:var(--mono);color:var(--blue)">€30,914.09</span></div>
+      <div class="budget-row"><span class="lbl">Allocations chômage</span><span style="font-family:var(--mono);color:var(--blue)">€8,964.85</span></div>
+      <div class="budget-row"><span class="lbl">Autres revenus remplacement</span><span style="font-family:var(--mono);color:var(--blue)">€2,106.08</span></div>
+      <div class="budget-row"><span class="lbl">Enfants à charge</span><span style="font-family:var(--mono);color:var(--green)">5 enfants</span></div>
+      <div class="budget-row"><span class="lbl">Impôt total dû</span><span style="font-family:var(--mono);color:var(--green)">€0.00 ✓</span></div>
+      <div class="budget-row"><span class="lbl">Remboursement prévu</span><span style="font-family:var(--mono);color:var(--green);font-size:16px">+€3,143.75</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ PROJECTION ══ -->
+<div class="panel" id="p-projection">
+  <div class="scroll">
+    <div class="metrics" id="proj-metrics"></div>
+    <div id="proj-alert" style="display:none;border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono)"></div>
+    <div class="card gold-border">
+      <div class="card-title">COURBE REELLE VS PLAN — 60 MOIS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:10px;font-family:var(--mono);color:var(--txt3)">
+        <span><span style="display:inline-block;width:14px;height:3px;background:var(--gold);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Plan prévu</span>
+        <span><span style="display:inline-block;width:14px;height:3px;background:var(--green);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Capital réel</span>
+        <span><span style="display:inline-block;width:14px;height:3px;background:var(--blue);opacity:.6;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Apports cumulés</span>
+      </div>
+      <div style="position:relative;height:260px"><canvas id="proj-chart"></canvas></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="card">
+        <div class="card-title">MISE A JOUR REELLE</div>
+        <label class="inp-lbl">CAPITAL IBKR (€)</label>
+        <input class="inp" id="proj-capital" type="number" placeholder="20" style="margin-bottom:8px">
+        <label class="inp-lbl">MOIS EN COURS (0-60)</label>
+        <input class="inp" id="proj-month" type="number" placeholder="0" min="0" max="60" style="margin-bottom:8px">
+        <button class="btn btn-gold" onclick="updateProjection()" style="width:100%">RECALCULER</button>
+      </div>
+      <div class="card" style="border-color:rgba(167,139,250,.3)">
+        <div class="card-title">SIMULATEUR ET SI ?</div>
+        <label class="inp-lbl">APPORT MENSUEL (€)</label>
+        <input class="inp" id="sim-apport" type="number" placeholder="1000" value="1000" oninput="runSimulator()" style="margin-bottom:8px">
+        <label class="inp-lbl">RENDEMENT (%/MOIS)</label>
+        <input class="inp" id="sim-rate" type="number" placeholder="10" value="10" step="0.5" oninput="runSimulator()" style="margin-bottom:8px">
+        <div id="sim-result" style="font-family:var(--mono);font-size:10px;color:var(--purple);background:rgba(167,139,250,.08);border-radius:6px;padding:8px;line-height:1.7">Modifie les valeurs pour simuler...</div>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(74,158,255,.3);margin-bottom:12px">
+      <div class="card-title">ET SI JE RETIRE / DEPENSE ?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
+        <div><label class="inp-lbl">MONTANT (€)</label><input class="inp" id="sim-retrait" type="number" placeholder="5000"></div>
+        <div><label class="inp-lbl">AU MOIS</label><input class="inp" id="sim-retrait-month" type="number" placeholder="6" min="0" max="60"></div>
+        <button class="btn btn-blue" onclick="simRetrait()">SIMULER</button>
+      </div>
+      <div id="sim-retrait-result" style="font-family:var(--mono);font-size:10px;margin-top:10px;color:var(--txt2);display:none;line-height:1.7"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">TABLEAU PROJECTION — 60 MOIS</div>
+      <div style="overflow-x:auto">
+        <table class="proj-table">
+          <thead><tr><th>MOIS</th><th>PREVU</th><th>REEL</th><th>ECART</th><th>STATUT</th><th>EVENEMENT</th></tr></thead>
+          <tbody id="proj-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONSEILLER IA ══ -->
+<div class="panel" id="p-advisor">
+  <div class="chat-wrap">
+    <div class="chat-msgs" id="chat-msgs">
+      <div class="msg ai">
+        <div class="av ai">IQ</div>
+        <div class="bub">
+          Bonjour Didier ! Je suis ton conseiller financier IA personnel.<br><br>
+          Je connais ta situation complète : <strong style="color:var(--gold)">salaire €3,365/mois</strong>, 5 enfants, dette huissier €14,000, compte IBKR U25981774, remboursement fiscal €3,143.75 en attente.<br><br>
+          Je peux t'aider sur la <strong>fiscalité belge</strong>, ton <strong>budget</strong>, ta <strong>stratégie d'investissement</strong>, ou analyser ton <strong>avancement</strong>. Pose-moi n'importe quelle question !
+        </div>
+      </div>
+    </div>
+    <div class="shortcuts">
+      <button class="sc" onclick="ask('Comment déclarer mon compte IBKR étranger à la BNB avant le 30 juin 2026 ?')">Déclaration BNB</button>
+      <button class="sc" onclick="ask('Mon remboursement fiscal de €3,143.75 - quand le recevoir et que faire avec ?')">Remboursement €3,143</button>
+      <button class="sc" onclick="ask('Comment optimiser mon budget pour investir maximum chaque mois ?')">Optimiser budget</button>
+      <button class="sc" onclick="ask('Dois-je déclarer mes gains IBKR cette année et comment ?')">Déclarer gains IBKR</button>
+      <button class="sc" onclick="ask('Stratégie pour rembourser la dette huissier tout en investissant — est-ce que ma stratégie actuelle est bonne ?')">Stratégie dette</button>
+      <button class="sc" onclick="ask('Suis-je en avance ou en retard sur mon plan financier ?')">Mon avancement</button>
+      <button class="sc" onclick="ask('Que faire avec mon remboursement fiscal de €3,143.75 pour maximiser la croissance ?')">Quoi faire avec le remboursement</button>
+      <button class="sc" onclick="ask('Comment déclarer la TOB chaque trimestre avec IBKR ?')">TOB trimestrielle</button>
+    </div>
+    <div class="chat-in-row">
+      <input class="cin" id="cin" placeholder="Pose une question fiscale, budgétaire ou stratégique..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendMsg()}">
+      <button class="go" id="go-btn" onclick="sendMsg()">ASK ▶</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- PLAN ADAPTATIF -->
+<div class="panel" id="p-adaptatif">
+  <div class="scroll">
+    <div class="card gold-border">
+      <div class="card-title">PLAN ADAPTATIF — RESULTATS REELS + MARCHE</div>
+      <p style="font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:12px">Lit ton Journal OmniVest. Se recalcule selon ton vrai rendement et le contexte de marche.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="refreshAdaptivePlan()" class="btn btn-gold" style="flex:1">RECALCULER</button>
+        <button onclick="aiAdaptiveAdvice()" class="btn btn-blue">CONSEIL IA</button>
+      </div>
+    </div>
+    <div class="metrics" id="adapt-phase-metrics"></div>
+    <div class="card green-border" id="adapt-perf-card" style="display:none">
+      <div class="card-title">PERFORMANCE REELLE (JOURNAL OMNIVEST)</div>
+      <div id="adapt-perf-content"></div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">CONTEXTE MARCHE</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:var(--bg3);border-radius:7px;padding:10px">
+          <div class="m-lbl">VIX</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--amber)">28.4</div>
+          <div style="font-size:10px;color:var(--amber)">Eleve — prudence</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:10px">
+          <div class="m-lbl">BRENT</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--red)">$118</div>
+          <div style="font-size:10px;color:var(--red)">Crise Hormuz</div>
+        </div>
+      </div>
+      <div style="background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.2);border-radius:7px;padding:10px;font-family:var(--mono);font-size:10px;color:var(--blue);line-height:1.7">VIX 28.4 = volatile. Reduis la taille a 50% max. Vise R:R superieur a 3x. Garde 30% cash.</div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">PROJECTION ADAPTEE</div>
+      <div id="adapt-plan-content"><div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:20px">Clique RECALCULER pour voir ta projection.</div></div>
+    </div>
+    <div class="card blue-border" style="margin-bottom:12px">
+      <div class="card-title">TA PHASE D APPRENTISSAGE</div>
+      <div id="adapt-learning-content"></div>
+    </div>
+    <div id="adapt-ai-advice" style="display:none;margin-bottom:12px"></div>
+  </div>
+</div>
+
+<!-- PARAMETRES -->
+<div class="panel" id="p-parametres">
+  <div class="scroll">
+    <div class="card" style="margin-bottom:12px;border-color:rgba(201,168,76,.35)">
+      <div class="card-title">👤 COMPTE</div>
+      <div id="account-status" style="font-family:var(--mono);font-size:11px;margin-bottom:10px;color:var(--txt2)">—</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-gold" onclick="showAuth()" style="flex:1">SE CONNECTER / CHANGER</button>
+        <button class="btn btn-red" onclick="authLogout()">DÉCONNEXION</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px;border-color:rgba(0,229,160,.35)">
+      <div class="card-title">☁️ SAUVEGARDE CLOUD</div>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">Tes données sont sauvegardées <strong>automatiquement</strong> après chaque modification. Tu peux aussi forcer une synchro ici.</p>
+      <div id="sync-big-status" style="font-family:var(--mono);font-size:11px;margin-bottom:10px;color:#4a5260">☁️ Prêt</div>
+      <button class="btn btn-green" onclick="syncToCloud()" style="width:100%">☁️ SYNCHRONISER MAINTENANT</button>
+    </div>
+    <div class="card" style="margin-bottom:12px;border-color:rgba(74,158,255,.3)">
+      <div class="card-title">SYNCHRONISATION SUPABASE</div>      <div class="card-title">SYNCHRONISATION SUPABASE</div>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.7">Clés stockées uniquement sur cet appareil — jamais dans le code.</p>
+      <label class="inp-lbl">PROJECT URL</label>
+      <input id="supa-url-input" type="text" placeholder="https://xxxxx.supabase.co" class="inp" style="margin-bottom:8px">
+      <label class="inp-lbl">ANON PUBLIC KEY</label>
+      <input id="supa-key-input" type="password" placeholder="eyJhbGci..." class="inp" style="margin-bottom:12px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="saveSupaKeys()" class="btn btn-green" style="flex:1">SAUVEGARDER</button>
+        <button onclick="testSupaConnection()" class="btn btn-blue">TESTER</button>
+        <button onclick="clearSupaKeys()" class="btn btn-red">EFFACER</button>
+      </div>
+      <div id="supa-status" style="font-family:var(--mono);font-size:10px;margin-top:8px;color:var(--txt3)"></div>
+    </div>
+    <div class="card" style="margin-bottom:12px;border-color:rgba(201,168,76,.3)">
+      <div class="card-title">CLE ANTHROPIC — CONSEILLER IA</div>
+      <div style="display:flex;gap:8px">
+        <input id="anthropic-key-input" type="password" placeholder="sk-ant-..." class="inp" style="flex:1">
+        <button onclick="saveAnthropicKey()" class="btn btn-gold">SAUVER</button>
+      </div>
+      <div id="anthropic-status" style="font-family:var(--mono);font-size:10px;margin-top:6px;color:var(--txt3)"></div>
+    </div>
+    <div class="card" style="margin-bottom:12px;border-color:rgba(74,158,255,.3)">
+      <div class="card-title">🔗 LIEN OMNIVEST</div>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.7">Les deux apps partagent le même cloud. FinanceIQ lit ton journal de trades OmniVest et lui renvoie ton budget &amp; ton capital.</p>
+      <div id="omni-link-status" style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-blue" onclick="omnivestSharePull().then(function(){toast('Donn\u00e9es OmniVest r\u00e9cup\u00e9r\u00e9es');if(typeof refreshAdaptivePlan==='function')refreshAdaptivePlan();renderOmniLink();})">↔ Sync OmniVest</button>
+        <button class="btn btn-gold" onclick="openOmniVest()">↗ Ouvrir OmniVest</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">DONNEES LOCALES</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="exportData()" class="btn btn-blue">EXPORTER</button>
+        <button onclick="clearLocalData()" class="btn btn-red">EFFACER TOUT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="bnav-btn active" onclick="go('dashboard',this)"><span class="bnav-icon">📊</span>DASH</button>
+  <button class="bnav-btn" onclick="go('budget',this)"><span class="bnav-icon">💰</span>BUDGET</button>
+  <button class="bnav-btn" onclick="go('fiscal',this)"><span class="bnav-icon">🇧🇪</span>FISCAL</button>
+  <button class="bnav-btn" onclick="go('projection',this)"><span class="bnav-icon">📈</span>PROJ.</button>
+  <button class="bnav-btn" onclick="go('advisor',this)"><span class="bnav-icon">🧠</span>CONSEIL</button>
+  <button class="bnav-btn" onclick="go('adaptatif',this)"><span class="bnav-icon">🎯</span>PLAN</button>
+  <button class="bnav-btn" onclick="go('parametres',this)"><span class="bnav-icon">⚙️</span>PARAMS</button>
+</div>
+
+<script>
+// ══ STORAGE ══
+const SK = 'financeiq_v1';
+
+// Date de départ du plan financier.
+// M0 = mai 2026. Donc M1 = juin 2026, M2 = juillet 2026, etc.
+// L'affichage de la date du jour reste automatique via l'horloge du téléphone/PC.
+const PLAN_START_DATE = '2026-05-01';
+
+// Pour tester une date précise, tu peux exécuter dans la console :
+// localStorage.setItem('financeiq_today_override', '2026-05-25')
+// Pour revenir en mode automatique :
+// localStorage.removeItem('financeiq_today_override')
+const DATE_OVERRIDE_KEY = 'financeiq_today_override';
+
+function parseDateLocal(isoDate) {
+  // Évite les décalages UTC selon le navigateur/mobile.
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+function getAppToday() {
+  const override = localStorage.getItem(DATE_OVERRIDE_KEY);
+  return override ? parseDateLocal(override) : new Date();
+}
+
+function getAutoCurrentMonth() {
+  const start = parseDateLocal(PLAN_START_DATE);
+  const today = getAppToday();
+  // M0 = tout le mois de mai 2026.
+  // M1 = juin 2026, M2 = juillet 2026, etc.
+  const diff = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+  return Math.min(60, Math.max(0, diff));
+}
+
+function load() { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } }
+function save() {
+  localStorage.setItem(SK, JSON.stringify({
+    expenses,
+    ibkrBalance,
+    investedThisMonth,
+    debtHuissier,
+    debtOnem,
+    currentMonth,
+    manualPlanMonth,
+    realCapital,
+    revenues,
+    planStartDate: PLAN_START_DATE,
+    ledger: (typeof ledger!=='undefined'?ledger:{}),
+    lastSavedAt: new Date().toISOString()
+  }));
+  if(typeof writeFinanceIQBridge==='function'){ writeFinanceIQBridge(); }
+  if(typeof omnivestSharePush==='function'){ omnivestSharePush(); }
+  if(typeof scheduleCloudSync==='function'){ scheduleCloudSync(); }
+}
+
+let st = load();
+let expenses = st.expenses || [];
+let ibkrBalance = st.ibkrBalance || { total: 20, pnl: 0 };
+let investedThisMonth = st.investedThisMonth || 0;
+let debtHuissier = st.debtHuissier || 14000;
+let debtOnem = st.debtOnem || 1300;
+// Si l'utilisateur avait une ancienne version avec un départ février/janvier,
+// on ignore l'ancien mois sauvegardé pour éviter de rester bloqué sur une mauvaise projection.
+let manualPlanMonth = st.planStartDate === PLAN_START_DATE && st.manualPlanMonth === true;
+let currentMonth = manualPlanMonth
+  ? (Number.isFinite(Number(st.currentMonth)) ? Number(st.currentMonth) : getAutoCurrentMonth())
+  : getAutoCurrentMonth();
+let realCapital = st.realCapital || 20;
+
+// Date affichée dans la barre du haut
+const now = getAppToday();
+document.getElementById('date-chip').textContent = now.toLocaleDateString('fr-BE', { day:'2-digit', month:'short', year:'numeric' });
+
+// ══ TABS ══
+function go(id, el) {
+  if(id==='adaptatif' && typeof refreshAdaptivePlan==='function') refreshAdaptivePlan();
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab, .bnav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('p-' + id).classList.add('active');
+  document.querySelectorAll('.tab, .bnav-btn').forEach(b => {
+    if ((b.getAttribute('onclick')||'').includes("'"+id+"'")) b.classList.add('active');
+  });
+  if (id === 'projection') renderProjection();
+  if (id === 'budget' && typeof renderBudget==='function') renderBudget();
+  if (id === 'parametres' && typeof renderOmniLink === 'function') renderOmniLink();
+  if (id === 'parametres' && typeof refreshSyncStatusBig === 'function') refreshSyncStatusBig();
+  if (id === 'parametres' && typeof renderAccountUI === 'function') renderAccountUI();
+}
+
+// ══ TOAST ══
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + (type||'ok');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ══ DASHBOARD ══
+function renderDashboard() {
+  const totalExp = expenses.filter(e => isThisMonth(e.date)).reduce((s,e) => s + e.amt, 0);
+  const totalRev = getTotalRevenues();
+  const reste = totalRev - 1220 - totalExp - investedThisMonth;
+  const debtTotal = debtHuissier + debtOnem;
+  const debtPct = Math.max(0, 100 - (debtTotal / 15300 * 100));
+  const capitalPct = Math.min(100, realCapital / 10000 * 100);
+  const planPct = Math.min(100, (currentMonth / 60) * 100);
+
+  document.getElementById('d-revenus').textContent = '+€' + totalRev.toLocaleString('fr-BE');
+  document.getElementById('d-depenses').textContent = '-€' + totalExp.toFixed(2);
+  document.getElementById('d-investi').textContent = '+€' + investedThisMonth.toFixed(2);
+  document.getElementById('d-reste').textContent = '€' + reste.toFixed(2);
+  document.getElementById('ibkr-bal').textContent = ibkrBalance.total.toFixed(2);
+  document.getElementById('ibkr-pnl').textContent = (ibkrBalance.pnl >= 0 ? '+' : '') + ibkrBalance.pnl.toFixed(2);
+  document.getElementById('huissier-bal').textContent = debtHuissier.toLocaleString('fr-BE');
+  document.getElementById('debt-prog').style.width = debtPct + '%';
+  document.getElementById('debt-pct-lbl').textContent = 'Remboursé ' + debtPct.toFixed(0) + '%';
+  document.getElementById('capital-prog').style.width = capitalPct + '%';
+  document.getElementById('capital-pct-lbl').textContent = '€' + realCapital.toLocaleString('fr-BE') + ' / €10,000';
+  document.getElementById('plan-prog').style.width = planPct + '%';
+  document.getElementById('plan-pct-lbl').textContent = 'Mois ' + currentMonth + ' / 60';
+
+  // Métriques
+  const dm = [
+    { lbl: 'REVENUS/MOIS', val: '€'+totalRev.toLocaleString('fr-BE'), cls: 'm-green', sub: 'Salaire + KM + Location + autres' },
+    { lbl: 'CHARGES FIXES', val: '-€1,220', cls: 'm-red', sub: 'Loyer, tél, ONEM, huissier' },
+    { lbl: 'DETTE TOTALE', val: '-€' + debtTotal.toLocaleString('fr-BE'), cls: 'm-red', sub: 'Huissier + ONEM' },
+    { lbl: 'CAPITAL IBKR', val: '€' + realCapital.toLocaleString('fr-BE'), cls: 'm-gold', sub: 'Compte réel U25981774' },
+    { lbl: 'REMB. FISCAL', val: '+€3,143', cls: 'm-green', sub: 'Attendu avant juin 2027' },
+    { lbl: 'MOIS DU PLAN', val: 'M' + currentMonth, cls: 'm-blue', sub: 'M0 = mai 2026' }
+  ];
+  document.getElementById('dash-metrics').innerHTML = dm.map(m =>
+    '<div class="metric ' + m.cls + '"><div class="m-lbl">' + m.lbl + '</div><div class="m-val">' + m.val + '</div><div class="m-sub">' + m.sub + '</div></div>'
+  ).join('');
+}
+
+function isThisMonth(dateStr) {
+  const d = new Date(dateStr);
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+// ══ REVENUS ══
+let revenues = st.revenues || { salaire:2400, km:600, location:365, autres:0, excep:0 };
+
+function getTotalRevenues() {
+  return revenues.salaire + revenues.km + revenues.location + revenues.autres + revenues.excep;
+}
+
+function recalcRevenues() {
+  const s = parseFloat(document.getElementById('rev-salaire').value) || 0;
+  const k = parseFloat(document.getElementById('rev-km').value) || 0;
+  const l = parseFloat(document.getElementById('rev-location').value) || 0;
+  const a = parseFloat(document.getElementById('rev-autres').value) || 0;
+  const e = parseFloat(document.getElementById('rev-excep').value) || 0;
+  document.getElementById('rev-salaire-disp').textContent = '+€' + s.toLocaleString('fr-BE');
+  document.getElementById('rev-km-disp').textContent = '+€' + k.toLocaleString('fr-BE');
+  document.getElementById('rev-location-disp').textContent = '+€' + l.toLocaleString('fr-BE');
+  document.getElementById('rev-autres-disp').textContent = '+€' + a.toLocaleString('fr-BE');
+  document.getElementById('rev-excep-disp').textContent = '+€' + e.toLocaleString('fr-BE');
+  revenues.salaire = s; revenues.km = k; revenues.location = l; revenues.autres = a; revenues.excep = e;
+  const total = s + k + l + a + e;
+  document.getElementById('total-rev').textContent = '+€' + total.toLocaleString('fr-BE');
+  renderBilan();
+  renderDashboard();
+}
+
+function saveRevenues() {
+  revenues.salaire = parseFloat(document.getElementById('rev-salaire').value) || 2400;
+  revenues.km = parseFloat(document.getElementById('rev-km').value) || 600;
+  revenues.location = parseFloat(document.getElementById('rev-location').value) || 365;
+  revenues.autres = parseFloat(document.getElementById('rev-autres').value) || 0;
+  revenues.excep = parseFloat(document.getElementById('rev-excep').value) || 0;
+  save();
+  document.getElementById('rev-saved-msg').textContent = '✓ Revenus sauvegardés — ' + new Date().toLocaleDateString('fr-BE');
+  document.getElementById('rev-saved-msg').style.color = 'var(--green)';
+  toast('Revenus sauvegardés: €' + getTotalRevenues().toLocaleString('fr-BE'));
+  renderBilan();
+  renderDashboard();
+}
+
+function resetRevenues() {
+  revenues = { salaire:2400, km:600, location:365, autres:0, excep:0 };
+  document.getElementById('rev-salaire').value = 2400;
+  document.getElementById('rev-km').value = 600;
+  document.getElementById('rev-location').value = 365;
+  document.getElementById('rev-autres').value = 0;
+  document.getElementById('rev-excep').value = 0;
+  recalcRevenues();
+  toast('Revenus réinitialisés aux valeurs par défaut');
+}
+
+function restoreRevenues() {
+  document.getElementById('rev-salaire').value = revenues.salaire;
+  document.getElementById('rev-km').value = revenues.km;
+  document.getElementById('rev-location').value = revenues.location;
+  document.getElementById('rev-autres').value = revenues.autres;
+  document.getElementById('rev-excep').value = revenues.excep;
+  recalcRevenues();
+}
+
+function addExpense() {
+  const name = document.getElementById('exp-name').value.trim();
+  const amt = parseFloat(document.getElementById('exp-amt').value);
+  const cat = document.getElementById('exp-cat').value;
+  if (!name || isNaN(amt)) { toast('Remplis description et montant', 'err'); return; }
+  expenses.push({ name, amt, cat, date: new Date().toISOString() });
+  document.getElementById('exp-name').value = '';
+  document.getElementById('exp-amt').value = '';
+  save(); renderExpenses(); renderBilan(); renderDashboard();
+  toast('Dépense ajoutée: ' + name + ' €' + amt);
+}
+
+const catIcons = { alimentaire:'🛒', transport:'🚗', sante:'💊', loisirs:'🎮', vetements:'👕', education:'📚', investissement:'📈', autre:'📦' };
+const catColors = { alimentaire:'rgba(255,165,2,.15)', transport:'rgba(74,158,255,.15)', sante:'rgba(255,71,87,.15)', loisirs:'rgba(167,139,250,.15)', vetements:'rgba(0,229,160,.15)', education:'rgba(201,168,76,.15)', investissement:'rgba(0,229,160,.2)', autre:'rgba(255,255,255,.07)' };
+
+function renderExpenses() {
+  const thisMonth = expenses.filter(e => isThisMonth(e.date));
+  const el = document.getElementById('expense-list');
+  if (!thisMonth.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:16px">Aucune dépense saisie ce mois.</div>';
+    return;
+  }
+  el.innerHTML = thisMonth.map((e, i) => {
+    const realIdx = expenses.indexOf(e);
+    return '<div class="expense-item"><span class="ei-cat" style="background:' + (catColors[e.cat]||catColors.autre) + '">' + (catIcons[e.cat]||'📦') + ' ' + e.cat + '</span>' +
+      '<span class="ei-name">' + e.name + '</span>' +
+      '<span class="ei-date">' + new Date(e.date).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'}) + '</span>' +
+      '<span class="ei-amt" style="color:var(--red)">-€' + e.amt.toFixed(2) + '</span>' +
+      '<button class="ei-del" onclick="delExpense(' + realIdx + ')">✕</button></div>';
+  }).join('');
+}
+
+function delExpense(i) { expenses.splice(i,1); save(); renderExpenses(); renderBilan(); renderDashboard(); toast('Dépense supprimée'); }
+
+function renderBilan() {
+  const totalVar = expenses.filter(e => isThisMonth(e.date)).reduce((s,e) => s + e.amt, 0);
+  const totalRev = getTotalRevenues();
+  const reste = totalRev - 1220 - totalVar - investedThisMonth;
+  document.getElementById('bilan-rev').textContent = totalRev.toLocaleString('fr-BE');
+  document.getElementById('bilan-var').textContent = totalVar.toFixed(2);
+  document.getElementById('bilan-inv').textContent = investedThisMonth.toFixed(2);
+  document.getElementById('bilan-reste').textContent = '€' + reste.toFixed(2);
+  document.getElementById('bilan-reste').style.color = reste > 0 ? 'var(--gold)' : 'var(--red)';
+}
+
+function updateInvested() {
+  const v = parseFloat(document.getElementById('inv-input').value);
+  if (!isNaN(v)) { investedThisMonth = v; save(); renderBilan(); renderDashboard(); toast('Investissement mis à jour: €' + v); }
+  document.getElementById('inv-input').value = '';
+}
+
+function updateIBKR() {
+  const v = parseFloat(document.getElementById('ibkr-input').value);
+  if (!isNaN(v)) {
+    ibkrBalance.pnl = v - ibkrBalance.total;
+    ibkrBalance.total = v;
+    realCapital = v;
+    save(); renderDashboard(); toast('Solde IBKR mis à jour: €' + v);
+  }
+  document.getElementById('ibkr-input').value = '';
+}
+
+// ══ BUDGET ENGINE — monthly ledger (rewritten logic) ══
+var REF = {
+  revenues: [ {label:'Salaire net', amount:2400}, {label:'Remboursement KM', amount:600}, {label:'Location maison', amount:365} ],
+  expenses: [ {name:'Loyer',amt:700,cat:'logement'}, {name:'Téléphone',amt:100,cat:'abonnement'}, {name:'ONEM',amt:150,cat:'dette'}, {name:'Huissier',amt:150,cat:'dette'}, {name:'Eau + électricité',amt:120,cat:'logement'} ]
+};
+var ledger = (st && st.ledger) ? st.ledger : {};
+function _two(n){ return (n<10?'0':'')+n; }
+function monthKey(d){ return d.getFullYear()+'-'+_two(d.getMonth()+1); }
+function monthLabelKey(key){ var p=key.split('-'); return new Date(+p[0],+p[1]-1,1).toLocaleDateString('fr-BE',{month:'long',year:'numeric'}); }
+function getMonth(key){ if(!ledger[key]){ ledger[key]={rev:[],exp:[],invested:0}; seedRecurringInto(key); if(typeof save==='function') save(); } if(!ledger[key].rev)ledger[key].rev=[]; if(!ledger[key].exp)ledger[key].exp=[]; return ledger[key]; }
+function seedRecurringInto(key){ if(key<curMonthKey) return; var m=ledger[key]; if(!m) return; if(Array.isArray(ledger.__recurringRev)) ledger.__recurringRev.forEach(function(r){ if(!m.rev.some(function(x){return x.label===r.label;})) m.rev.push({id:newId('r'),label:r.label,amount:r.amount,status:'expected',date:new Date().toISOString()}); }); if(Array.isArray(ledger.__recurring)) ledger.__recurring.forEach(function(c){ if(!m.exp.some(function(x){return x.name===c.name;})) m.exp.push({id:newId('e'),name:c.name,amt:c.amt,cat:c.cat,status:'planned',date:new Date().toISOString()}); }); }
+function seedRecurring(key,force){ var m=getMonth(key); if(Array.isArray(ledger.__recurring)) ledger.__recurring.forEach(function(c){ if(force||!m.exp.some(function(x){return x.name===c.name;})) m.exp.push({id:newId('e'),name:c.name,amt:c.amt,cat:c.cat,status:'planned',date:new Date().toISOString()}); }); if(Array.isArray(ledger.__recurringRev)) ledger.__recurringRev.forEach(function(r){ if(!m.rev.some(function(x){return x.label===r.label;})) m.rev.push({id:newId('r'),label:r.label,amount:r.amount,status:'expected',date:new Date().toISOString()}); }); save(); renderBudget(); renderDashboard(); toast('Charges r\u00e9currentes report\u00e9es'); }
+var curMonthKey = monthKey(getAppToday());
+var viewMonthKey = curMonthKey;
+var editRevId = null, editExpId = null;
+function newId(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function escq(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escA(x){ return escq(x).replace(/"/g,'&quot;'); }
+function setTxt(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; }
+
+function migrateLedger(){
+  if(ledger.__migrated) return;
+  var M=getMonth(curMonthKey);
+  if(M.rev.length===0 && M.exp.length===0){
+    var o=(typeof revenues==='object'&&revenues)?revenues:{};
+    function aRev(l,a,stt){ M.rev.push({id:newId('r'),label:l,amount:a,status:stt,date:new Date().toISOString()}); }
+    (+o.salaire||0)>0 ? aRev('Salaire net',+o.salaire,'received') : aRev('Salaire net',2400,'expected');
+    (+o.km||0)>0 ? aRev('Remboursement KM',+o.km,'received') : aRev('Remboursement KM',600,'expected');
+    (+o.location||0)>0 ? aRev('Location maison',+o.location,'received') : aRev('Location maison',365,'expected');
+    if((+o.autres||0)>0) aRev('Autres revenus',+o.autres,'received');
+    if((+o.excep||0)>0) aRev('Revenus exceptionnels',+o.excep,'received');
+    REF.expenses.forEach(function(c){ M.exp.push({id:newId('e'),name:c.name,amt:c.amt,cat:c.cat,status:'paid',date:new Date().toISOString()}); });
+    (Array.isArray(expenses)?expenses:[]).forEach(function(e){ M.exp.push({id:newId('e'),name:e.name,amt:e.amt,cat:e.cat||'autre',status:'paid',date:e.date||new Date().toISOString()}); });
+    M.invested=(typeof investedThisMonth==='number')?investedThisMonth:0;
+  }
+  ledger.__migrated=true;
+  if(typeof save==='function') save();
+}
+
+function sumRev(M,stt){ return M.rev.filter(function(r){return stt?r.status===stt:true;}).reduce(function(s,r){return s+(+r.amount||0);},0); }
+function sumExp(M,stt){ return M.exp.filter(function(e){return stt?e.status===stt:true;}).reduce(function(s,e){return s+(+e.amt||0);},0); }
+
+function syncLegacyFromLedger(){
+  var M=getMonth(curMonthKey);
+  expenses = M.exp.map(function(e){return {name:e.name,amt:e.amt,cat:e.cat,date:e.date,status:e.status};});
+  investedThisMonth = M.invested||0;
+}
+
+// overrides of legacy money accessors
+function getTotalRevenues(){ return sumRev(getMonth(curMonthKey),'received'); }
+function getPaidExpenses(){ return sumExp(getMonth(curMonthKey),'paid'); }
+
+function revRowHTML(r){
+  if(editRevId===r.id){
+    return '<div class="expense-item" style="flex-wrap:wrap;gap:6px">'+
+      '<input class="inp" id="er-name" value="'+escA(r.label)+'" style="flex:2;min-width:110px">'+
+      '<input class="inp" id="er-amt" type="number" value="'+(+r.amount)+'" style="width:88px">'+
+      '<select class="inp" id="er-status" style="width:104px"><option value="received"'+(r.status==='received'?' selected':'')+'>✓ Reçu</option><option value="expected"'+(r.status==='expected'?' selected':'')+'>⏳ À venir</option></select>'+
+      '<button class="btn btn-green" onclick="saveRevEdit(\''+r.id+'\')">OK</button>'+
+      '<button class="btn btn-red" onclick="editRevId=null;renderBudget()">✕</button></div>';
+  }
+  var rec=r.status==='received';
+  var badge='<span class="ei-cat" style="background:'+(rec?'rgba(0,229,160,.15)':'rgba(74,158,255,.12)')+';color:'+(rec?'var(--green)':'var(--blue)')+'">'+(rec?'✓ reçu':'⏳ à venir')+'</span>';
+  return '<div class="expense-item">'+badge+
+    '<span class="ei-name">'+escq(r.label)+'</span>'+
+    '<span class="ei-amt" style="color:'+(rec?'var(--green)':'var(--txt3)')+'">+€'+(+r.amount).toFixed(2)+'</span>'+
+    '<button class="ei-del" title="Basculer reçu/à venir" onclick="toggleRevStatus(\''+r.id+'\')">⇄</button>'+
+    '<button class="ei-del" title="Modifier" onclick="editRevId=\''+r.id+'\';renderBudget()">✎</button>'+
+    '<button class="ei-del" title="Supprimer" onclick="delRevenue(\''+r.id+'\')">✕</button></div>';
+}
+function expRowHTML(e){
+  if(editExpId===e.id){
+    var cats=['alimentaire','transport','sante','logement','loisirs','vetements','education','abonnement','dette','investissement','autre'];
+    var opts=cats.map(function(c){return '<option value="'+c+'"'+(e.cat===c?' selected':'')+'>'+c+'</option>';}).join('');
+    return '<div class="expense-item" style="flex-wrap:wrap;gap:6px">'+
+      '<input class="inp" id="ee-name" value="'+escA(e.name)+'" style="flex:2;min-width:100px">'+
+      '<input class="inp" id="ee-amt" type="number" value="'+(+e.amt)+'" style="width:80px">'+
+      '<select class="inp" id="ee-cat" style="width:120px">'+opts+'</select>'+
+      '<select class="inp" id="ee-status" style="width:100px"><option value="paid"'+(e.status==='paid'?' selected':'')+'>✓ Payée</option><option value="planned"'+(e.status==='planned'?' selected':'')+'>⏳ Prévue</option></select>'+
+      '<button class="btn btn-green" onclick="saveExpEdit(\''+e.id+'\')">OK</button>'+
+      '<button class="btn btn-red" onclick="editExpId=null;renderBudget()">✕</button></div>';
+  }
+  var paid=e.status==='paid';
+  var ic=(typeof catIcons!=='undefined'&&catIcons[e.cat])?catIcons[e.cat]:'📦';
+  var col=(typeof catColors!=='undefined'&&catColors[e.cat])?catColors[e.cat]:'rgba(255,255,255,.07)';
+  var sb=paid?'':'<span style="color:var(--blue);font-family:var(--mono);font-size:9px;margin-left:4px">prévue</span>';
+  return '<div class="expense-item"'+(paid?'':' style="opacity:.7"')+'>'+
+    '<span class="ei-cat" style="background:'+col+'">'+ic+' '+escq(e.cat)+'</span>'+
+    '<span class="ei-name">'+escq(e.name)+sb+'</span>'+
+    '<span class="ei-amt" style="color:var(--red)">-€'+(+e.amt).toFixed(2)+'</span>'+
+    '<button class="ei-del" title="Basculer payée/prévue" onclick="toggleExpStatus(\''+e.id+'\')">⇄</button>'+
+    '<button class="ei-del" title="Modifier" onclick="editExpId=\''+e.id+'\';renderBudget()">✎</button>'+
+    '<button class="ei-del" title="Supprimer" onclick="delExpense(\''+e.id+'\')">✕</button></div>';
+}
+
+function renderBudget(){
+  var M=getMonth(viewMonthKey);
+  setTxt('month-label', monthLabelKey(viewMonthKey)+(viewMonthKey===curMonthKey?' (en cours)':''));
+  var rl=document.getElementById('rev-list');
+  if(rl) rl.innerHTML = M.rev.length? M.rev.map(revRowHTML).join('') : '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:12px">Aucun revenu. Ajoute ton salaire ci-dessous.</div>';
+  var el=document.getElementById('exp-list');
+  if(el) el.innerHTML = M.exp.length? M.exp.map(expRowHTML).join('') : '<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:12px">Aucune dépense.</div>';
+  setTxt('rev-received','+€'+sumRev(M,'received').toLocaleString('fr-BE'));
+  setTxt('rev-expected','€'+sumRev(M,'expected').toLocaleString('fr-BE'));
+  setTxt('exp-paid','-€'+sumExp(M,'paid').toLocaleString('fr-BE'));
+  setTxt('exp-planned','€'+sumExp(M,'planned').toLocaleString('fr-BE'));
+  renderBilan(); renderAnalysis();
+  syncLegacyFromLedger();
+}
+
+function renderBilan(){
+  var M=getMonth(viewMonthKey);
+  var recv=sumRev(M,'received'), paid=sumExp(M,'paid');
+  var allRev=sumRev(M), allExp=sumExp(M);
+  setTxt('bilan-rev','+€'+recv.toFixed(2));
+  setTxt('bilan-paid','-€'+paid.toFixed(2));
+  var real=recv-paid;
+  setTxt('bilan-real','€'+real.toFixed(2));
+  var be=document.getElementById('bilan-real'); if(be) be.style.color = real>=0?'var(--gold)':'var(--red)';
+  setTxt('bilan-forecast','€'+(allRev-allExp-(M.invested||0)).toFixed(2));
+}
+
+function renderAnalysis(){
+  var M=getMonth(viewMonthKey);
+  var box=document.getElementById('budget-analysis'); if(!box) return;
+  var recv=sumRev(M,'received'), paid=sumExp(M,'paid');
+  var refRev=REF.revenues.reduce(function(s,r){return s+r.amount;},0);
+  var refExp=REF.expenses.reduce(function(s,e){return s+e.amt;},0);
+  var savings=recv-paid, refSavings=refRev-refExp;
+  function line(lbl,val,ref,inv){
+    var diff=val-ref; var good=inv?(diff<=0):(diff>=0); var col=good?'var(--green)':'var(--red)';
+    return '<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--txt2)">'+lbl+'</span><span style="font-family:var(--mono)">€'+Math.round(val).toLocaleString('fr-BE')+' <span style="color:var(--txt3)">/ réf €'+Math.round(ref).toLocaleString('fr-BE')+'</span> <span style="color:'+col+'">('+(diff>=0?'+':'')+Math.round(diff).toLocaleString('fr-BE')+')</span></span></div>';
+  }
+  // month-over-month
+  var pk=(function(){var p=viewMonthKey.split('-');var d=new Date(+p[0],+p[1]-2,1);return monthKey(d);})();
+  var prev=ledger[pk];
+  var mom='';
+  if(prev){ var pSav=sumRev(prev,'received')-sumExp(prev,'paid'); var d=savings-pSav; mom='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);color:var(--txt2)">Vs mois précédent ('+monthLabelKey(pk)+') : épargne <span style="font-family:var(--mono);color:'+(d>=0?'var(--green)':'var(--red)')+'">'+(d>=0?'+':'')+'€'+Math.round(d).toLocaleString('fr-BE')+'</span></div>'; }
+  var pctSpent = recv>0 ? Math.round(paid/recv*100) : 0;
+  var pctCol = pctSpent<=70?'var(--green)':(pctSpent<=100?'var(--gold)':'var(--red)');
+  var pctHtml = '<div style="margin-top:6px;display:flex;justify-content:space-between"><span style="color:var(--txt2)">% du revenu d\u00e9pens\u00e9</span><span style="font-family:var(--mono);color:'+pctCol+'">'+pctSpent+'%</span></div>';
+  var catMap={}; M.exp.filter(function(e){return e.status==='paid';}).forEach(function(e){ catMap[e.cat]=(catMap[e.cat]||0)+(+e.amt||0); });
+  var top=Object.keys(catMap).map(function(k){return [k,catMap[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+  var topHtml = top.length? ('<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);color:var(--txt2)">Top cat\u00e9gories : '+top.map(function(t){return '<b>'+escq(t[0])+'</b> (\u20ac'+Math.round(t[1]).toLocaleString('fr-BE')+')';}).join(' \u00b7 ')+'</div>') : '';
+  box.innerHTML = line('Revenus re\u00e7us',recv,refRev,false)+line('D\u00e9penses pay\u00e9es',paid,refExp,true)+line('\u00c9pargne du mois',savings,refSavings,false)+pctHtml+topHtml+mom;
+  // category doughnut (paid expenses)
+  var cats={};
+  M.exp.filter(function(e){return e.status==='paid';}).forEach(function(e){ cats[e.cat]=(cats[e.cat]||0)+(+e.amt||0); });
+  var labels=Object.keys(cats), vals=labels.map(function(k){return cats[k];});
+  var palette=['#4a9eff','#00e5a0','#ffa502','#a78bfa','#ff4757','#c9a84c','#8fc6ff','#7c879a','#e8c97a','#ff6b81','#aeb8c7'];
+  var ctx=document.getElementById('cat-chart');
+  if(ctx && typeof Chart!=='undefined'){
+    if(window._catChart){window._catChart.destroy();window._catChart=null;}
+    if(labels.length){
+      window._catChart=new Chart(ctx,{type:'doughnut',data:{labels:labels,datasets:[{data:vals,backgroundColor:palette,borderColor:'#0d0f13',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8b919e',font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:function(c){return c.label+': €'+Math.round(c.parsed).toLocaleString('fr-BE');}}}}}});
+    }
+  }
+  renderTrend();
+}
+
+function renderTrend(){
+  var ctx=document.getElementById('trend-chart'); if(!ctx||typeof Chart==='undefined')return;
+  var keys=Object.keys(ledger).filter(function(k){return /^[0-9]{4}-[0-9]{2}$/.test(k);}).sort().slice(-6);
+  var labels=keys.map(function(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,1).toLocaleDateString('fr-BE',{month:'short'});});
+  var data=keys.map(function(k){var m=ledger[k];return sumRev(m,'received')-sumExp(m,'paid');});
+  if(window._trendChart){window._trendChart.destroy();window._trendChart=null;}
+  window._trendChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{label:'\u00c9pargne',data:data,borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,.12)',fill:true,tension:.3,pointRadius:3,pointBackgroundColor:'#00e5a0'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '\u20ac'+Math.round(c.parsed.y).toLocaleString('fr-BE');}}}},scales:{y:{ticks:{color:'#8b919e',font:{size:9},callback:function(v){return '\u20ac'+v;}},grid:{color:'rgba(255,255,255,.05)'}},x:{ticks:{color:'#8b919e',font:{size:9}},grid:{display:false}}}}});
+}
+function addRevenue(){
+  var n=document.getElementById('rev-name'), a=document.getElementById('rev-amt'), st2=document.getElementById('rev-status');
+  var name=n?n.value.trim():'', amt=a?parseFloat(a.value):NaN, status=st2?st2.value:'received';
+  if(!name||isNaN(amt)){ toast('Remplis description et montant','err'); return; }
+  getMonth(viewMonthKey).rev.push({id:newId('r'),label:name,amount:amt,status:status,date:new Date().toISOString()});
+  if(n)n.value='';if(a)a.value='';
+  save(); renderBudget(); renderDashboard(); toast('Revenu ajouté: '+name);
+}
+function saveRevEdit(id){
+  var M=getMonth(viewMonthKey); var r=M.rev.filter(function(x){return x.id===id;})[0]; if(!r)return;
+  var n=document.getElementById('er-name'), a=document.getElementById('er-amt'), stt=document.getElementById('er-status');
+  if(n)r.label=n.value.trim()||r.label; if(a&&!isNaN(parseFloat(a.value)))r.amount=parseFloat(a.value); if(stt)r.status=stt.value;
+  editRevId=null; save(); renderBudget(); renderDashboard(); toast('Revenu modifié');
+}
+function toggleRevStatus(id){ var M=getMonth(viewMonthKey); var r=M.rev.filter(function(x){return x.id===id;})[0]; if(!r)return; r.status=(r.status==='received')?'expected':'received'; save(); renderBudget(); renderDashboard(); }
+function delRevenue(id){ var M=getMonth(viewMonthKey); M.rev=M.rev.filter(function(x){return x.id!==id;}); save(); renderBudget(); renderDashboard(); toast('Revenu supprimé'); }
+
+function addExpense(){
+  var n=document.getElementById('exp-name'), a=document.getElementById('exp-amt'), c=document.getElementById('exp-cat'), stt=document.getElementById('exp-status');
+  var name=n?n.value.trim():'', amt=a?parseFloat(a.value):NaN, cat=c?c.value:'autre', status=stt?stt.value:'paid';
+  if(!name||isNaN(amt)){ toast('Remplis description et montant','err'); return; }
+  getMonth(viewMonthKey).exp.push({id:newId('e'),name:name,amt:amt,cat:cat,status:status,date:new Date().toISOString()});
+  if(n)n.value='';if(a)a.value='';
+  save(); renderBudget(); renderDashboard(); toast('Dépense ajoutée: '+name);
+}
+function saveExpEdit(id){
+  var M=getMonth(viewMonthKey); var e=M.exp.filter(function(x){return x.id===id;})[0]; if(!e)return;
+  var n=document.getElementById('ee-name'), a=document.getElementById('ee-amt'), c=document.getElementById('ee-cat'), stt=document.getElementById('ee-status');
+  if(n)e.name=n.value.trim()||e.name; if(a&&!isNaN(parseFloat(a.value)))e.amt=parseFloat(a.value); if(c)e.cat=c.value; if(stt)e.status=stt.value;
+  editExpId=null; save(); renderBudget(); renderDashboard(); toast('Dépense modifiée');
+}
+function toggleExpStatus(id){ var M=getMonth(viewMonthKey); var e=M.exp.filter(function(x){return x.id===id;})[0]; if(!e)return; e.status=(e.status==='paid')?'planned':'paid'; save(); renderBudget(); renderDashboard(); }
+function delExpense(id){ var M=getMonth(viewMonthKey); M.exp=M.exp.filter(function(x){return x.id!==id;}); save(); renderBudget(); renderDashboard(); toast('Dépense supprimée'); }
+
+function updateInvested(){
+  var v=parseFloat(document.getElementById('inv-input').value);
+  if(!isNaN(v)){ getMonth(viewMonthKey).invested=v; save(); renderBudget(); renderDashboard(); toast('Investissement mis à jour: €'+v); }
+  document.getElementById('inv-input').value='';
+}
+function changeMonth(delta){
+  var p=viewMonthKey.split('-'); var d=new Date(+p[0],+p[1]-1+delta,1); viewMonthKey=monthKey(d);
+  editRevId=null; editExpId=null; renderBudget();
+  var inv=document.getElementById('inv-input'); if(inv)inv.placeholder='Investi: €'+(getMonth(viewMonthKey).invested||0);
+}
+
+// legacy renders redirected to ledger
+function renderExpenses(){ renderBudget(); }
+function restoreRevenues(){ renderBudget(); }
+
+function renderDashboard(){
+  var M=getMonth(curMonthKey);
+  var totalRev=sumRev(M,'received');
+  var paid=sumExp(M,'paid');
+  var invested=M.invested||0;
+  var reste=totalRev-paid-invested;
+  var debtTotal=debtHuissier+debtOnem;
+  var debtPct=Math.max(0,100-(debtTotal/15300*100));
+  var capitalPct=Math.min(100,realCapital/10000*100);
+  var planPct=Math.min(100,(currentMonth/60)*100);
+  setTxt('d-revenus','+€'+totalRev.toLocaleString('fr-BE'));
+  setTxt('d-depenses','-€'+paid.toFixed(2));
+  setTxt('d-investi','+€'+invested.toFixed(2));
+  setTxt('d-reste','€'+reste.toFixed(2));
+  setTxt('ibkr-bal',ibkrBalance.total.toFixed(2));
+  setTxt('ibkr-pnl',(ibkrBalance.pnl>=0?'+':'')+ibkrBalance.pnl.toFixed(2));
+  setTxt('huissier-bal',debtHuissier.toLocaleString('fr-BE'));
+  var dp=document.getElementById('debt-prog'); if(dp)dp.style.width=debtPct+'%';
+  setTxt('debt-pct-lbl','Remboursé '+debtPct.toFixed(0)+'%');
+  var cp=document.getElementById('capital-prog'); if(cp)cp.style.width=capitalPct+'%';
+  setTxt('capital-pct-lbl','€'+realCapital.toLocaleString('fr-BE')+' / €10,000');
+  var pp=document.getElementById('plan-prog'); if(pp)pp.style.width=planPct+'%';
+  setTxt('plan-pct-lbl','Mois '+currentMonth+' / 60');
+  var dm=[
+    {lbl:'REVENUS REÇUS',val:'€'+totalRev.toLocaleString('fr-BE'),cls:'m-green',sub:'Ce mois (encaissé)'},
+    {lbl:'DÉPENSES PAYÉES',val:'-€'+Math.round(paid).toLocaleString('fr-BE'),cls:'m-red',sub:'Ce mois'},
+    {lbl:'DETTE TOTALE',val:'-€'+debtTotal.toLocaleString('fr-BE'),cls:'m-red',sub:'Huissier + ONEM'},
+    {lbl:'CAPITAL IBKR',val:'€'+realCapital.toLocaleString('fr-BE'),cls:'m-gold',sub:'Compte réel'},
+    {lbl:'SOLDE DU MOIS',val:'€'+Math.round(reste).toLocaleString('fr-BE'),cls:reste>=0?'m-green':'m-red',sub:'Reçu - payé - investi'},
+    {lbl:'MOIS DU PLAN',val:'M'+currentMonth,cls:'m-blue',sub:'M0 = mai 2026'}
+  ];
+  var dmel=document.getElementById('dash-metrics');
+  if(dmel) dmel.innerHTML=dm.map(function(m){return '<div class="metric '+m.cls+'"><div class="m-lbl">'+m.lbl+'</div><div class="m-val">'+m.val+'</div><div class="m-sub">'+m.sub+'</div></div>';}).join('');
+}
+
+// OmniVest share uses real received/paid (no hardcoded charges)
+function buildFinanceIQShare(){
+  var M=getMonth(curMonthKey);
+  var recv=sumRev(M,'received'), paid=sumExp(M,'paid');
+  var reste=recv-paid-(M.invested||0);
+  var insights=['Plan month M'+currentMonth+'/60','Available this month: \u20ac'+Math.round(reste)];
+  if(debtHuissier>0) insights.push('Huissier debt: \u20ac'+debtHuissier.toLocaleString('fr-BE'));
+  return {source:'financeiq',capital:realCapital,monthlyIncome:recv,available:Math.round(reste),invested:(M.invested||0),debts:{huissier:debtHuissier,onem:debtOnem},planMonth:currentMonth,goals:'Objectif \u20ac10K capital (plan 60 mois \u2014 M'+currentMonth+')',notes:'Budget net dispo ~\u20ac'+Math.round(reste)+'/mois \u00b7 TOB 0.12% \u00e0 d\u00e9clarer trimestriellement',insights:insights,updatedAt:new Date().toISOString()};
+}
+
+migrateLedger();
+if(!ledger.__recurring){ ledger.__recurring = REF.expenses.map(function(c){return {name:c.name,amt:c.amt,cat:c.cat};}); }
+if(!ledger.__recurringRev){ ledger.__recurringRev = [{label:'Salaire net',amount:2400}]; }
+syncLegacyFromLedger();
+// ══ PROJECTION ══
+function calcProjection(apportOverride, rateOverride) {
+  var rate = rateOverride !== undefined ? rateOverride / 100 : 0.10;
+  const data = [];
+  let cap = 1000;
+  let totalC = 1000;
+  let dH = 14000;
+  let huissierPaid = false;
+
+  for (let m = 0; m <= 60; m++) {
+    if (m > 0) {
+      cap *= (1 + rate);
+      var apport = apportOverride !== undefined ? (m === 13 ? apportOverride + 2200 : apportOverride) : (m === 13 ? 3200 : m > 9 ? 1150 : 1000);
+      cap += apport;
+      totalC += apport;
+      if (dH > 0) dH = Math.max(0, dH - 150);
+      if (cap >= 100000 && !huissierPaid && dH > 0) { cap -= dH; dH = 0; huissierPaid = true; }
+    }
+    data.push({ m: m, prevu: Math.round(cap), dette: Math.round(dH), contrib: Math.round(totalC) });
+  }
+  return data;
+}
+
+function renderProjection() {
+  const projData = calcProjection();
+  const cm = currentMonth;
+  const real = realCapital;
+  const prevu = projData[cm]?.prevu || 0;
+  const ecart = real - prevu;
+  const ecartPct = prevu > 0 ? (ecart / prevu * 100).toFixed(1) : 0;
+
+  // Metrics
+  const pm = [
+    { lbl: 'CAPITAL PRÉVU M'+cm, val: '€'+prevu.toLocaleString('fr-BE'), cls: 'm-blue', sub: 'Selon plan initial' },
+    { lbl: 'CAPITAL RÉEL', val: '€'+real.toLocaleString('fr-BE'), cls: ecart >= 0 ? 'm-green' : 'm-red', sub: 'Ton compte IBKR' },
+    { lbl: 'ÉCART', val: (ecart >= 0 ? '+' : '') + '€'+Math.abs(ecart).toLocaleString('fr-BE'), cls: ecart >= 0 ? 'm-green' : 'm-red', sub: ecartPct + '% vs plan' },
+    { lbl: 'STATUT', val: ecart >= 0 ? '✓ EN AVANCE' : '⚠ EN RETARD', cls: ecart >= 0 ? 'm-green' : 'm-red', sub: ecart >= 0 ? 'Continue comme ça !' : 'Rattrapage possible' }
+  ];
+  document.getElementById('proj-metrics').innerHTML = pm.map(m =>
+    '<div class="metric ' + m.cls + '"><div class="m-lbl">' + m.lbl + '</div><div class="m-val" style="font-size:15px">' + m.val + '</div><div class="m-sub">' + m.sub + '</div></div>'
+  ).join('');
+
+  // Alert banner
+  var alertEl = document.getElementById('proj-alert');
+  if (alertEl) {
+    alertEl.style.display = 'block';
+    if (ecart >= 0) {
+      alertEl.style.cssText = 'display:block;border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--green)';
+      alertEl.textContent = 'En avance de €'+Math.abs(ecart).toLocaleString('fr-BE')+' sur le plan au M'+cm+'/60. Continue !';
+    } else {
+      alertEl.style.cssText = 'display:block;border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7;font-family:var(--mono);background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.3);color:var(--red)';
+      alertEl.textContent = 'En retard de €'+Math.abs(ecart).toLocaleString('fr-BE')+' sur le plan. Augmente les apports ou le rendement.';
+    }
+  }
+
+  // Chart
+  var ctx = document.getElementById('proj-chart');
+  if (ctx && typeof Chart !== 'undefined') {
+    if (window._projChart) { window._projChart.destroy(); window._projChart = null; }
+    var labels = projData.map(function(d) { return d.m === 0 ? 'Start' : 'M'+d.m; });
+    window._projChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Plan', data: projData.map(function(d){return d.prevu;}), borderColor: '#c9a84c', backgroundColor: 'rgba(201,168,76,0.05)', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4, borderDash: [4,3] },
+          { label: 'Reel', data: projData.map(function(d,i){return i <= cm ? (i===cm?real:null) : null;}), borderColor: ecart >= 0 ? '#00e5a0' : '#ff4757', backgroundColor: 'transparent', borderWidth: 3, pointRadius: projData.map(function(d,i){return i===cm?8:0;}), fill: false, tension: 0.4, spanGaps: false },
+          { label: 'Apports', data: projData.map(function(d){return d.contrib;}), borderColor: 'rgba(74,158,255,0.4)', backgroundColor: 'transparent', borderWidth: 1, pointRadius: 0, fill: false, tension: 0.3, borderDash: [2,4] }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#13161c', borderColor: 'rgba(255,255,255,.1)', borderWidth: 1, callbacks: { label: function(ctx) { var v=ctx.parsed.y; if(v===null)return null; return ctx.dataset.label+': €'+Math.round(v).toLocaleString('fr-BE'); } } } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#4a5260', maxTicksLimit: 13, autoSkip: true, font: { size: 9 } } },
+          y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#4a5260', font: { size: 9 }, callback: function(v) { return v>=1000000 ? '€'+(v/1000000).toFixed(1)+'M' : v>=1000 ? '€'+Math.round(v/1000)+'K' : '€'+v; } } }
+        }
+      }
+    });
+  }
+
+  // Simulator
+  if (typeof runSimulator === 'function') runSimulator();
+
+  // Table
+  const milestones = { 0:'🚀 Départ mai 2026', 9:'✓ ONEM soldé', 13:'🎉 13ème mois', 22:'🏆 €100K + huissier soldé', 36:'Phase 3', 60:'🎯 Fin' };
+  const tbody = document.getElementById('proj-tbody');
+  tbody.innerHTML = projData.map(d => {
+    const isNow = d.m === cm;
+    const isMilestone = milestones[d.m];
+    const rowReal = isNow ? real : (d.m < cm ? '—' : '');
+    const rowEcart = isNow ? (ecart >= 0 ? '<span class="ahead">+€'+Math.abs(ecart).toLocaleString('fr-BE')+'</span>' : '<span class="behind">-€'+Math.abs(ecart).toLocaleString('fr-BE')+'</span>') : '—';
+    const status = isNow ? (ecart >= 0 ? '<span class="ahead">EN AVANCE</span>' : '<span class="behind">EN RETARD</span>') : (d.m < cm ? '<span class="ontrack">PASSÉ</span>' : '—');
+    return '<tr class="' + (isNow ? 'current-month' : isMilestone ? 'milestone' : '') + '">' +
+      '<td style="color:var(--gold);font-weight:600">M'+d.m+'</td>' +
+      '<td style="color:var(--blue);font-family:var(--mono)">€'+d.prevu.toLocaleString('fr-BE')+'</td>' +
+      '<td style="font-family:var(--mono)">' + (rowReal ? (typeof rowReal === 'number' ? '€'+rowReal.toLocaleString('fr-BE') : rowReal) : '—') + '</td>' +
+      '<td>' + rowEcart + '</td>' +
+      '<td>' + status + '</td>' +
+      '<td style="color:var(--txt3);font-size:10px">' + (milestones[d.m]||'') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function updateProjection() {
+  const c = parseFloat(document.getElementById('proj-capital').value);
+  const m = parseInt(document.getElementById('proj-month').value);
+  if (!isNaN(c)) { realCapital = c; ibkrBalance.total = c; }
+  if (!isNaN(m) && m >= 0 && m <= 60) {
+    currentMonth = m;
+    // Si tu modifies le mois à la main, l'app respecte ton choix.
+    manualPlanMonth = true;
+  }
+  save(); renderProjection(); renderDashboard();
+  toast('Projection mise à jour — Mois ' + currentMonth + ', Capital €' + realCapital);
+}
+
+// ══ CONSEILLER IA ══
+let chatHistory = (function(){try{return JSON.parse(localStorage.getItem('financeiq_chat')||'[]');}catch(e){return [];}})();
+let msgN = 0;
+
+const SYS = `Tu es le conseiller financier personnel de Didier Ukanda Okitapoy, investisseur belge à Flobecq.
+
+SITUATION COMPLÈTE:
+- Date actuelle de l'app: ${now.toLocaleDateString('fr-BE')} ; départ du plan: mai 2026 (M0) ; mois automatique du plan: M${currentMonth}
+- Revenus: salaire €2,400 + KM €600 + location maison €365 = €3,365/mois
+- Charges: loyer €700 + téléphone €100 + ONEM €150 + huissier €150 + eau/électricité estimées €120 = €1,220/mois
+- Disponible avant dépenses variables/investissement: environ revenus - €1,220 de charges fixes
+- Dette huissier: €14,000 (€150/mois, non urgent)
+- Dette ONEM: €1,300 restants (€150/mois, soldé ~mois 9)
+- 5 enfants à charge fiscalement
+- Compte IBKR Ireland: U25981774 (compte étranger à déclarer BNB)
+- Capital IBKR actuel: €20 (compte réel)
+- Paper Trading: $1,000,000 virtuel
+- Remboursement fiscal 2025: €3,143.75 en attente (max juin 2027)
+- Pécule vacances prévu: ~€2,200 (mois prochain)
+- 13ème mois annuel: ~€2,200
+- Stratégie: investir max, payer huissier normalement, rembourser d'un coup à €100K capital
+
+FISCAL BELGE:
+- TOB: 0.12% à auto-déclarer trimestriellement (IBKR ne le fait pas)
+- Plus-values: 10% sur gains nets > €10,000/an (nouveau 2026)
+- Dividendes: 30% précompte mobilier (premiers €833 exemptés, code 1437)
+- Compte étranger: IBKR Ireland doit être déclaré BNB avant 30 juin 2026
+- MyMinfin codes: plus-values → 1440, dividendes → 1437, comptes étrangers → section dédiée
+
+OBJECTIFS:
+€20 → €1K → €10K → €50K → diversifier (business Afrique + revenus passifs + immobilier)
+
+Réponds en français principalement. Sois précis, pratique, et donne des actions concrètes.
+Pour les questions fiscales: sois précis sur les codes MyMinfin, délais, et montants.
+Pour le budget: calcule avec les vrais chiffres de Didier.
+Pour l'investissement: référence les signaux OmniVest (STNG, XOM, MOS, BTC).`;
+
+function addMsg(role, html) {
+  const id = 'm' + (++msgN);
+  const el = document.createElement('div');
+  el.className = 'msg ' + role; el.id = id;
+  el.innerHTML = '<div class="av ' + role + '">' + (role==='ai'?'IQ':'YOU') + '</div><div class="bub">' + html + '</div>';
+  document.getElementById('chat-msgs').appendChild(el);
+  document.getElementById('chat-msgs').scrollTop = 99999;
+  return id;
+}
+function updMsg(id, html) { const el = document.getElementById(id); if (el) el.querySelector('.bub').innerHTML = html; }
+
+function saveChat(){ try{ localStorage.setItem('financeiq_chat', JSON.stringify(chatHistory.slice(-40))); }catch(e){} if(typeof scheduleCloudSync==='function') scheduleCloudSync(); }
+function renderChatHistory(){ var box=document.getElementById('chat-msgs'); if(!box||!Array.isArray(chatHistory)) return; chatHistory.forEach(function(m){ var html; if(m.role==='user'){ html=String(m.content||'').split('\n[Capital')[0].replace(/</g,'&lt;'); } else { html=String(m.content||'').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); } addMsg(m.role==='assistant'?'ai':'user', html); }); }
+async function sendMsg() {
+  const inp = document.getElementById('cin');
+  const text = inp.value.trim(); if (!text) return;
+  inp.value = '';
+  document.getElementById('go-btn').disabled = true;
+  addMsg('user', text.replace(/</g,'&lt;'));
+  chatHistory.push({ role:'user', content: text + '\n[Capital réel IBKR: €'+realCapital+', Mois plan: '+currentMonth+', Dette huissier: €'+debtHuissier+', Dette ONEM: €'+debtOnem+']' });
+  saveChat();
+  const tid = addMsg('ai','<span class="dots">Analyse en cours</span>');
+  const key = localStorage.getItem('anthropic_key') || '';
+  if (!key) { updMsg(tid, '⚠️ Clé Anthropic manquante. Va dans OmniVest → Settings → entre ta clé, puis reviens ici et saisis-la ci-dessous.<br><br><input id="key-quick" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--txt);font-family:var(--mono);font-size:11px;width:100%;margin-bottom:6px" placeholder="sk-ant-..."><button onclick="saveKeyQuick()" style="background:var(--green);color:#000;border:none;border-radius:6px;padding:6px 14px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer">SAUVER</button>'); document.getElementById('go-btn').disabled=false; return; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:1200, system:SYS, messages:chatHistory.slice(-16) })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Erreur — réessaie.';
+    updMsg(tid, reply.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'));
+    chatHistory.push({ role:'assistant', content:reply });
+    if (chatHistory.length > 30) chatHistory = chatHistory.slice(-20);
+    saveChat();
+  } catch { updMsg(tid, '⚠️ Erreur de connexion. Vérifie ton réseau.'); }
+  document.getElementById('go-btn').disabled = false;
+}
+
+function ask(q) { document.getElementById('cin').value = q; sendMsg(); }
+
+function saveKeyQuick() {
+  const k = document.getElementById('key-quick')?.value?.trim();
+  if (k) { localStorage.setItem('anthropic_key', k); toast('Clé sauvegardée !'); }
+}
+
+// ══ SUPABASE SYNC ══
+function getUserId(){var uid=localStorage.getItem('financeiq_uid');if(!uid){uid='user_'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('financeiq_uid',uid);}return uid;}
+var USER_ID=getUserId();
+var syncTimeout=null;
+// ══ ACCOUNT / AUTH (Supabase) ══
+var AUTH=null; try{ AUTH=JSON.parse(localStorage.getItem('financeiq_auth')||'null'); }catch(e){}
+function authUid(){ return (AUTH&&AUTH.uid)?AUTH.uid:USER_ID; }
+function showAuth(){ var o=document.getElementById('auth-overlay'); if(o)o.style.display='flex'; var m=document.getElementById('auth-msg'); if(m)m.textContent=''; }
+function hideAuth(){ var o=document.getElementById('auth-overlay'); if(o)o.style.display='none'; }
+function authMsg(t,ok){ var m=document.getElementById('auth-msg'); if(m){ m.textContent=t||''; m.style.color=ok?'var(--green)':'var(--red)'; } }
+function renderAccountUI(){ var el=document.getElementById('account-status'); if(el){ el.innerHTML=(AUTH&&AUTH.email)?('Connecté : <b style="color:var(--green)">'+escq(AUTH.email)+'</b>'):'Non connecté (cet appareil seulement)'; } }
+async function authReq(path,body){ var res=await fetch(SHARED_SB_URL+'/auth/v1/'+path,{method:'POST',headers:{'Content-Type':'application/json','apikey':SHARED_SB_KEY},body:JSON.stringify(body)}); var d=await res.json(); if(!res.ok) throw new Error(d.msg||d.error_description||d.error||d.message||('Erreur '+res.status)); return d; }
+async function afterAuth(d){ var uid=(d.user&&d.user.id)||d.id; var email=(d.user&&d.user.email)||d.email||''; if(!uid){ authMsg('Réponse inattendue, réessaie',false); return; } AUTH={uid:uid,email:email,token:d.access_token||''}; localStorage.setItem('financeiq_auth',JSON.stringify(AUTH)); localStorage.removeItem('financeiq_skipauth'); hideAuth(); toast('Connecté : '+email); renderAccountUI(); var pulled=false; try{ pulled=await syncFromCloud(); }catch(e){} if(!pulled){ try{ syncToCloud(); }catch(e){} } if(typeof renderBudget==='function')renderBudget(); if(typeof renderDashboard==='function')renderDashboard(); }
+async function authSignIn(){ var e=(document.getElementById('auth-email')||{}).value; var p=(document.getElementById('auth-pw')||{}).value; e=(e||'').trim(); if(!e||!p){ authMsg('Entre email et mot de passe'); return; } authMsg('Connexion…',true); try{ var d=await authReq('token?grant_type=password',{email:e,password:p}); await afterAuth(d); }catch(err){ authMsg(err.message); } }
+async function authSignUp(){ var e=(document.getElementById('auth-email')||{}).value; var p=(document.getElementById('auth-pw')||{}).value; e=(e||'').trim(); if(!e||!p||p.length<6){ authMsg('Email + mot de passe (min 6 caractères)'); return; } authMsg('Création du compte…',true); try{ var d=await authReq('signup',{email:e,password:p}); if(!d.access_token && !(d.user&&d.user.id)){ authMsg('Compte créé. Connecte-toi maintenant.',true); return; } await afterAuth(d); }catch(err){ authMsg(err.message); } }
+function authSkip(){ hideAuth(); localStorage.setItem('financeiq_skipauth','1'); }
+function authLogout(){ AUTH=null; localStorage.removeItem('financeiq_auth'); localStorage.removeItem('financeiq_skipauth'); renderAccountUI(); toast('Déconnecté'); showAuth(); }
+var _cloudSyncTimer=null,_cloudRetry=0;
+function scheduleCloudSync(){ if(_cloudSyncTimer)clearTimeout(_cloudSyncTimer); _cloudSyncTimer=setTimeout(function(){ if(typeof syncToCloud==='function') syncToCloud(); },1500); }
+function refreshSyncStatusBig(){ var big=document.getElementById('sync-big-status'); if(!big)return; var ls=localStorage.getItem('financeiq_last_sync'); if(false){ big.textContent='☁️ Sync cloud perso non configurée (optionnel) — tes données sont déjà sauvées en local'; big.style.color='#4a5260'; return; } big.textContent= ls? ('✅ Dernière sauvegarde cloud : '+new Date(ls).toLocaleString('fr-BE')) : '☁️ Prêt — pas encore synchronisé'; big.style.color= ls?'#00e5a0':'#4a5260'; }
+function setSyncUI(status){var map={idle:{txt:'☁️ Cloud',col:'#4a5260',big:'☁️ Prêt'},syncing:{txt:'🔄 Sync...',col:'#ffa502',big:'🔄 Synchronisation…'},ok:{txt:'✅ Sync',col:'#00e5a0',big:'✅ Sauvegardé dans le cloud'},error:{txt:'⚠️ Hors ligne',col:'#ff4757',big:'⚠️ Hors ligne — nouvelle tentative automatique…'}};var s=map[status]||{txt:'☁️',col:'#4a5260',big:'☁️'};var el=document.getElementById('sync-indicator');if(el){el.textContent=s.txt;el.style.color=s.col;}var big=document.getElementById('sync-big-status');if(big){var ls=localStorage.getItem('financeiq_last_sync');var when=(status==='ok'&&ls)?(' · '+new Date(ls).toLocaleString('fr-BE')):'';big.textContent=s.big+when;big.style.color=s.col;}}
+async function syncToCloud(){setSyncUI('syncing');try{var blob={user_id:USER_ID,revenues:revenues,expenses:expenses,ibkr:ibkrBalance,debts:{huissier:debtHuissier,onem:debtOnem,invested:investedThisMonth,capital:realCapital,month:currentMonth,manual:manualPlanMonth},ledger:(typeof ledger!=='undefined'?ledger:{}),chat:(typeof chatHistory!=='undefined'?chatHistory.slice(-40):[]),updated_at:new Date().toISOString()};var res=await fetch(SHARED_SB_URL+'/rest/v1/omnivest_data',{method:'POST',headers:{'Content-Type':'application/json','apikey':SHARED_SB_KEY,'Authorization':'Bearer '+SHARED_SB_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'fiq_'+authUid(),data:blob,updated_at:blob.updated_at})});if(!res.ok){var err=await res.text();throw new Error(err);}setSyncUI('ok');_cloudRetry=0;localStorage.setItem('financeiq_last_sync',blob.updated_at);}catch(e){setSyncUI('error');console.warn('[Sync]',e.message);if(_cloudRetry<3){_cloudRetry++;setTimeout(function(){if(typeof syncToCloud==='function')syncToCloud();},8000);}}}
+async function syncFromCloud(){setSyncUI('syncing');try{var res=await fetch(SHARED_SB_URL+'/rest/v1/omnivest_data?id=eq.'+encodeURIComponent('fiq_'+authUid())+'&select=data,updated_at',{method:'GET',headers:{'apikey':SHARED_SB_KEY,'Authorization':'Bearer '+SHARED_SB_KEY,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);var rows=await res.json();if(!rows||rows.length===0){setSyncUI('ok');return false;}var data=rows[0].data||{};var cloudTime=new Date(rows[0].updated_at||data.updated_at||0).getTime();var localTime=new Date(localStorage.getItem('financeiq_last_sync')||0).getTime();if(cloudTime<=localTime){setSyncUI('ok');return false;}if(data.revenues)revenues=data.revenues;if(data.expenses)expenses=data.expenses;if(data.ibkr)ibkrBalance=data.ibkr;if(data.ledger){ledger=data.ledger;}if(data.chat){chatHistory=data.chat;}if(data.debts){debtHuissier=data.debts.huissier??debtHuissier;debtOnem=data.debts.onem??debtOnem;investedThisMonth=data.debts.invested??investedThisMonth;realCapital=data.debts.capital??realCapital;currentMonth=data.debts.month??currentMonth;manualPlanMonth=data.debts.manual??manualPlanMonth;}save();setSyncUI('ok');localStorage.setItem('financeiq_last_sync',rows[0].updated_at||data.updated_at);return true;}catch(e){setSyncUI('error');return false;}}
+function scheduleSave(){save();if(syncTimeout)clearTimeout(syncTimeout);syncTimeout=setTimeout(syncToCloud,2000);}
+// ══ OMNIVEST COLLABORATION (shared cloud + bridge) ══
+var SHARED_SB_URL='https://ariagmqrbeliwvmxwnav.supabase.co';
+var SHARED_SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyaWFnbXFyYmVsaXd2bXh3bmF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTc5MzYsImV4cCI6MjA5NTI5MzkzNn0.H6RxIl0d3qTfRdxgh5twnFF7EOIk6iyaFahpN59bR_o';
+function sharedHeaders(extra){var h={apikey:SHARED_SB_KEY,Authorization:'Bearer '+SHARED_SB_KEY,'Content-Type':'application/json'};if(extra){for(var k in extra)h[k]=extra[k];}return h;}
+function buildFinanceIQShare(){
+  var totalRev=(typeof getTotalRevenues==='function')?getTotalRevenues():0;
+  var totalExp=expenses.filter(function(e){return isThisMonth(e.date);}).reduce(function(s,e){return s+e.amt;},0);
+  var reste=totalRev-1220-totalExp-investedThisMonth;
+  var insights=['Plan month M'+currentMonth+'/60','Available this month: \u20ac'+Math.round(reste)];
+  if(debtHuissier>0) insights.push('Huissier debt: \u20ac'+debtHuissier.toLocaleString('fr-BE'));
+  return {source:'financeiq',capital:realCapital,monthlyIncome:totalRev,available:Math.round(reste),invested:investedThisMonth,debts:{huissier:debtHuissier,onem:debtOnem},planMonth:currentMonth,goals:'Objectif \u20ac10K capital (plan 60 mois \u2014 M'+currentMonth+')',notes:'Budget net dispo ~\u20ac'+Math.round(reste)+'/mois \u00b7 TOB 0.12% \u00e0 d\u00e9clarer trimestriellement',insights:insights,updatedAt:new Date().toISOString()};
+}
+function writeFinanceIQBridge(){ try{ localStorage.setItem('financeiq_sync', JSON.stringify(buildFinanceIQShare())); }catch(e){} }
+var _sharePushTimer=null;
+function omnivestSharePush(){ if(_sharePushTimer)clearTimeout(_sharePushTimer); _sharePushTimer=setTimeout(function(){ var d=buildFinanceIQShare(); fetch(SHARED_SB_URL+'/rest/v1/omnivest_data',{method:'POST',headers:sharedHeaders({Prefer:'resolution=merge-duplicates'}),body:JSON.stringify({id:'financeiq',data:d,updated_at:d.updatedAt})}).catch(function(){}); },1500); }
+var omnivestCloudData=null;
+function omnivestSharePull(){ return fetch(SHARED_SB_URL+'/rest/v1/omnivest_data?id=eq.main&select=data,updated_at',{headers:sharedHeaders()}).then(function(r){return r.ok?r.json():[];}).then(function(rows){ if(rows&&rows[0]&&rows[0].data){ var d=rows[0].data; var norm={history:(d.tradeHistory||d.history||[]),positions:(d.positions||[]),capital:(typeof d.capital==='number'?d.capital:realCapital),ibkr:(d.ibkrBalance||d.ibkr||{total:realCapital,pnl:0}),tradingStyle:d.tradingStyle,signals:d.signals,updatedAt:d.updatedAt}; omnivestCloudData=norm; try{ var local=localStorage.getItem('omnivest_journal_sync'); var lts=local?(JSON.parse(local).updatedAt||''):''; if(!lts||(norm.updatedAt&&norm.updatedAt>lts)) localStorage.setItem('omnivest_journal_sync',JSON.stringify(norm)); }catch(e){ try{localStorage.setItem('omnivest_journal_sync',JSON.stringify(norm));}catch(_){} } } }).catch(function(){}); }
+function openOmniVest(){ var url=localStorage.getItem('omnivest_url')||'https://didishas.github.io/omnivest/omnivest.html'; var sep=(url.indexOf('#')>=0)?'&':'#'; try{ if(typeof save==='function') save(); }catch(e){} window.open(url+sep+'from=financeiq&ts='+Date.now(),'_blank'); }
+function renderOmniLink(){ var el=document.getElementById('omni-link-status'); if(!el)return; var jd=(typeof getJournalData==='function')?getJournalData():null; if(jd){ var h=jd.history||[]; el.innerHTML='Dernier capital OmniVest : \u20ac'+((typeof jd.capital==='number')?jd.capital.toLocaleString('fr-BE'):'\u2014')+' \u00b7 '+h.length+' trades partag\u00e9s'+(jd.updatedAt?' \u00b7 '+new Date(jd.updatedAt).toLocaleString('fr-BE'):''); } else { el.textContent='Pas encore de donn\u00e9es OmniVest \u2014 ouvre OmniVest une fois (bouton ci-dessous).'; } }
+
+// ══ SIMULATEUR ══
+function runSimulator(){
+  var apportEl=document.getElementById('sim-apport');
+  var rateEl=document.getElementById('sim-rate');
+  var apport=apportEl?(parseFloat(apportEl.value)||1000):1000;
+  var rate=rateEl?(parseFloat(rateEl.value)||10):10;
+  var simData=calcProjection(apport,rate);
+  var baseData=calcProjection();
+  var m100k=-1,m1m=-1;
+  for(var i=0;i<=60;i++){if(m100k<0&&simData[i].prevu>=100000)m100k=i;if(m1m<0&&simData[i].prevu>=1000000)m1m=i;}
+  var finalCap=simData[60].prevu;
+  var diff=finalCap-baseData[60].prevu;
+  var col=diff>=0?'var(--green)':'var(--red)';
+  var el=document.getElementById('sim-result');
+  if(!el)return;
+  el.innerHTML='€100K → '+(m100k>0?'M'+m100k:'&gt;60')+'<br>'+'€1M → '+(m1m>0?'M'+m1m:'&gt;60')+'<br>'+'Capital M60 : €'+finalCap.toLocaleString('fr-BE')+'<br>'+'<span style="color:'+col+'">'+(diff>=0?'+':'')+'€'+diff.toLocaleString('fr-BE')+' vs plan base</span>';
+}
+
+function simRetrait(){
+  var el=document.getElementById('sim-retrait-result');
+  var montantEl=document.getElementById('sim-retrait');
+  var moisEl=document.getElementById('sim-retrait-month');
+  var montant=montantEl?parseFloat(montantEl.value):0;
+  if(!montant||isNaN(montant)){if(el)el.style.display='none';return;}
+  var m=(moisEl&&!isNaN(parseInt(moisEl.value)))?parseInt(moisEl.value):currentMonth;
+  var projBase=calcProjection();
+  var capAvant=(m<=60&&projBase[m])?projBase[m].prevu:0;
+  var capApres=Math.max(0,capAvant-montant);
+  var cap=capApres;
+  for(var i=m+1;i<=60;i++){cap=cap*1.10;cap+=(i===13?3200:i>9?1150:1000);}
+  var perteFinale=Math.max(0,projBase[60].prevu-Math.round(cap));
+  if(el){el.style.display='block';el.innerHTML='Retrait €'+montant.toLocaleString('fr-BE')+' au M'+m+'<br>'+'Capital après : €'+capApres.toLocaleString('fr-BE')+'<br>'+'Capital M60 estimé : €'+Math.round(cap).toLocaleString('fr-BE')+'<br>'+'<span style="color:var(--red)">Perte composée : -€'+perteFinale.toLocaleString('fr-BE')+'</span>';}
+}
+
+// ══ PARAMS ══
+function saveSupaKeys(){var url=document.getElementById('supa-url-input')?document.getElementById('supa-url-input').value.trim():'';var key=document.getElementById('supa-key-input')?document.getElementById('supa-key-input').value.trim():'';if(!url||!key){toast('Remplis les deux champs','err');return;}localStorage.setItem('financeiq_supa_url',url);localStorage.setItem('financeiq_supa_key',key);var ui=document.getElementById('supa-url-input');var ki=document.getElementById('supa-key-input');if(ui){ui.value='';ui.placeholder='Configuré ✓';}if(ki){ki.value='';ki.placeholder='•••••••••••• ✓';}var st=document.getElementById('supa-status');if(st){st.textContent='✓ Clés sauvegardées — sync activée';st.style.color='var(--green)';}toast('✅ Clés Supabase sauvegardées !');syncToCloud();}
+function clearSupaKeys(){localStorage.removeItem('financeiq_supa_url');localStorage.removeItem('financeiq_supa_key');localStorage.removeItem('financeiq_last_sync');setSyncUI('idle');var st=document.getElementById('supa-status');if(st){st.textContent='Clés supprimées';st.style.color='var(--txt3)';}toast('Clés supprimées');}
+async function testSupaConnection(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');if(!url||!key){toast('Entre tes clés dabord','err');return;}setSyncUI('syncing');var st=document.getElementById('supa-status');try{var res=await fetch(url+'/rest/v1/financeiq_state?limit=1',{method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key,'Accept':'application/json'}});if(!res.ok)throw new Error('HTTP '+res.status);setSyncUI('ok');if(st){st.textContent='✅ Connexion réussie !';st.style.color='var(--green)';}toast('✅ Connexion OK !');}catch(e){setSyncUI('error');if(st){st.textContent='⚠️ '+e.message;st.style.color='var(--red)';}toast('⚠️ '+e.message,'err');}}
+function saveAnthropicKey(){var k=document.getElementById('anthropic-key-input')?document.getElementById('anthropic-key-input').value.trim():'';if(!k||!k.startsWith('sk-ant')){toast('Clé invalide','err');return;}localStorage.setItem('anthropic_key',k);var inp=document.getElementById('anthropic-key-input');var st=document.getElementById('anthropic-status');if(inp){inp.value='';inp.placeholder='•••••••••••• (configurée)';}if(st){st.textContent='✓ Clé active';st.style.color='var(--green)';}toast('✅ Clé Anthropic sauvegardée !');}
+function exportData(){var data=JSON.stringify({expenses:expenses,ibkrBalance:ibkrBalance,investedThisMonth:investedThisMonth,debtHuissier:debtHuissier,debtOnem:debtOnem,currentMonth:currentMonth,manualPlanMonth:manualPlanMonth,realCapital:realCapital,revenues:revenues,exportedAt:new Date().toISOString()},null,2);var a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(data);a.download='financeiq-'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('✅ Exporté');}
+function clearLocalData(){if(!confirm('Effacer toutes les données ?'))return;localStorage.removeItem(SK);location.reload();}
+function restoreSupaUI(){var url=localStorage.getItem('financeiq_supa_url');var key=localStorage.getItem('financeiq_supa_key');var ui=document.getElementById('supa-url-input');var ki=document.getElementById('supa-key-input');var st=document.getElementById('supa-status');if(url&&key){if(ui)ui.placeholder='Configuré ✓';if(ki)ki.placeholder='•••••••••••• ✓';if(st){st.textContent='✓ Sync active';st.style.color='var(--green)';}}var ak=localStorage.getItem('anthropic_key');var akI=document.getElementById('anthropic-key-input');var akS=document.getElementById('anthropic-status');if(ak&&akI)akI.placeholder='•••••••••••• (configurée)';if(ak&&akS){akS.textContent='✓ Clé active';akS.style.color='var(--green)';}}
+
+// ══ INIT ══
+async function initApp(){
+  restoreRevenues();
+  restoreSupaUI();
+  renderBudget();
+  renderDashboard();
+  if(typeof renderAccountUI==='function') renderAccountUI();
+  if(!AUTH && localStorage.getItem('financeiq_skipauth')!=='1' && typeof showAuth==='function') showAuth();
+  if(typeof writeFinanceIQBridge==='function') writeFinanceIQBridge();
+  try{ omnivestSharePull(); }catch(e){}
+  if(location.hash.indexOf('from=omnivest')>=0){ setTimeout(function(){ if(typeof refreshAdaptivePlan==='function') refreshAdaptivePlan(); }, 800); }
+  var updated = await syncFromCloud();
+  if(typeof renderChatHistory==='function') renderChatHistory();
+  if(updated){restoreRevenues();renderExpenses();renderBilan();renderDashboard();toast('✅ Données synchronisées !');}
+}
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden'){ try{ if(typeof syncToCloud==='function') syncToCloud(); }catch(e){} } });
+window.addEventListener('pagehide',function(){ try{ if(typeof syncToCloud==='function') syncToCloud(); }catch(e){} });
+var APP_VERSION='2026-06-01-fiq10';
+function showUpdateBanner(){ if(document.getElementById('upd-banner'))return; var b=document.createElement('div'); b.id='upd-banner'; b.style.cssText='position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:99998;background:linear-gradient(135deg,#e3c160,#c9a84c);color:#111;font-weight:800;padding:13px 18px;border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.35);cursor:pointer;font-size:13px'; b.textContent='\u2728 Nouvelle version disponible \u2014 toucher pour rafra\u00eechir'; b.onclick=function(){ try{ if(window.caches){ caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}); } }catch(e){} location.href=location.pathname+'?u='+Date.now(); }; document.body.appendChild(b); }
+function checkVersion(){ try{ fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(t){ var m=t.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/); if(m&&m[1]&&m[1]!==APP_VERSION){ showUpdateBanner(); } }).catch(function(){}); }catch(e){} }
+setTimeout(checkVersion,4000); setInterval(checkVersion,300000);
+initApp();
+// == PLAN ADAPTATIF ==
+function getJournalData(){var r=localStorage.getItem('omnivest_journal_sync');if(!r)return null;try{return JSON.parse(r);}catch(e){return null;}}
+
+function calcRealPerf(h){
+  if(!h||!h.length)return null;
+  var w=h.filter(function(t){return t.pl>0;});
+  var l=h.filter(function(t){return t.pl<=0;});
+  var tot=h.reduce(function(s,t){return s+t.pl;},0);
+  var wr=w.length/h.length;
+  var aw=w.length?w.reduce(function(s,t){return s+t.pl;},0)/w.length:0;
+  var al=l.length?Math.abs(l.reduce(function(s,t){return s+t.pl;},0)/l.length):0;
+  var ex=aw*wr-al*(1-wr);
+  var as=h.reduce(function(s,t){return s+(t.size||20);},0)/h.length;
+  var mr=Math.min(Math.max(h.length?(tot/h.length/as*100)*4:0,-20),50);
+  return{trades:h.length,wins:w.length,losses:l.length,winRate:(wr*100).toFixed(0),
+    totalPL:tot.toFixed(2),avgWin:aw.toFixed(2),avgLoss:al.toFixed(2),
+    expectancy:ex.toFixed(2),monthlyEst:mr.toFixed(1)};
+}
+
+function getLearningPhase(cap,trades,wr){
+  if(cap<500||trades<5)return{phase:1,name:'Debutant',color:'var(--blue)',
+    focus:'Maitrise les bases: entree, stop-loss, position sizing. Max 2 positions.',
+    maxPos:2,maxSizePct:5,milestone:'10 trades et 50% win rate',
+    skills:['Signaux OmniVest','Stop-loss','Calculer R:R','Bracket order IBKR']};
+  if(cap<2000||trades<20)return{phase:2,name:'Intermediaire',color:'var(--amber)',
+    focus:'Affine la strategie. Analyse tes patterns. Apprends le trailing stop.',
+    maxPos:3,maxSizePct:10,milestone:'EUR2000 avec win rate > 55%',
+    skills:['Trailing stop','Analyser patterns','Pyramider','Gerer emotions']};
+  if(cap<10000)return{phase:3,name:'Avance',color:'var(--green)',
+    focus:'Scale up les positions gagnantes. Diversifie. Regles Turtle S1/S2.',
+    maxPos:5,maxSizePct:15,milestone:'EUR10000 — objectif Phase 1',
+    skills:['Turtle S1/S2','Diversification','Kelly sizing','Macro context']};
+  return{phase:4,name:'Expert',color:'var(--gold)',
+    focus:'Optimise. Diversifie vers immobilier et business Afrique.',
+    maxPos:10,maxSizePct:20,milestone:'EUR50000 — diversification',
+    skills:['Portfolio opt.','Business Afrique','Revenus passifs','Immobilier']};
+}
+
+function calcMonthDate(m){var d=new Date(2026,4,1);d.setMonth(d.getMonth()+m);return d.toLocaleDateString('fr-BE',{month:'short',year:'numeric'});}
+
+function refreshAdaptivePlan(){
+  var jd=getJournalData();
+  var h=jd?(jd.history||[]):[];
+  var p=calcRealPerf(h);
+  var cap=jd?(jd.capital||realCapital):realCapital;
+  var wr=p?parseFloat(p.winRate):0;
+  var ph=getLearningPhase(cap,h.length,wr);
+  
+  var pm=[
+    {lbl:'PHASE',val:ph.phase+'/4',cls:'m-blue',sub:ph.name},
+    {lbl:'CAPITAL',val:'EUR'+cap.toLocaleString('fr-BE'),cls:'m-gold',sub:'IBKR actuel'},
+    {lbl:'TRADES',val:h.length,cls:'m-purple',sub:'Dans le journal'},
+    {lbl:'WIN RATE',val:(p?p.winRate:'?')+'%',cls:p&&parseInt(p.winRate)>=50?'m-green':'m-red',sub:'Tous tes trades'},
+    {lbl:'MAX POS',val:ph.maxSizePct+'%',cls:'m-amber',sub:'Du capital/trade'},
+    {lbl:'MAX OPEN',val:ph.maxPos,cls:'m-blue',sub:'Positions simult.'}
+  ];
+  document.getElementById('adapt-phase-metrics').innerHTML=pm.map(function(m){
+    return '<div class="metric '+m.cls+'"><div class="m-lbl">'+m.lbl+'</div><div class="m-val">'+m.val+'</div><div class="m-sub">'+m.sub+'</div></div>';
+  }).join('');
+
+  var pc=document.getElementById('adapt-perf-card');
+  var pco=document.getElementById('adapt-perf-content');
+  if(pc)pc.style.display='block';
+  if(pco){
+    if(p&&h.length>0){
+      var col=parseFloat(p.totalPL)>=0?'var(--green)':'var(--red)';
+      pco.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:10px">'+
+        [['WIN RATE',p.winRate+'%',parseInt(p.winRate)>=50?'var(--green)':'var(--red)'],
+         ['P&L TOTAL',(parseFloat(p.totalPL)>=0?'+':'')+'EUR'+p.totalPL,col],
+         ['MOY GAIN','+EUR'+p.avgWin,'var(--green)'],
+         ['MOY PERTE','-EUR'+p.avgLoss,'var(--red)'],
+         ['ESPERANCE',(parseFloat(p.expectancy)>=0?'+':'')+'EUR'+p.expectancy,parseFloat(p.expectancy)>=0?'var(--green)':'var(--red)'],
+         ['REND EST',(parseFloat(p.monthlyEst)>=0?'+':'')+p.monthlyEst+'%/mois',parseFloat(p.monthlyEst)>=5?'var(--green)':'var(--amber)']
+        ].map(function(m){return '<div style="background:var(--bg3);border-radius:8px;padding:9px;text-align:center"><div style="font-family:var(--mono);font-size:8px;color:var(--txt3);margin-bottom:3px">'+m[0]+'</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;color:'+m[2]+'">'+m[1]+'</div></div>';}).join('')+
+        '</div>'+
+        (parseInt(p.winRate)<40?
+          '<div style="background:var(--rdim);border:1px solid rgba(255,71,87,.2);border-radius:7px;padding:10px;font-size:11px;color:var(--red);line-height:1.7">Win rate faible. Revois tes criteres dentree avant daugmenter la taille.</div>':
+         parseInt(p.winRate)>=60?
+          '<div style="background:var(--gdim2);border:1px solid rgba(0,229,160,.2);border-radius:7px;padding:10px;font-size:11px;color:var(--green);line-height:1.7">Excellent win rate! Tu peux augmenter progressivement la taille.</div>':
+          '<div style="background:rgba(255,165,2,.08);border:1px solid rgba(255,165,2,.2);border-radius:7px;padding:10px;font-size:11px;color:var(--amber);line-height:1.7">Win rate correct. Continue avant daugmenter la taille.</div>');
+    } else {
+      pco.innerHTML='<div style="text-align:center;color:var(--txt3);font-family:var(--mono);font-size:11px;padding:16px">Pas encore de trades fermes dans OmniVest Journal.<br>Ferme des positions pour alimenter ce plan.</div>';
+    }
+  }
+
+  var rate=p&&h.length>=5?Math.max(0,parseFloat(p.monthlyEst)):10;
+  var adjRate=rate*(28.4>25?0.5:1);
+  var cur=Math.max(realCapital,20);
+  var m100k=-1;
+  for(var i=1;i<=60;i++){cur=cur*(1+adjRate/100);cur+=(i===13?3200:i>9?1150:1000);if(m100k<0&&cur>=100000)m100k=i;}
+  var pl2=document.getElementById('adapt-plan-content');
+  if(pl2){pl2.innerHTML=
+    '<div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:10px;font-family:var(--mono);font-size:10px;line-height:1.9">'+
+      '<div>Rendement : <span style="color:var(--gold)">'+adjRate.toFixed(1)+'%/mois</span>'+(h.length>=5?' (tes vrais trades)':' (defaut 10%)')+' </div>'+
+      '<div>Ajust. VIX 28.4 : <span style="color:var(--amber)">x0.5</span></div>'+
+      '<div>Capital : <span style="color:var(--green)">EUR'+realCapital.toLocaleString('fr-BE')+'</span></div>'+
+      '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">EUR100K : <span style="color:var(--gold);font-size:15px;font-weight:700">'+(m100k>0?'M'+m100k+' ('+calcMonthDate(m100k)+')':'Ameliore le rendement')+'</span></div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--txt2);line-height:1.8">'+
+      (rate<10?'Ameliore le win rate avant daugmenter<br>':'Continue avec cette performance<br>')+
+      'Ajoute EUR'+(currentMonth<=9?'1,000':'1,150')+' ce mois<br>'+
+      'Stop-loss sur chaque trade — sans exception'+
+    '</div>';}
+
+  var le=document.getElementById('adapt-learning-content');
+  if(le){le.innerHTML=
+    '<div style="border-left:3px solid '+ph.color+';padding-left:12px;margin-bottom:12px">'+
+      '<div style="font-size:13px;font-weight:700;color:'+ph.color+';margin-bottom:6px">Phase '+ph.phase+' — '+ph.name+'</div>'+
+      '<div style="font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:8px">'+ph.focus+'</div>'+
+      '<div style="font-family:var(--mono);font-size:10px;color:var(--txt3)">Objectif : <span style="color:var(--txt)">'+ph.milestone+'</span></div>'+
+    '</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+    ph.skills.map(function(s){return '<span style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:9px;color:var(--txt2)">'+s+'</span>';}).join('')+
+    '</div>';}
+  toast('Plan adaptatif recalcule !');
+}
+
+async function aiAdaptiveAdvice(){
+  var key=localStorage.getItem('anthropic_key')||'';
+  var box=document.getElementById('adapt-ai-advice');
+  if(!box)return;
+  if(!key){box.style.cssText='display:block;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px';box.textContent='Cle Anthropic requise.';return;}
+  box.style.cssText='display:block;background:var(--bg2);border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:12px';
+  box.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--gold);margin-bottom:8px">CONSEIL IA ADAPTE — M'+currentMonth+'</div><div style="color:var(--txt3)">Analyse...</div>';
+  var jd=getJournalData();
+  var h=jd?(jd.history||[]):[];
+  var p=calcRealPerf(h);
+  var ph=getLearningPhase(realCapital,h.length,p?parseFloat(p.winRate):0);
+  var prompt='Didier Ukanda, investisseur belge debutant, Phase '+ph.phase+'/4. Capital IBKR: EUR'+realCapital+'. Trades: '+h.length+'.'+(p?' Win rate: '+p.winRate+'%. PL: EUR'+p.totalPL+'. Esperance: EUR'+p.expectancy+'/trade.':' Pas de trades.')+'VIX: 28.4. Mois M'+currentMonth+'/60. Objectif EUR20 vers EUR100K. Donne 5 conseils concrets pour ce mois.';
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:600,messages:[{role:'user',content:prompt}]})
+    });
+    var d=await res.json();
+    var t=d.content&&d.content[0]?d.content[0].text:'Erreur.';
+    box.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--gold);margin-bottom:10px">CONSEIL IA — M'+currentMonth+'</div><div style="font-size:12px;line-height:1.8;color:var(--txt)">'+t.split('\n').join('<br>')+'</div>';
+  }catch(e){box.innerHTML='Erreur connexion.';}
+}
+
+</script>
+</body>
+</html>
