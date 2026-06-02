@@ -354,6 +354,7 @@ body[data-theme="dark"] .quick-card:hover{
       <button class="tab" data-target="chart" onclick="go('chart',this)"><span class="nav-ico" style="background:rgba(255,255,255,.07)">📊</span>Charts</button>
       <button class="tab" data-target="portfolio" onclick="go('portfolio',this)"><span class="nav-ico"><img class="nico-img" src="nav-portfolio.png" alt="" onerror="this.replaceWith(document.createTextNode('💼'))"></span>Portfolio</button>
       <button class="tab" data-target="journal" onclick="go('journal',this)"><span class="nav-ico"><img class="nico-img" src="nav-journal.png" alt="" onerror="this.replaceWith(document.createTextNode('📋'))"></span>Journal</button>
+      <button class="tab" data-target="checklist" onclick="go('checklist',this)"><span class="nav-ico" style="background:rgba(255,255,255,.07)">✅</span>Checklist</button>
       <button class="tab" data-target="chat" onclick="go('chat',this)"><span class="nav-ico"><img class="nico-img" src="nav-coach.png" alt="" onerror="this.replaceWith(document.createTextNode('🤖'))"></span>AI Coach</button>
       <button class="tab" data-target="schedule" onclick="go('schedule',this)"><span class="nav-ico"><img class="nico-img" src="nav-planning.png" alt="" onerror="this.replaceWith(document.createTextNode('⏱'))"></span>Planning</button>
       <button class="tab" data-target="tax" onclick="go('tax',this)"><span class="nav-ico"><img class="nico-img" src="nav-tax.png" alt="" onerror="this.replaceWith(document.createTextNode('🇧🇪'))"></span>Tax</button>
@@ -1426,7 +1427,7 @@ if(!AUTH && localStorage.getItem("omnivest_skipauth")!=="1" && typeof showAuth==
 try{ cloudLoad(); pullFinanceIQLocal(); pullFinanceIQCloud(); }catch(e){}
 try{ if(typeof renderChatHistory==='function') renderChatHistory(); }catch(e){}
 if ('serviceWorker' in navigator) {
-  const APP_VERSION='2026-06-02-ov33';
+  const APP_VERSION='2026-06-02-ov34';
   function showUpdateBanner(){ if(document.getElementById('upd-banner'))return; var b=document.createElement('div'); b.id='upd-banner'; b.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99998;background:linear-gradient(135deg,#e3c160,#c9a84c);color:#111;font-weight:800;padding:13px 18px;border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.35);cursor:pointer;font-size:13px'; b.textContent='\u2728 New version available \u2014 tap to refresh'; b.onclick=function(){ try{ if(window.caches){ caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}); } }catch(e){} location.href=location.pathname+'?u='+Date.now(); }; document.body.appendChild(b); }
   function checkVersion(){ try{ fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(t){ var m=t.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/); if(m&&m[1]&&m[1]!==APP_VERSION){ showUpdateBanner(); } }).catch(function(){}); }catch(e){} }
   setTimeout(checkVersion,4000); setInterval(checkVersion,300000);
